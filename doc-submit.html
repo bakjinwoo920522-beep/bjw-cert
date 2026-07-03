@@ -903,6 +903,7 @@ body {
   <nav>
     <a href="apply.html">응시 신청</a>
     <a href="written-pass.html">필기합격 조회</a>
+    <a href="admit-card.html">응시표 출력</a>
     <a href="doc-submit.html" style="color:var(--amber-lt)">심사서류 제출</a>
     <a href="final-pass.html">최종합격 조회</a>
     <a href="certificate.html">자격증 발급</a>
@@ -994,6 +995,10 @@ body {
         📋 신청 자격증을 선택하세요
       </div>
       <div style="display:flex; gap:10px; flex-wrap:wrap">
+        <label style="flex:1; min-width:140px; border:2px solid var(--cream-d); border-radius:var(--radius); padding:12px 14px; cursor:pointer; display:flex; align-items:center; gap:10px; transition:all .2s; font-size:13px" id="lbl-cert-3급">
+          <input type="radio" name="cert-grade" value="3급" onchange="onGradeChange(this)" style="accent-color:var(--moss)">
+          <span><strong>3급</strong> <span style="color:var(--muted);font-size:11px">· 공통 서류만 제출</span></span>
+        </label>
         <label style="flex:1; min-width:140px; border:2px solid var(--cream-d); border-radius:var(--radius); padding:12px 14px; cursor:pointer; display:flex; align-items:center; gap:10px; transition:all .2s; font-size:13px" id="lbl-cert-1급">
           <input type="radio" name="cert-grade" value="1급" onchange="onGradeChange(this)" style="accent-color:var(--moss)">
           <span><strong>1급</strong></span>
@@ -1019,7 +1024,7 @@ body {
           <span class="doc-status-badge" id="badge-app-form">미제출</span>
         </div>
         <div style="margin-bottom:10px">
-          <a href="#" class="btn btn-secondary" style="font-size:12px;padding:7px 14px">📄 자격검정신청서 양식 다운로드</a>
+          <a href="#" class="btn btn-secondary" style="font-size:12px;padding:7px 14px" onclick="downloadForm('자격검정신청서');return false;">📄 자격검정신청서 양식 다운로드</a>
         </div>
         <div class="upload-zone" id="zone-app-form" ondragover="handleDragOver(event,'app-form')" ondragleave="handleDragLeave(event,'app-form')" ondrop="handleDrop(event,'app-form')">
           <input type="file" id="file-app-form" accept=".jpg,.jpeg,.png,.pdf,.hwp,.doc,.docx" onchange="handleFileSelect(this,'app-form')">
@@ -1036,9 +1041,12 @@ body {
           <div class="doc-thumb purple">👤</div>
           <div class="doc-meta">
             <div class="doc-title">이력서 <span class="doc-req">필수</span></div>
-            <div class="doc-desc">자유 양식 또는 국가표준 이력서 · 사진 부착 필수 · HWP · DOC · PDF / 10MB 이하</div>
+            <div class="doc-desc">센터 지정 양식 작성 후 제출 · 사진 부착 필수 · 10MB 이하</div>
           </div>
           <span class="doc-status-badge" id="badge-resume">미제출</span>
+        </div>
+        <div style="margin-bottom:10px">
+          <a href="#" class="btn btn-secondary" style="font-size:12px;padding:7px 14px" onclick="downloadForm('이력서');return false;">📄 이력서 양식 다운로드</a>
         </div>
         <div class="upload-zone" id="zone-resume" ondragover="handleDragOver(event,'resume')" ondragleave="handleDragLeave(event,'resume')" ondrop="handleDrop(event,'resume')">
           <input type="file" id="file-resume" accept=".jpg,.jpeg,.png,.pdf,.hwp,.doc,.docx" onchange="handleFileSelect(this,'resume')">
@@ -1059,6 +1067,7 @@ body {
           </div>
           <span class="doc-status-badge" id="badge-recommend">선택</span>
         </div>
+        <div style="margin-bottom:10px"><a href="#" class="btn btn-secondary" style="font-size:12px;padding:7px 14px" onclick="downloadForm('지도교수추천서');return false;">📄 지도교수추천서 양식 다운로드</a></div>
         <div class="upload-zone" id="zone-recommend" ondragover="handleDragOver(event,'recommend')" ondragleave="handleDragLeave(event,'recommend')" ondrop="handleDrop(event,'recommend')">
           <input type="file" id="file-recommend" accept=".jpg,.jpeg,.png,.pdf" onchange="handleFileSelect(this,'recommend')">
           <div class="uz-icon">🏫</div>
@@ -1198,7 +1207,7 @@ body {
     <!-- 이메일 대안 -->
     <div class="email-alt-box">
       📧 파일 업로드가 어려운 경우<br>
-      <strong>jinwoo_hort@daum.net</strong>으로 이메일 제출 가능<br>
+      이메일로 문의해 주세요.<br>
       제목 형식: <strong>[심사서류] 성명_자격증명 (예: [심사서류] 홍길동_원예심리상담사)</strong>
     </div>
 
@@ -1232,9 +1241,7 @@ body {
       <div class="submitted-list" id="submitted-summary"></div>
 
       <div class="alert alert-info" style="text-align:left; margin-top:16px">
-        📌 서류 보완이 필요할 경우 등록하신 이메일로 연락드립니다.<br>
-        문의: <strong>jinwoo_hort@daum.net</strong>
-      </div>
+        📌 서류 보완이 필요할 경우 등록하신 이메일로 연락드립니다.<br> </div>
 
       <div style="margin-top:24px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap">
         <a href="final-pass.html" class="btn btn-primary">🏆 최종합격 조회</a>
@@ -1250,8 +1257,7 @@ body {
     style="height:64px; margin-bottom:12px; filter:brightness(0) invert(1); opacity:0.85;">
   <br>
   <strong>박진우원예치료센터</strong><br>
-  원예심리상담사 · 색채심리상담사 · 힐링정원사 자격증 관리기관<br>
-  문의: jinwoo_hort@daum.net<br>
+  원예심리상담사 · 색채원예심리상담사 · 힐링정원사 자격증 관리기관<br>
   © 2025 박진우원예치료센터. All rights reserved.
 </footer>
 
@@ -1309,6 +1315,38 @@ body {
     } catch(e) { console.error(e); }
   }
 
+
+  // ── 양식 파일 다운로드 (Firebase Storage or 직접 링크)
+  const FORM_FALLBACK = {
+    '자격검정신청서': '../forms/자격검정신청서.docx',
+    '이력서':         '../forms/이력서.docx',
+    '지도교수추천서': '../forms/지도교수추천서.docx',
+  };
+
+  window.downloadForm = async function(formName) {
+    try {
+      // Firestore에서 관리자가 등록한 Storage URL 확인
+      const snap = await getDoc(doc(db, 'bjw_config', 'bjw_forms'));
+      if (snap.exists()) {
+        const forms = snap.data();
+        if (forms[formName]) {
+          const a = document.createElement('a');
+          a.href = forms[formName];
+          a.download = formName + '.docx';
+          a.target = '_blank';
+          a.click();
+          return;
+        }
+      }
+    } catch(e) { console.error(e); }
+
+    // fallback: 직접 파일 링크
+    const a = document.createElement('a');
+    a.href = FORM_FALLBACK[formName];
+    a.download = formName + '.docx';
+    a.click();
+  };
+
   // 자격증 등급
   let selectedGrade = '';
 
@@ -1346,7 +1384,7 @@ body {
     document.getElementById('docs-2level').style.display = is2 ? 'block' : 'none';
 
     // 라벨 스타일 업데이트
-    ['1급','2급'].forEach(g => {
+    ['3급','1급','2급'].forEach(g => {
       const lbl = document.getElementById('lbl-cert-' + g);
       if (lbl) {
         lbl.style.borderColor = selectedGrade === g ? 'var(--moss)' : 'var(--cream-d)';
