@@ -999,6 +999,16 @@ body {
           <label>연락처 <span class="req">*</span></label>
           <input type="tel" id="issue-phone" placeholder="010-0000-0000">
         </div>
+        <div class="form-group">
+          <label>발급일 <span class="req">*</span></label>
+          <input type="date" id="issue-date-input"
+            onchange="(function(){var v=document.getElementById('issue-date-input').value;if(v){var d=new Date(v);d.setFullYear(d.getFullYear()+3);document.getElementById('issue-valid-input').value=d.toISOString().slice(0,10);}})()">
+        </div>
+        <div class="form-group">
+          <label>유효기간 <small style="color:var(--muted);font-weight:400">(발급일 +3년 자동)</small></label>
+          <input type="date" id="issue-valid-input"
+            style="background:#EEF5F0;color:#2D5A35;font-weight:600;">
+        </div>
         <div class="form-group full">
           <label>우편 수령 주소 (택배 선택 시)</label>
           <input type="text" id="issue-address" placeholder="주소를 입력하세요">

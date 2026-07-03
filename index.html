@@ -957,6 +957,7 @@ body {
         <div class="sidebar-menu-item" onclick="showPage('idcheck', this)">✅ 신분증 확인</div>
         <div class="sidebar-menu-item" onclick="showPage('passedit', this)">✏️ 합격자 관리</div>
         <div class="sidebar-menu-item" onclick="showPage('refreshed', this)">🔄 보수교육 재발급</div>
+        <div class="sidebar-menu-item" onclick="showPage('forms', this)">📁 양식 파일 관리</div>
       </div>
     </div>
   </aside>
@@ -1019,7 +1020,7 @@ body {
         <select id="filter-cert" onchange="filterTable()">
           <option value="">전체 자격증</option>
           <option value="hort">원예심리상담사</option>
-          <option value="color">색채심리상담사</option>
+          <option value="color">색채원예심리상담사</option>
           <option value="garden">힐링정원사</option>
         </select>
         <select id="filter-status" onchange="filterTable()">
@@ -1293,7 +1294,7 @@ body {
         <select id="filter-passlist-cert" onchange="filterPassList()">
           <option value="">전체 자격증</option>
           <option value="hort">원예심리상담사</option>
-          <option value="color">색채심리상담사</option>
+          <option value="color">색채원예심리상담사</option>
           <option value="garden">힐링정원사</option>
         </select>
         <button class="btn btn-primary" style="font-size:12px;padding:8px 16px" onclick="loadPassList()">
@@ -1372,7 +1373,7 @@ body {
             <select id="add-cert">
               <option value="">선택하세요</option>
               <option value="hort">원예심리상담사</option>
-              <option value="color">색채심리상담사</option>
+              <option value="color">색채원예심리상담사</option>
               <option value="garden">힐링정원사</option>
             </select>
           </div>
@@ -1389,11 +1390,12 @@ body {
           </div>
           <div class="form-group">
             <label>발급일 (발급완료 시)</label>
-            <input type="date" id="add-issue-date">
+            <input type="date" id="add-issue-date"
+              onchange="(function(){var v=document.getElementById('add-issue-date').value;if(v){var d=new Date(v);d.setFullYear(d.getFullYear()+3);document.getElementById('add-valid-date').value=d.toISOString().slice(0,10);}})()">
           </div>
           <div class="form-group">
-            <label>유효기간 만료일</label>
-            <input type="date" id="add-valid-date">
+            <label>유효기간 만료일 <small style="color:var(--muted);font-weight:400">(발급일 +3년 자동)</small></label>
+            <input type="date" id="add-valid-date" style="background:#EEF5F0;color:#2D5A35;">
           </div>
           <div class="form-group">
             <label>비고</label>
@@ -1687,7 +1689,7 @@ body {
         <select id="filter-passedit-cert" onchange="filterPassEditTable()">
           <option value="">전체 자격증</option>
           <option value="hort">원예심리상담사</option>
-          <option value="color">색채심리상담사</option>
+          <option value="color">색채원예심리상담사</option>
           <option value="garden">힐링정원사</option>
         </select>
         <select id="filter-passedit-certno" onchange="filterPassEditTable()">
@@ -1742,7 +1744,7 @@ body {
             <label>자격증 <span class="req">*</span></label>
             <select id="edit-cert">
               <option value="hort">원예심리상담사</option>
-              <option value="color">색채심리상담사</option>
+              <option value="color">색채원예심리상담사</option>
               <option value="garden">힐링정원사</option>
             </select>
           </div>
@@ -1752,11 +1754,12 @@ body {
           </div>
           <div class="form-group">
             <label>발급일</label>
-            <input type="date" id="edit-issue-date">
+            <input type="date" id="edit-issue-date"
+              onchange="(function(){var v=document.getElementById('edit-issue-date').value;if(v){var d=new Date(v);d.setFullYear(d.getFullYear()+3);document.getElementById('edit-valid-date').value=d.toISOString().slice(0,10);}})()">
           </div>
           <div class="form-group">
-            <label>유효기간 만료일</label>
-            <input type="date" id="edit-valid-date">
+            <label>유효기간 만료일 <small style="color:var(--muted);font-weight:400">(발급일 +3년 자동)</small></label>
+            <input type="date" id="edit-valid-date" style="background:#EEF5F0;color:#2D5A35;">
           </div>
           <div class="form-group">
             <label>상태</label>
@@ -1962,6 +1965,123 @@ body {
       </div>
     </div><!-- /page-refreshed -->
 
+    <!-- ═ 양식 파일 관리 ═ -->
+    <div class="admin-page" id="page-forms">
+      <h2 style="font-family:'Noto Serif KR',serif; font-size:20px; margin-bottom:6px; color:var(--dark)">
+        📁 양식 파일 관리
+      </h2>
+      <p style="font-size:13px; color:var(--muted); margin-bottom:20px">
+        서류 제출 페이지의 양식 파일을 등록·교체합니다. 등록된 파일은 응시자가 즉시 다운로드 가능합니다.
+      </p>
+
+      <div class="alert alert-info" style="margin-bottom:20px">
+        ℹ️ 파일을 등록하지 않으면 응시자는 <code>forms/</code> 폴더의 기본 파일을 다운로드합니다.
+        새 파일을 등록하면 Firestore에 URL이 저장되어 자동으로 적용됩니다.
+      </div>
+
+      <!-- 양식 카드 3종 -->
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px,1fr)); gap:16px;">
+
+        <!-- 자격검정신청서 -->
+        <div class="bjw-card" id="form-card-자격검정신청서">
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px">
+            <div style="width:44px;height:44px;background:#EEF5F0;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:22px">📋</div>
+            <div>
+              <div style="font-weight:700;font-size:14px;color:var(--dark)">자격검정신청서</div>
+              <div style="font-size:11px;color:var(--muted)" id="form-status-자격검정신청서">기본 파일 사용 중</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <a href="../forms/자격검정신청서.docx" download class="btn btn-secondary" style="font-size:12px;padding:8px 12px">
+              ⬇️ 현재 파일
+            </a>
+            <button class="btn btn-primary" style="font-size:12px;padding:8px 12px"
+              onclick="document.getElementById('upload-input-자격검정신청서').click()">
+              ⬆️ 새 파일 등록
+            </button>
+            <input type="file" id="upload-input-자격검정신청서" accept=".docx,.hwp,.pdf" style="display:none"
+              onchange="uploadFormFile(this, '자격검정신청서')">
+          </div>
+          <div id="upload-progress-자격검정신청서" style="display:none;margin-top:10px">
+            <div style="background:#EEF5F0;border-radius:4px;height:6px;overflow:hidden">
+              <div id="upload-bar-자격검정신청서" style="background:var(--moss);height:100%;width:0%;transition:width .3s"></div>
+            </div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px" id="upload-msg-자격검정신청서">업로드 중...</div>
+          </div>
+        </div>
+
+        <!-- 이력서 -->
+        <div class="bjw-card" id="form-card-이력서">
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px">
+            <div style="width:44px;height:44px;background:#EEF5F0;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:22px">👤</div>
+            <div>
+              <div style="font-weight:700;font-size:14px;color:var(--dark)">이력서</div>
+              <div style="font-size:11px;color:var(--muted)" id="form-status-이력서">기본 파일 사용 중</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <a href="../forms/이력서.docx" download class="btn btn-secondary" style="font-size:12px;padding:8px 12px">
+              ⬇️ 현재 파일
+            </a>
+            <button class="btn btn-primary" style="font-size:12px;padding:8px 12px"
+              onclick="document.getElementById('upload-input-이력서').click()">
+              ⬆️ 새 파일 등록
+            </button>
+            <input type="file" id="upload-input-이력서" accept=".docx,.hwp,.pdf" style="display:none"
+              onchange="uploadFormFile(this, '이력서')">
+          </div>
+          <div id="upload-progress-이력서" style="display:none;margin-top:10px">
+            <div style="background:#EEF5F0;border-radius:4px;height:6px;overflow:hidden">
+              <div id="upload-bar-이력서" style="background:var(--moss);height:100%;width:0%;transition:width .3s"></div>
+            </div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px" id="upload-msg-이력서">업로드 중...</div>
+          </div>
+        </div>
+
+        <!-- 지도교수추천서 -->
+        <div class="bjw-card" id="form-card-지도교수추천서">
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px">
+            <div style="width:44px;height:44px;background:#EEF5F0;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:22px">📝</div>
+            <div>
+              <div style="font-weight:700;font-size:14px;color:var(--dark)">지도교수추천서</div>
+              <div style="font-size:11px;color:var(--muted)" id="form-status-지도교수추천서">기본 파일 사용 중</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <a href="../forms/지도교수추천서.docx" download class="btn btn-secondary" style="font-size:12px;padding:8px 12px">
+              ⬇️ 현재 파일
+            </a>
+            <button class="btn btn-primary" style="font-size:12px;padding:8px 12px"
+              onclick="document.getElementById('upload-input-지도교수추천서').click()">
+              ⬆️ 새 파일 등록
+            </button>
+            <input type="file" id="upload-input-지도교수추천서" accept=".docx,.hwp,.pdf" style="display:none"
+              onchange="uploadFormFile(this, '지도교수추천서')">
+          </div>
+          <div id="upload-progress-지도교수추천서" style="display:none;margin-top:10px">
+            <div style="background:#EEF5F0;border-radius:4px;height:6px;overflow:hidden">
+              <div id="upload-bar-지도교수추천서" style="background:var(--moss);height:100%;width:0%;transition:width .3s"></div>
+            </div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px" id="upload-msg-지도교수추천서">업로드 중...</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 등록된 파일 현황 -->
+      <div class="bjw-card" style="margin-top:20px">
+        <h2 style="font-size:15px"><span class="icon">📊</span> 등록 현황</h2>
+        <table class="admin-table">
+          <thead>
+            <tr><th>양식명</th><th>등록 상태</th><th>등록일</th><th>관리</th></tr>
+          </thead>
+          <tbody id="forms-status-tbody">
+            <tr><td colspan="4" style="text-align:center;padding:20px;color:var(--muted)">확인 중...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div><!-- /page-forms -->
+
   </main>
 </div>
 
@@ -2107,6 +2227,10 @@ body {
                 <option value="issued"       ${d.status==='issued'?'selected':''}>발급완료</option>
               </select>
               <button class="save-btn-sm" onclick="saveStatus('${d.id}')">저장</button>
+              <button class="save-btn-sm" style="background:${d.feeConfirmed?'var(--success)':'var(--amber)'};margin-top:4px;"
+                onclick="toggleFeeConfirm('${d.id}', ${!!d.feeConfirmed})">
+                ${d.feeConfirmed ? '💳 납부확인됨' : '💳 납부확인'}
+              </button>
             </td>
           </tr>`).join('')
       : '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">데이터가 없습니다.</td></tr>';
@@ -2332,6 +2456,108 @@ body {
 
 
 
+
+  // ── 양식 파일 관리
+  window.loadFormsStatus = async function() {
+    const tbody = document.getElementById('forms-status-tbody');
+    if (!tbody) return;
+    try {
+      const snap = await getDoc(doc(db, 'bjw_config', 'bjw_forms'));
+      const forms = snap.exists() ? snap.data() : {};
+      const formNames = ['자격검정신청서', '이력서', '지도교수추천서'];
+
+      tbody.innerHTML = formNames.map(name => {
+        const entry = forms[name];
+        const hasUrl = entry && entry.url;
+        const uploadedAt = entry?.uploadedAt ? new Date(entry.uploadedAt).toLocaleDateString('ko-KR') : '—';
+
+        // 상태 텍스트 업데이트
+        const statusEl = document.getElementById('form-status-' + name);
+        if (statusEl) statusEl.textContent = hasUrl ? `✅ 등록됨 (${uploadedAt})` : '기본 파일 사용 중';
+
+        return `<tr>
+          <td><strong>${name}</strong></td>
+          <td>${hasUrl
+            ? '<span class="badge badge-green">✅ 등록됨</span>'
+            : '<span class="badge badge-gray">기본 파일</span>'}</td>
+          <td style="font-size:12px;color:var(--muted)">${uploadedAt}</td>
+          <td>
+            ${hasUrl ? `<a href="${entry.url}" target="_blank" class="save-btn-sm" style="margin-right:4px">⬇️ 다운로드</a>
+            <button class="save-btn-sm" style="color:var(--danger)" onclick="deleteFormFile('${name}')">🗑️ 삭제</button>` : '—'}
+          </td>
+        </tr>`;
+      }).join('');
+    } catch(e) {
+      if (tbody) tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--muted)">기본 파일 사용 중</td></tr>';
+    }
+  };
+
+  window.uploadFormFile = async function(input, formName) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const progEl = document.getElementById('upload-progress-' + formName);
+    const barEl  = document.getElementById('upload-bar-' + formName);
+    const msgEl  = document.getElementById('upload-msg-' + formName);
+    if (progEl) progEl.style.display = 'block';
+    if (msgEl)  msgEl.textContent = '업로드 중...';
+    if (barEl)  barEl.style.width = '20%';
+
+    try {
+      // Firebase Storage 업로드
+      const { getStorage, ref: storageRef, uploadBytesResumable, getDownloadURL } =
+        await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js");
+      const storage = getStorage();
+      const path    = `bjw-forms/${formName}_${Date.now()}_${file.name}`;
+      const sRef    = storageRef(storage, path);
+      const task    = uploadBytesResumable(sRef, file);
+
+      task.on('state_changed',
+        snap => {
+          const pct = Math.round(snap.bytesTransferred / snap.totalBytes * 100);
+          if (barEl) barEl.style.width = pct + '%';
+          if (msgEl) msgEl.textContent = `업로드 중... ${pct}%`;
+        },
+        err => {
+          if (msgEl) msgEl.textContent = '업로드 실패: ' + err.message;
+          showToast('업로드 실패: ' + err.message, 'error');
+        },
+        async () => {
+          const url = await getDownloadURL(task.snapshot.ref);
+
+          // Firestore에 URL 저장
+          const formsSnap = await getDoc(doc(db, 'bjw_config', 'bjw_forms'));
+          const current   = formsSnap.exists() ? formsSnap.data() : {};
+          current[formName] = { url, uploadedAt: new Date().toISOString(), fileName: file.name };
+          await setDoc(doc(db, 'bjw_config', 'bjw_forms'), current);
+
+          if (barEl) barEl.style.width = '100%';
+          if (msgEl) msgEl.textContent = '✅ 등록 완료!';
+          showToast(`✅ ${formName} 양식 파일 등록 완료!`, 'success');
+          input.value = '';
+          setTimeout(() => { if (progEl) progEl.style.display = 'none'; }, 2000);
+          loadFormsStatus();
+        }
+      );
+    } catch(e) {
+      if (msgEl) msgEl.textContent = '오류: ' + e.message;
+      showToast('오류: ' + e.message, 'error');
+    }
+  };
+
+  window.deleteFormFile = async function(formName) {
+    if (!confirm(`'${formName}' 양식 파일 등록을 삭제하시겠습니까? 이후 기본 파일이 사용됩니다.`)) return;
+    try {
+      const snap = await getDoc(doc(db, 'bjw_config', 'bjw_forms'));
+      if (!snap.exists()) return;
+      const data = snap.data();
+      delete data[formName];
+      await setDoc(doc(db, 'bjw_config', 'bjw_forms'), data);
+      showToast(`${formName} 파일 등록이 삭제되었습니다.`, 'success');
+      loadFormsStatus();
+    } catch(e) { showToast('삭제 실패: ' + e.message, 'error'); }
+  };
+
   // ── 합격자 관리 (수정 + 일괄번호)
   let allPassEdit = [];
 
@@ -2434,7 +2660,7 @@ body {
 
   // 수정 모달
   window.openEditPassModal = function(data) {
-    const certLabels = { hort:'원예심리상담사', color:'색채심리상담사', garden:'힐링정원사' };
+    const certLabels = { hort:'원예심리상담사', color:'색채원예심리상담사', garden:'힐링정원사' };
     document.getElementById('edit-doc-id').value      = data.id;
     document.getElementById('edit-name').value        = data.name||'';
     document.getElementById('edit-birth').value       = data.birth||'';
@@ -2460,7 +2686,7 @@ body {
     const birth   = document.getElementById('edit-birth').value;
     const cert    = document.getElementById('edit-cert').value;
     const errEl   = document.getElementById('edit-pass-error');
-    const certLabels = { hort:'원예심리상담사', color:'색채심리상담사', garden:'힐링정원사' };
+    const certLabels = { hort:'원예심리상담사', color:'색채원예심리상담사', garden:'힐링정원사' };
 
     if (!name || !birth) {
       errEl.textContent = '성명과 생년월일은 필수입니다.';
@@ -3012,6 +3238,20 @@ body {
     win.document.close();
   };
 
+
+  // ── 발급비 납부 확인
+  window.toggleFeeConfirm = async function(id, current) {
+    const newVal = !current;
+    try {
+      await updateDoc(doc(db,'bjw_applicants',id), {
+        feeConfirmed: newVal,
+        feeConfirmedAt: newVal ? Timestamp.now() : null,
+      });
+      showToast(newVal ? '💳 발급비 납부 확인 완료!' : '납부 확인 취소됨', newVal ? 'success' : '');
+      loadApplicants();
+    } catch(e) { showToast('처리 실패: ' + e.message, 'error'); }
+  };
+
   // ── 합격자 수동 등록
   window.openAddPassModal = function() {
     document.getElementById('add-pass-modal').classList.add('open');
@@ -3046,7 +3286,7 @@ body {
       return;
     }
 
-    const certLabels = { hort:'원예심리상담사', color:'색채심리상담사', garden:'힐링정원사' };
+    const certLabels = { hort:'원예심리상담사', color:'색채원예심리상담사', garden:'힐링정원사' };
 
     // 접수번호 자동 생성
     const today = new Date();
