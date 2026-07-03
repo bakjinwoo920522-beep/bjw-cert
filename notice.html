@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>공지사항 | 박진우원예치료센터</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
 /* ============================================================
    박진우원예치료센터 자격증시스템 — 공통 스타일
@@ -617,9 +621,8 @@ body {
   .cert-tab { min-width: auto; }
 }
 
-</style>
-  <style>
-/* ── 공지사항 배너 */
+
+    /* ── 공지사항 배너 */
   #notice-banner {
     display: none;
     background: #1C4A2A;
@@ -665,54 +668,24 @@ body {
       border-bottom: 1px solid var(--cream-d);
       padding: 20px 0;
       cursor: pointer;
+      transition: background var(--transition);
     }
+    .notice-item:hover { background: var(--cream); border-radius: var(--radius); padding: 20px 12px; }
     .notice-item:last-child { border-bottom: none; }
-    .notice-item-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
+    .notice-item-header { display: flex; align-items: center; gap: 10px; }
     .notice-pin-badge {
-      background: #1C4A2A;
-      color: #fff;
-      font-size: 11px;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 4px;
-      flex-shrink: 0;
+      background: #1C4A2A; color: #fff; font-size: 11px; font-weight: 700;
+      padding: 2px 8px; border-radius: 4px; flex-shrink: 0;
     }
-    .notice-title {
-      flex: 1;
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--dark);
-    }
-    .notice-date {
-      font-size: 12px;
-      color: var(--muted);
-      flex-shrink: 0;
-    }
-    .notice-chevron {
-      font-size: 12px;
-      color: var(--muted);
-      transition: transform 0.2s;
-    }
+    .notice-title { flex: 1; font-size: 15px; font-weight: 600; color: var(--dark); }
+    .notice-date { font-size: 12px; color: var(--muted); flex-shrink: 0; }
+    .notice-chevron { font-size: 12px; color: var(--muted); transition: transform 0.2s; margin-left: 4px; }
     .notice-body {
-      display: none;
-      margin-top: 14px;
-      padding: 16px;
-      background: var(--cream);
-      border-radius: var(--radius);
-      font-size: 14px;
-      line-height: 1.9;
-      color: var(--text);
-      white-space: pre-wrap;
+      display: none; margin-top: 14px; padding: 16px;
+      background: var(--cream); border-radius: var(--radius);
+      font-size: 14px; line-height: 1.9; color: var(--text); white-space: pre-wrap;
     }
-    .notice-empty {
-      text-align: center;
-      padding: 80px 0;
-      color: var(--muted);
-    }
+    .notice-empty { text-align: center; padding: 80px 0; color: var(--muted); }
     .notice-empty-icon { font-size: 48px; margin-bottom: 12px; }
   </style>
 </head>
@@ -796,13 +769,13 @@ body {
       container.innerHTML = snap.docs.map((doc, i) => {
         const d = doc.data();
         const date = d.createdAt?.toDate
-          ? d.createdAt.toDate().toLocaleDateString('ko-KR', {year:'numeric', month:'long', day:'numeric'})
+          ? d.createdAt.toDate().toLocaleDateString('ko-KR', {year:'numeric',month:'long',day:'numeric'})
           : '';
-        const safeContent = (d.content || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        const safeContent = (d.content||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
         return `<div class="notice-item" onclick="toggleBody(${i}, this)">
           <div class="notice-item-header">
             ${d.pinned ? '<span class="notice-pin-badge">📌 공지</span>' : ''}
-            <span class="notice-title">${d.title || '제목 없음'}</span>
+            <span class="notice-title">${d.title||'제목 없음'}</span>
             <span class="notice-date">${date}</span>
             <span class="notice-chevron">▼</span>
           </div>
@@ -810,8 +783,7 @@ body {
         </div>`;
       }).join('');
     } catch(e) {
-      container.innerHTML = '<div class="notice-empty"><div class="notice-empty-icon">⚠️</div><div>공지사항을 불러오지 못했습니다.</div></div>';
-      console.error(e);
+      container.innerHTML = '<div class="notice-empty"><div class="notice-empty-icon">⚠️</div><div>공지사항을 불러오지 못했습니다.<br><small>' + e.message + '</small></div></div>';
     }
   })();
 
@@ -828,7 +800,7 @@ body {
       list.innerHTML = snap.docs.map(d => {
         const data = d.data();
         const date = data.createdAt?.toDate
-          ? data.createdAt.toDate().toLocaleDateString('ko-KR', {month:'numeric', day:'numeric'})
+          ? data.createdAt.toDate().toLocaleDateString('ko-KR', {month:'numeric',day:'numeric'})
           : '';
         return `<div class="notice-banner-item">
           <span class="notice-banner-badge">📌 공지</span>
