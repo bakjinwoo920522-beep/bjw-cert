@@ -953,6 +953,8 @@ body {
         <div class="sidebar-menu-item" onclick="showPage('docs', this)">📂 서류 심사</div>
         <div class="sidebar-menu-item" onclick="showPage('schedule', this)">📅 시험 일정 관리</div>
         <div class="sidebar-menu-item" onclick="showPage('passlist', this)">🏆 최종합격자 명단</div>
+        <div class="sidebar-menu-item" onclick="showPage('admit', this)">🪪 응시표 관리</div>
+        <div class="sidebar-menu-item" onclick="showPage('idcheck', this)">✅ 신분증 확인</div>
       </div>
     </div>
   </aside>
@@ -1298,6 +1300,9 @@ body {
         <button class="btn btn-secondary" style="font-size:12px;padding:8px 16px" onclick="exportPassListCSV()">
           📥 CSV 내보내기
         </button>
+        <button class="btn btn-amber" style="font-size:12px;padding:8px 16px" onclick="openAddPassModal()">
+          ➕ 합격자 수동 등록
+        </button>
       </div>
 
       <div style="display:flex; gap:12px; margin-bottom:16px">
@@ -1333,6 +1338,319 @@ body {
         </tbody>
       </table>
     </div><!-- /page-passlist -->
+
+    <!-- 합격자 수동 등록 모달 -->
+    <div class="modal-overlay" id="add-pass-modal">
+      <div class="modal-box" style="max-width:560px">
+        <h3>➕ 합격자 수동 등록</h3>
+        <p style="font-size:13px; color:var(--muted); margin-bottom:20px">
+          이전 합격자 또는 별도 등록이 필요한 합격자를 추가합니다.<br>
+          등록 후 자격증 발급 페이지에서 조회 가능합니다.
+        </p>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>성명 <span class="req">*</span></label>
+            <input type="text" id="add-name" placeholder="홍길동">
+          </div>
+          <div class="form-group">
+            <label>생년월일 <span class="req">*</span></label>
+            <input type="date" id="add-birth">
+          </div>
+          <div class="form-group">
+            <label>연락처</label>
+            <input type="tel" id="add-phone" placeholder="010-0000-0000">
+          </div>
+          <div class="form-group">
+            <label>이메일</label>
+            <input type="email" id="add-email" placeholder="example@email.com">
+          </div>
+          <div class="form-group full">
+            <label>자격증 <span class="req">*</span></label>
+            <select id="add-cert">
+              <option value="">선택하세요</option>
+              <option value="hort">원예심리상담사</option>
+              <option value="color">색채심리상담사</option>
+              <option value="garden">힐링정원사</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>합격 상태 <span class="req">*</span></label>
+            <select id="add-status">
+              <option value="final_pass">최종합격 (발급 전)</option>
+              <option value="issued">자격증 발급 완료</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>자격증 번호 (발급완료 시)</label>
+            <input type="text" id="add-cert-no" placeholder="BJW-HT-2024-XXXX">
+          </div>
+          <div class="form-group">
+            <label>발급일 (발급완료 시)</label>
+            <input type="date" id="add-issue-date">
+          </div>
+          <div class="form-group">
+            <label>유효기간 만료일</label>
+            <input type="date" id="add-valid-date">
+          </div>
+          <div class="form-group">
+            <label>비고</label>
+            <input type="text" id="add-note" placeholder="이전 합격자 등 메모">
+          </div>
+        </div>
+
+        <div id="add-pass-error" class="alert alert-danger" style="display:none; margin-top:16px"></div>
+
+        <div style="display:flex; gap:12px; margin-top:24px; justify-content:flex-end">
+          <button class="btn btn-secondary" onclick="closeAddPassModal()">취소</button>
+          <button class="btn btn-primary" onclick="submitAddPass()">✅ 등록</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═ 응시표 관리 ═ -->
+    <div class="admin-page" id="page-admit">
+      <h2 style="font-family:'Noto Serif KR',serif; font-size:20px; margin-bottom:6px; color:var(--dark)">
+        🪪 응시표 관리
+      </h2>
+      <p style="font-size:13px; color:var(--muted); margin-bottom:24px">
+        응시자 목록에서 응시표를 조회하고 출력합니다.
+      </p>
+
+      <div class="table-toolbar">
+        <input type="text" id="search-admit" placeholder="이름 또는 접수번호..." oninput="filterAdmitTable()">
+        <select id="filter-admit-status" onchange="filterAdmitTable()">
+          <option value="applied">필기시험 응시자</option>
+          <option value="written_pass">실기시험 응시자</option>
+          <option value="">전체</option>
+        </select>
+        <button class="btn btn-primary" style="font-size:12px;padding:8px 16px" onclick="loadAdmitList()">
+          🔄 새로고침
+        </button>
+      </div>
+
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>접수번호</th>
+            <th>성명</th>
+            <th>자격증</th>
+            <th>시험 구분</th>
+            <th>상태</th>
+            <th>응시표</th>
+          </tr>
+        </thead>
+        <tbody id="admit-tbody">
+          <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">로딩 중...</td></tr>
+        </tbody>
+      </table>
+
+      <!-- 응시표 미리보기 모달 -->
+      <div class="modal-overlay" id="admit-preview-modal">
+        <div class="modal-box" style="max-width:620px; padding:0; overflow:hidden; border-radius:16px">
+          <!-- 응시표 헤더 -->
+          <div style="background:linear-gradient(135deg,#1C2B20,#3D6B47);padding:20px 24px;display:flex;align-items:center;justify-content:space-between;">
+            <div>
+              <div style="font-size:12px;color:rgba(255,255,255,.7);margin-bottom:2px;">박진우원예치료센터</div>
+              <div style="font-size:9px;color:rgba(255,255,255,.4);">JINWOO HORTICULTURAL THERAPY CENTER</div>
+            </div>
+            <div style="text-align:center;">
+              <div style="font-size:9px;letter-spacing:3px;color:#F0D4B4;margin-bottom:4px;">ADMISSION CARD</div>
+              <div style="font-family:'Noto Serif KR',serif;font-size:18px;font-weight:700;color:#fff;">시 험 응 시 표</div>
+            </div>
+            <div>
+              <img src="data:image/png;base64,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" alt="로고" style="height:44px;object-fit:contain;filter:brightness(0) invert(1);">
+            </div>
+          </div>
+
+          <!-- 응시표 본문 -->
+          <div style="padding:24px 28px; background:#fff;">
+            <!-- 접수번호 -->
+            <div style="text-align:center;margin-bottom:20px;">
+              <div style="font-size:10px;color:#6B7F70;letter-spacing:1.5px;margin-bottom:4px;">A D M I S S I O N &nbsp; N O.</div>
+              <div style="font-family:monospace;font-size:20px;font-weight:700;color:#1C2B20;letter-spacing:2px;" id="modal-app-no">—</div>
+            </div>
+
+            <!-- 정보 테이블 -->
+            <table style="width:100%;border-collapse:collapse;border:1px solid #D5DFD7;border-radius:8px;overflow:hidden;margin-bottom:20px;font-size:13px;">
+              <tr>
+                <td style="background:#F5F8F5;color:#6B7F70;font-weight:600;font-size:12px;padding:11px 16px;border-right:1px solid #D5DFD7;border-bottom:1px solid #D5DFD7;width:100px;">성&nbsp;&nbsp;&nbsp;명</td>
+                <td style="padding:11px 16px;border-bottom:1px solid #D5DFD7;font-weight:500;" id="modal-name">—</td>
+              </tr>
+              <tr>
+                <td style="background:#F5F8F5;color:#6B7F70;font-weight:600;font-size:12px;padding:11px 16px;border-right:1px solid #D5DFD7;border-bottom:1px solid #D5DFD7;">생년월일</td>
+                <td style="padding:11px 16px;border-bottom:1px solid #D5DFD7;font-weight:500;" id="modal-birth">—</td>
+              </tr>
+              <tr>
+                <td style="background:#F5F8F5;color:#6B7F70;font-weight:600;font-size:12px;padding:11px 16px;border-right:1px solid #D5DFD7;border-bottom:1px solid #D5DFD7;">자격증명</td>
+                <td style="padding:11px 16px;border-bottom:1px solid #D5DFD7;font-weight:500;" id="modal-cert">—</td>
+              </tr>
+              <tr>
+                <td style="background:#F5F8F5;color:#6B7F70;font-weight:600;font-size:12px;padding:11px 16px;border-right:1px solid #D5DFD7;border-bottom:1px solid #D5DFD7;">시험 구분</td>
+                <td style="padding:11px 16px;border-bottom:1px solid #D5DFD7;font-weight:500;" id="modal-exam-type">—</td>
+              </tr>
+              <tr>
+                <td style="background:#F5F8F5;color:#6B7F70;font-weight:600;font-size:12px;padding:11px 16px;border-right:1px solid #D5DFD7;border-bottom:1px solid #D5DFD7;">시험 일시</td>
+                <td style="padding:11px 16px;border-bottom:1px solid #D5DFD7;font-weight:500;" id="modal-date">—</td>
+              </tr>
+              <tr>
+                <td style="background:#F5F8F5;color:#6B7F70;font-weight:600;font-size:12px;padding:11px 16px;border-right:1px solid #D5DFD7;">시험 장소</td>
+                <td style="padding:11px 16px;font-weight:500;" id="modal-venue">—</td>
+              </tr>
+            </table>
+
+            <!-- 주의사항 -->
+            <div style="background:#FDF5EA;border:1px solid rgba(200,134,74,.3);border-radius:8px;padding:12px 16px;font-size:11px;color:#5A3A10;line-height:1.9;margin-bottom:4px;">
+              📌 시험 시작 30분 전까지 입실 · 신분증 및 응시표 지참 필수 · 휴대폰 등 전자기기 사용 금지
+            </div>
+          </div>
+
+          <!-- 모달 푸터 -->
+          <div style="background:#F5F8F5;border-top:1px solid #D5DFD7;padding:14px 24px;display:flex;justify-content:space-between;align-items:center;">
+            <div style="font-size:11px;color:#6B7F70;line-height:1.8;">
+              발급일: <span id="modal-today"></span><br>
+              박진우원예치료센터장 박진우
+            </div>
+            <div style="display:flex;gap:10px;">
+              <button class="btn btn-primary" style="font-size:12px;padding:8px 16px;" onclick="printAdmit()">🖨️ 인쇄</button>
+              <button class="btn btn-secondary" style="font-size:12px;padding:8px 16px;" onclick="closeAdmitModal()">닫기</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /page-admit -->
+
+    <!-- ═ 신분증 확인 (감독관) ═ -->
+    <div class="admin-page" id="page-idcheck">
+      <h2 style="font-family:'Noto Serif KR',serif; font-size:20px; margin-bottom:6px; color:var(--dark)">
+        ✅ 신분증 확인 처리
+      </h2>
+      <p style="font-size:13px; color:var(--muted); margin-bottom:24px">
+        시험 당일 응시자 신분증 확인 후 처리합니다. 접수번호 또는 이름으로 검색하세요.
+      </p>
+
+      <!-- 검색 -->
+      <div class="bjw-card" style="margin-bottom:20px">
+        <div style="display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap">
+          <div style="flex:1; min-width:160px">
+            <label style="font-size:12px;font-weight:600;color:var(--dark);display:block;margin-bottom:6px">이름 또는 접수번호</label>
+            <input type="text" id="idcheck-search"
+              placeholder="홍길동 또는 BJW-250901-XXXX"
+              style="width:100%;border:1.5px solid #D5DFD7;border-radius:var(--radius);padding:11px 14px;font-family:'Noto Sans KR',sans-serif;font-size:14px;outline:none;"
+              onkeydown="if(event.key==='Enter') searchForIdCheck()"
+              onfocus="this.style.borderColor='var(--moss)'"
+              onblur="this.style.borderColor='#D5DFD7'">
+          </div>
+          <button class="btn btn-primary" style="height:46px;padding:0 24px;font-size:14px" onclick="searchForIdCheck()">
+            🔍 검색
+          </button>
+        </div>
+        <div id="idcheck-search-error" class="alert alert-danger" style="display:none;margin-top:12px"></div>
+      </div>
+
+      <!-- 검색 결과 -->
+      <div id="idcheck-result" style="display:none">
+
+        <!-- 응시자 정보 카드 -->
+        <div style="background:linear-gradient(135deg,var(--dark),#2D5A35);border-radius:var(--radius-lg);padding:20px 24px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:10px;color:rgba(255,255,255,.5);letter-spacing:1px;margin-bottom:4px">APPLICANT INFO</div>
+            <div style="font-family:'Noto Serif KR',serif;font-size:22px;font-weight:700;color:#fff;" id="ic-name">—</div>
+            <div style="font-size:12px;color:var(--sage-lt);margin-top:3px;" id="ic-info">—</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:10px;color:rgba(255,255,255,.5);margin-bottom:4px">접수번호</div>
+            <div style="font-family:monospace;font-size:14px;color:rgba(255,255,255,.8);letter-spacing:1px" id="ic-appno">—</div>
+            <div style="margin-top:8px" id="ic-status-badge"></div>
+          </div>
+        </div>
+
+        <!-- 현재 신분증 확인 상태 -->
+        <div class="bjw-card" id="ic-already-confirmed" style="display:none;background:#EAF7EE;border:2px solid var(--success);">
+          <div style="display:flex;align-items:center;gap:14px">
+            <div style="width:52px;height:52px;background:var(--success);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;">✅</div>
+            <div>
+              <div style="font-weight:700;font-size:15px;color:var(--success)">신분증 확인 완료</div>
+              <div style="font-size:13px;color:var(--muted);margin-top:2px" id="ic-confirmed-time">—</div>
+              <div style="font-size:12px;color:var(--muted)" id="ic-confirmed-by">—</div>
+            </div>
+            <div style="margin-left:auto">
+              <button class="btn btn-secondary" style="font-size:12px;padding:8px 16px;color:var(--danger);border-color:var(--danger);"
+                onclick="cancelIdCheck()">
+                ↩ 확인 취소
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 확인 처리 폼 -->
+        <div class="bjw-card" id="ic-confirm-form">
+          <h2 style="font-size:15px"><span class="icon">🪪</span> 신분증 확인 처리</h2>
+
+          <div class="alert alert-warning" style="margin-bottom:20px">
+            ⚠️ 응시자의 신분증(주민등록증 또는 운전면허증)을 직접 확인한 후 처리하세요.
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>감독관 이름 <span class="req">*</span></label>
+              <input type="text" id="ic-supervisor-name" placeholder="감독관 성함"
+                onfocus="this.style.borderColor='var(--moss)'"
+                onblur="this.style.borderColor='#D5DFD7'">
+            </div>
+            <div class="form-group">
+              <label>신분증 종류</label>
+              <select id="ic-id-type" style="border:1.5px solid #D5DFD7;border-radius:var(--radius);padding:11px 14px;font-family:'Noto Sans KR',sans-serif;font-size:14px;outline:none;background:var(--cream);">
+                <option value="주민등록증">주민등록증</option>
+                <option value="운전면허증">운전면허증</option>
+                <option value="여권">여권</option>
+                <option value="기타">기타 신분증</option>
+              </select>
+            </div>
+            <div class="form-group full">
+              <label>비고 (선택)</label>
+              <input type="text" id="ic-note" placeholder="특이사항이 있으면 입력"
+                onfocus="this.style.borderColor='var(--moss)'"
+                onblur="this.style.borderColor='#D5DFD7'">
+            </div>
+          </div>
+
+          <div id="ic-error" class="alert alert-danger" style="display:none;margin-top:16px"></div>
+
+          <div style="margin-top:20px; display:flex; gap:12px;">
+            <button class="btn btn-primary btn-lg" onclick="confirmIdCheck()">
+              ✅ 신분증 확인 완료 처리
+            </button>
+            <button class="btn btn-secondary" style="padding:15px 20px;"
+              onclick="document.getElementById('idcheck-result').style.display='none'; document.getElementById('idcheck-search').value='';">
+              취소
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 오늘 확인 완료 목록 -->
+      <div class="bjw-card" style="margin-top:24px">
+        <h2 style="font-size:15px"><span class="icon">📋</span> 오늘 신분증 확인 완료 목록
+          <span id="idcheck-count" style="font-size:12px;font-weight:400;color:var(--muted);margin-left:8px">0명</span>
+        </h2>
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>성명</th>
+              <th>자격증</th>
+              <th>확인 시각</th>
+              <th>신분증 종류</th>
+              <th>감독관</th>
+            </tr>
+          </thead>
+          <tbody id="idcheck-list-tbody">
+            <tr><td colspan="5" style="text-align:center;padding:20px;color:var(--muted)">오늘 확인된 응시자가 없습니다.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div><!-- /page-idcheck -->
 
   </main>
 </div>
@@ -1701,6 +2019,391 @@ body {
 
 
 
+
+
+
+  // ── 신분증 확인 처리
+  let currentIdCheckDoc = null;
+
+  window.searchForIdCheck = async function() {
+    const query_str = document.getElementById('idcheck-search').value.trim();
+    const errEl = document.getElementById('idcheck-search-error');
+    if (!query_str) {
+      errEl.textContent = '이름 또는 접수번호를 입력해 주세요.';
+      errEl.style.display = 'flex'; return;
+    }
+    errEl.style.display = 'none';
+
+    try {
+      // 이름으로 검색
+      let snap = await getDocs(query(collection(db,'bjw_applicants'), where('name','==',query_str)));
+      // 접수번호로 검색
+      if (snap.empty) {
+        snap = await getDocs(query(collection(db,'bjw_applicants'), where('appNo','==',query_str)));
+      }
+
+      if (snap.empty) {
+        errEl.textContent = `'${query_str}'에 해당하는 응시자를 찾을 수 없습니다.`;
+        errEl.style.display = 'flex'; return;
+      }
+
+      const docData = snap.docs[0].data();
+      currentIdCheckDoc = { id: snap.docs[0].id, ...docData };
+      showIdCheckResult(currentIdCheckDoc);
+
+    } catch(e) {
+      errEl.textContent = '검색 중 오류가 발생했습니다: ' + e.message;
+      errEl.style.display = 'flex';
+    }
+  };
+
+  function showIdCheckResult(data) {
+    const statusMap = {
+      applied:      { text:'필기 접수', badge:'badge-gray' },
+      written_pass: { text:'필기합격', badge:'badge-amber' },
+      final_pass:   { text:'최종합격', badge:'badge-green' },
+      issued:       { text:'발급완료', badge:'badge-green' },
+    };
+    const st = statusMap[data.status] || { text:data.status, badge:'badge-gray' };
+
+    document.getElementById('ic-name').textContent    = data.name;
+    document.getElementById('ic-info').textContent    = (data.certLabel||data.certType||'—') + ' · ' + (data.birth||'—');
+    document.getElementById('ic-appno').textContent   = data.appNo || '—';
+    document.getElementById('ic-status-badge').innerHTML =
+      `<span class="badge ${st.badge}" style="font-size:12px">${st.text}</span>`;
+
+    const alreadyEl = document.getElementById('ic-already-confirmed');
+    const formEl    = document.getElementById('ic-confirm-form');
+
+    if (data.idChecked) {
+      alreadyEl.style.display = 'block';
+      formEl.style.display    = 'none';
+      const dt = data.idCheckedAt?.toDate ? data.idCheckedAt.toDate() : new Date();
+      document.getElementById('ic-confirmed-time').textContent =
+        '확인 일시: ' + dt.toLocaleString('ko-KR',{year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'});
+      document.getElementById('ic-confirmed-by').textContent =
+        '감독관: ' + (data.idCheckedBy||'—') + ' · 신분증: ' + (data.idType||'—');
+    } else {
+      alreadyEl.style.display = 'none';
+      formEl.style.display    = 'block';
+      document.getElementById('ic-supervisor-name').value = '';
+      document.getElementById('ic-id-type').value = '주민등록증';
+      document.getElementById('ic-note').value = '';
+      document.getElementById('ic-error').style.display = 'none';
+    }
+
+    document.getElementById('idcheck-result').style.display = 'block';
+  }
+
+  window.confirmIdCheck = async function() {
+    const supervisorName = document.getElementById('ic-supervisor-name').value.trim();
+    const idType         = document.getElementById('ic-id-type').value;
+    const note           = document.getElementById('ic-note').value.trim();
+    const errEl          = document.getElementById('ic-error');
+
+    if (!supervisorName) {
+      errEl.textContent = '감독관 이름을 입력해 주세요.';
+      errEl.style.display = 'flex'; return;
+    }
+    errEl.style.display = 'none';
+
+    try {
+      const { Timestamp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+      await updateDoc(doc(db,'bjw_applicants',currentIdCheckDoc.id), {
+        idChecked:   true,
+        idCheckedAt: Timestamp.now(),
+        idCheckedBy: supervisorName,
+        idType:      idType,
+        idCheckNote: note,
+      });
+
+      showToast(`✅ ${currentIdCheckDoc.name}님 신분증 확인 완료!`, 'success');
+
+      // 결과 화면 갱신
+      currentIdCheckDoc.idChecked   = true;
+      currentIdCheckDoc.idCheckedAt = { toDate: () => new Date() };
+      currentIdCheckDoc.idCheckedBy = supervisorName;
+      currentIdCheckDoc.idType      = idType;
+      showIdCheckResult(currentIdCheckDoc);
+
+      // 오늘 목록 새로고침
+      loadIdCheckList();
+
+    } catch(e) {
+      errEl.textContent = '처리 중 오류: ' + e.message;
+      errEl.style.display = 'flex';
+    }
+  };
+
+  window.cancelIdCheck = async function() {
+    if (!confirm(`${currentIdCheckDoc.name}님의 신분증 확인을 취소하시겠습니까?`)) return;
+    try {
+      await updateDoc(doc(db,'bjw_applicants',currentIdCheckDoc.id), {
+        idChecked:   false,
+        idCheckedAt: null,
+        idCheckedBy: null,
+        idType:      null,
+        idCheckNote: null,
+      });
+      showToast('신분증 확인이 취소되었습니다.', 'success');
+      currentIdCheckDoc.idChecked = false;
+      showIdCheckResult(currentIdCheckDoc);
+      loadIdCheckList();
+    } catch(e) {
+      showToast('취소 처리 오류: ' + e.message, 'error');
+    }
+  };
+
+  // 오늘 확인 완료 목록
+  async function loadIdCheckList() {
+    try {
+      const snap = await getDocs(
+        query(collection(db,'bjw_applicants'), where('idChecked','==',true))
+      );
+      const today = new Date().toLocaleDateString('ko-KR');
+      const todayList = snap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .filter(d => {
+          if (!d.idCheckedAt) return false;
+          const dt = d.idCheckedAt.toDate ? d.idCheckedAt.toDate() : new Date(d.idCheckedAt);
+          return dt.toLocaleDateString('ko-KR') === today;
+        })
+        .sort((a,b) => {
+          const ta = a.idCheckedAt?.toDate ? a.idCheckedAt.toDate() : new Date();
+          const tb = b.idCheckedAt?.toDate ? b.idCheckedAt.toDate() : new Date();
+          return tb - ta;
+        });
+
+      document.getElementById('idcheck-count').textContent = todayList.length + '명';
+
+      const tbody = document.getElementById('idcheck-list-tbody');
+      tbody.innerHTML = todayList.length ? todayList.map(d => {
+        const dt = d.idCheckedAt?.toDate ? d.idCheckedAt.toDate() : new Date();
+        const time = dt.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+        return `<tr>
+          <td><strong>${d.name}</strong></td>
+          <td>${d.certLabel||d.certType||'—'}</td>
+          <td>${time}</td>
+          <td>${d.idType||'—'}</td>
+          <td>${d.idCheckedBy||'—'}</td>
+        </tr>`;
+      }).join('')
+      : '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--muted)">오늘 확인된 응시자가 없습니다.</td></tr>';
+
+    } catch(e) { console.error(e); }
+  }
+
+  // ── 응시표 관리
+  let allAdmitList = [];
+  let scheduleCache = null;
+
+  async function getSchedule() {
+    if (scheduleCache) return scheduleCache;
+    try {
+      const { getDoc, doc: _doc } =
+        await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+      const snap = await getDoc(_doc(db, 'bjw_config', 'bjw_schedule'));
+      scheduleCache = snap.exists() ? snap.data() : {};
+    } catch(e) { scheduleCache = {}; }
+    return scheduleCache;
+  }
+
+  window.loadAdmitList = async function() {
+    const tbody = document.getElementById('admit-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">로딩 중...</td></tr>';
+    try {
+      const snap = await getDocs(collection(db, 'bjw_applicants'));
+      allAdmitList = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      // 기본: 필기시험 응시자 (applied)
+      renderAdmitTable(allAdmitList.filter(d => d.status === 'applied'));
+    } catch(e) {
+      tbody.innerHTML = '<tr><td colspan="6" style="color:var(--danger);text-align:center;padding:16px">로드 실패</td></tr>';
+    }
+  };
+
+  function renderAdmitTable(list) {
+    const tbody = document.getElementById('admit-tbody');
+    if (!tbody) return;
+    const statusMap = {
+      applied:      { label: '필기시험', badge: 'badge-gray' },
+      written_pass: { label: '실기시험', badge: 'badge-amber' },
+      final_pass:   { label: '최종합격', badge: 'badge-green' },
+      issued:       { label: '발급완료', badge: 'badge-green' },
+    };
+    tbody.innerHTML = list.length ? list.map(d => {
+      const st = statusMap[d.status] || { label: d.status, badge: 'badge-gray' };
+      return `<tr>
+        <td style="font-family:monospace;font-size:11px;color:var(--moss)">${d.appNo||'—'}</td>
+        <td><strong>${d.name}</strong></td>
+        <td>${d.certLabel||d.certType||'—'}</td>
+        <td><span class="badge ${st.badge}">${st.label}</span></td>
+        <td><span class="badge badge-gray">${d.status}</span></td>
+        <td>
+          <button class="save-btn-sm" onclick="openAdmitModal(${JSON.stringify(d).replace(/"/g,'&quot;')})">
+            🪪 응시표 보기
+          </button>
+        </td>
+      </tr>`;
+    }).join('')
+    : '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">해당 응시자가 없습니다.</td></tr>';
+  }
+
+  window.filterAdmitTable = function() {
+    const search = document.getElementById('search-admit')?.value.toLowerCase() || '';
+    const status = document.getElementById('filter-admit-status')?.value || '';
+    renderAdmitTable(allAdmitList.filter(d =>
+      (!search || d.name.includes(search) || (d.appNo||'').toLowerCase().includes(search)) &&
+      (!status || d.status === status)
+    ));
+  };
+
+  window.openAdmitModal = async function(data) {
+    const sch = await getSchedule();
+    const typeMap = {
+      applied:      '필기시험',
+      written_pass: '실기시험',
+      final_pass:   '최종합격',
+      issued:       '자격증 발급완료'
+    };
+
+    function fmtDate(str) {
+      if (!str) return '별도 안내 예정';
+      const dt = new Date(str);
+      return dt.toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
+    }
+
+    let examDate = '별도 안내 예정';
+    if (data.status === 'written_pass' && sch['practical-date']) {
+      examDate = fmtDate(sch['practical-date']) + (sch['practical-time'] ? ' ' + sch['practical-time'] : '');
+    } else if (sch['written-date']) {
+      examDate = fmtDate(sch['written-date']) + (sch['written-time'] ? ' ' + sch['written-time'] : '');
+    }
+
+    document.getElementById('modal-app-no').textContent    = data.appNo || '—';
+    document.getElementById('modal-name').textContent      = data.name;
+    const birthDt = new Date(data.birth);
+    document.getElementById('modal-birth').textContent     =
+      birthDt.toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'});
+    document.getElementById('modal-cert').textContent      = data.certLabel || data.certType || '—';
+    document.getElementById('modal-exam-type').textContent = typeMap[data.status] || '필기시험';
+    document.getElementById('modal-date').textContent      = examDate;
+    document.getElementById('modal-venue').textContent     = sch['venue'] || '별도 안내 예정';
+    document.getElementById('modal-today').textContent     =
+      new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'});
+
+    document.getElementById('admit-preview-modal').classList.add('open');
+  };
+
+  window.closeAdmitModal = function() {
+    document.getElementById('admit-preview-modal').classList.remove('open');
+  };
+
+  window.printAdmit = function() {
+    const modal = document.getElementById('admit-preview-modal');
+    const content = modal.querySelector('.modal-box').innerHTML;
+    const win = window.open('', '_blank', 'width=700,height=900');
+    win.document.write(`<!DOCTYPE html><html lang="ko"><head>
+      <meta charset="UTF-8">
+      <title>시험 응시표</title>
+      <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Noto+Sans+KR:wght@300;400;600&display=swap" rel="stylesheet">
+      <style>
+        *{{box-sizing:border-box;margin:0;padding:0;}}
+        body{{font-family:'Noto Sans KR',sans-serif;background:#fff;}}
+        table{{width:100%;border-collapse:collapse;}}
+        @media print{{@page{{size:A4;margin:20mm;}}}}
+      </style>
+      </head><body>${content}<script>window.onload=function(){{window.print();}}<\/script></body></html>`);
+    win.document.close();
+  };
+
+  // ── 합격자 수동 등록
+  window.openAddPassModal = function() {
+    document.getElementById('add-pass-modal').classList.add('open');
+    document.getElementById('add-pass-error').style.display = 'none';
+    // 입력 초기화
+    ['add-name','add-phone','add-email','add-cert-no','add-note'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    ['add-birth','add-issue-date','add-valid-date'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    document.getElementById('add-cert').value = '';
+    document.getElementById('add-status').value = 'final_pass';
+  };
+
+  window.closeAddPassModal = function() {
+    document.getElementById('add-pass-modal').classList.remove('open');
+  };
+
+  window.submitAddPass = async function() {
+    const name    = document.getElementById('add-name').value.trim();
+    const birth   = document.getElementById('add-birth').value;
+    const cert    = document.getElementById('add-cert').value;
+    const status  = document.getElementById('add-status').value;
+    const errEl   = document.getElementById('add-pass-error');
+
+    if (!name || !birth || !cert) {
+      errEl.textContent = '성명, 생년월일, 자격증은 필수 입력 항목입니다.';
+      errEl.style.display = 'flex';
+      return;
+    }
+
+    const certLabels = { hort:'원예심리상담사', color:'색채심리상담사', garden:'힐링정원사' };
+
+    // 접수번호 자동 생성
+    const today = new Date();
+    const dateStr = today.getFullYear().toString().slice(2)
+      + String(today.getMonth()+1).padStart(2,'0')
+      + String(today.getDate()).padStart(2,'0');
+    const rand   = Math.random().toString(36).slice(2,6).toUpperCase();
+    const appNo  = 'BJW-MAN-' + dateStr + '-' + rand;
+
+    const issueDate  = document.getElementById('add-issue-date').value;
+    const validDate  = document.getElementById('add-valid-date').value;
+    const certNo     = document.getElementById('add-cert-no').value.trim();
+    const phone      = document.getElementById('add-phone').value.trim();
+    const email      = document.getElementById('add-email').value.trim();
+    const note       = document.getElementById('add-note').value.trim();
+
+    try {
+      const { addDoc, collection: _col, Timestamp } =
+        await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+
+      await addDoc(_col(db, 'bjw_applicants'), {
+        appNo,
+        name,
+        birth,
+        phone,
+        email,
+        certType:   cert,
+        certLabel:  certLabels[cert],
+        status,
+        writtenScore:    null,
+        practicalScore:  null,
+        certNumber:      certNo || null,
+        issuedDate:      issueDate || null,
+        validDate:       validDate || null,
+        docSubmitted:    false,
+        note,
+        manualEntry:     true,   // 수동 등록 표시
+        createdAt:       Timestamp.now()
+      });
+
+      closeAddPassModal();
+      showToast('✅ 합격자가 등록되었습니다!', 'success');
+      loadPassList();
+      loadDashboard();
+
+    } catch(e) {
+      console.error(e);
+      errEl.textContent = '등록 중 오류가 발생했습니다: ' + e.message;
+      errEl.style.display = 'flex';
+    }
+  };
+
   // ── 최종합격자 명단 (관리자 전용)
   let allPassList = [];
 
@@ -1744,7 +2447,7 @@ body {
         <td style="font-size:12px">${d.phone || '—'}</td>
         <td>${d.certLabel || d.certType || '—'}</td>
         <td style="font-size:12px">${d.issuedDate || (d.practicalResultDate || '—')}</td>
-        <td>${d.status === 'issued'
+        <td>${d.manualEntry ? '<span class="badge badge-blue" style="margin-right:4px">수동</span>' : ''}${d.status === 'issued'
           ? '<span class="badge badge-green">발급완료</span>'
           : '<span class="badge badge-amber">발급대기</span>'}</td>
         <td style="font-size:11px;font-family:monospace;color:var(--moss)">${d.certNumber || '—'}</td>
