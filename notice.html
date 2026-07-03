@@ -5,174 +5,621 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>공지사항 | 박진우원예치료센터</title>
   <style>
-    .exam-info-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      margin-bottom: 24px;
-    }
-    @media (max-width: 600px) { .exam-info-grid { grid-template-columns: 1fr; } }
+/* ============================================================
+   박진우원예치료센터 자격증시스템 — 공통 스타일
+   팔레트: 이끼그린 #3D6B47 / 세이지 #7A9E82 / 크림 #F7F4EE
+           다크 #1C2B20 / 포인트 #C8864A
+   ============================================================ */
 
-    .exam-info-box {
-      background: var(--cream);
-      border-radius: var(--radius);
-      padding: 16px;
-      text-align: center;
-    }
+:root {
+  --moss:    #3D6B47;
+  --sage:    #7A9E82;
+  --sage-lt: #B8D4BE;
+  --cream:   #F7F4EE;
+  --cream-d: #EDE9E0;
+  --dark:    #1C2B20;
+  --amber:   #C8864A;
+  --amber-lt:#F0D4B4;
+  --text:    #2C3E30;
+  --muted:   #6B7F70;
+  --white:   #FFFFFF;
+  --danger:  #C0392B;
+  --success: #2D7A4F;
 
-    .exam-info-box .info-label {
-      font-size: 11px;
-      color: var(--muted);
-      margin-bottom: 4px;
-      font-weight: 500;
-    }
+  --radius:  10px;
+  --radius-lg: 18px;
+  --shadow:  0 4px 20px rgba(28,43,32,.10);
+  --shadow-md: 0 8px 32px rgba(28,43,32,.15);
+  --transition: 0.22s ease;
+}
 
-    .exam-info-box .info-val {
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--dark);
-    }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    .exam-info-box .info-sub {
-      font-size: 11px;
-      color: var(--muted);
-      margin-top: 2px;
-    }
+html { scroll-behavior: smooth; }
 
-    .cert-tabs { margin-top: 8px; }
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  background: var(--cream);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.7;
+}
 
-    .fee-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 0;
-      border-bottom: 1px solid var(--cream-d);
-      font-size: 14px;
-    }
-    .fee-row:last-child { border-bottom: none; }
-    .fee-row .fee-label { color: var(--muted); }
-    .fee-row .fee-val { font-weight: 600; color: var(--dark); }
-    .fee-row.total .fee-val { color: var(--moss); font-size: 18px; }
+/* ── 헤더 ── */
+.bjw-header {
+  background: var(--dark);
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 72px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 12px rgba(0,0,0,.3);
+}
 
-    .consent-box {
-      background: var(--cream);
-      border-radius: var(--radius);
-      padding: 14px;
-      font-size: 12px;
-      color: var(--muted);
-      line-height: 1.7;
-      margin-bottom: 12px;
-      max-height: 120px;
-      overflow-y: auto;
-    }
+.bjw-header .logo-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
 
-    .check-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 10px;
-      font-size: 13px;
-      cursor: pointer;
-    }
+.bjw-header .logo-main {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--white);
+  letter-spacing: -0.3px;
+}
 
-    .check-row input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-      accent-color: var(--moss);
-      cursor: pointer;
-    }
+.bjw-header .logo-sub {
+  font-size: 10px;
+  color: var(--sage-lt);
+  letter-spacing: 0.5px;
+}
 
-    .required-docs {
-      list-style: none;
-      padding: 0;
-    }
+.bjw-header nav {
+  display: flex;
+  gap: 6px;
+}
 
-    .required-docs li {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 8px 0;
-      font-size: 13px;
-      border-bottom: 1px solid var(--cream-d);
-    }
+.bjw-header nav a {
+  font-size: 12px;
+  color: var(--sage-lt);
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: 20px;
+  transition: background var(--transition), color var(--transition);
+}
 
-    .required-docs li:last-child { border-bottom: none; }
+.bjw-header nav a:hover {
+  background: rgba(255,255,255,.1);
+  color: var(--white);
+}
 
-    .required-docs li .doc-icon {
-      width: 28px;
-      height: 28px;
-      background: var(--sage-lt);
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      flex-shrink: 0;
-    }
+/* ── 히어로 배너 ── */
+.bjw-hero {
+  background: linear-gradient(135deg, var(--dark) 0%, var(--moss) 60%, var(--sage) 100%);
+  padding: 56px 24px 48px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
 
-    .required-docs li .doc-info .doc-name {
-      font-weight: 500;
-      color: var(--dark);
-    }
+.bjw-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
 
-    .required-docs li .doc-info .doc-desc {
-      font-size: 11px;
-      color: var(--muted);
-    }
+.bjw-hero .cert-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(200,134,74,.25);
+  border: 1px solid rgba(200,134,74,.5);
+  color: var(--amber-lt);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  padding: 5px 14px;
+  border-radius: 20px;
+  margin-bottom: 16px;
+}
 
-    .submit-area {
-      text-align: center;
-      padding-top: 12px;
-    }
+.bjw-hero h1 {
+  font-family: 'Noto Serif KR', serif;
+  font-size: clamp(22px, 4vw, 32px);
+  font-weight: 700;
+  color: var(--white);
+  margin-bottom: 10px;
+  letter-spacing: -0.5px;
+  line-height: 1.4;
+}
 
-    #form-feedback {
-      margin-top: 16px;
-      display: none;
-    }
+.bjw-hero p {
+  font-size: 14px;
+  color: var(--sage-lt);
+  max-width: 480px;
+  margin: 0 auto;
+}
 
-  /* ── 공지사항 배너 */
-  #notice-banner {
-    display: none;
-    background: #1C4A2A;
-    color: #fff;
-    padding: 0;
-    position: relative;
-    z-index: 100;
-  }
-  .notice-banner-inner {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 0 20px;
-  }
-  .notice-banner-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 11px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-    font-size: 13.5px;
-    line-height: 1.5;
-  }
-  .notice-banner-item:last-child { border-bottom: none; }
-  .notice-banner-badge {
-    background: #C8A84B;
-    color: #1C2B20;
-    font-size: 11px;
-    font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 4px;
-    flex-shrink: 0;
-    white-space: nowrap;
-  }
-  .notice-banner-text { flex: 1; }
-  .notice-banner-date {
-    font-size: 11px;
-    opacity: 0.6;
-    flex-shrink: 0;
-  }
-  </style>
+/* ── 카드 & 컨테이너 ── */
+.bjw-container {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 40px 20px 80px;
+}
+
+.bjw-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 32px;
+  margin-bottom: 24px;
+}
+
+.bjw-card h2 {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--dark);
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--cream-d);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bjw-card h2 .icon {
+  width: 32px;
+  height: 32px;
+  background: var(--moss);
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+/* ── 자격증 선택 탭 ── */
+.cert-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.cert-tab {
+  flex: 1;
+  min-width: 150px;
+  background: var(--white);
+  border: 2px solid var(--cream-d);
+  border-radius: var(--radius);
+  padding: 16px 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.cert-tab:hover {
+  border-color: var(--sage);
+  transform: translateY(-2px);
+}
+
+.cert-tab.active {
+  border-color: var(--moss);
+  background: linear-gradient(135deg, #EEF5F0, #F7FBF8);
+  box-shadow: 0 4px 16px rgba(61,107,71,.15);
+}
+
+.cert-tab .cert-icon { font-size: 28px; margin-bottom: 8px; }
+
+.cert-tab .cert-name {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--dark);
+  margin-bottom: 4px;
+}
+
+.cert-tab .cert-level {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.cert-tab.active .cert-name { color: var(--moss); }
+
+/* ── 폼 스타일 ── */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 560px) {
+  .form-grid { grid-template-columns: 1fr; }
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group.full { grid-column: 1 / -1; }
+
+.form-group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--dark);
+  letter-spacing: 0.3px;
+}
+
+.form-group label .req {
+  color: var(--amber);
+  margin-left: 2px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  border: 1.5px solid #D5DFD7;
+  border-radius: var(--radius);
+  padding: 11px 14px;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--cream);
+  transition: border-color var(--transition), box-shadow var(--transition);
+  outline: none;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: var(--moss);
+  box-shadow: 0 0 0 3px rgba(61,107,71,.12);
+  background: var(--white);
+}
+
+.form-group textarea { resize: vertical; min-height: 80px; }
+
+/* ── 버튼 ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 28px;
+  border-radius: var(--radius);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all var(--transition);
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: var(--moss);
+  color: var(--white);
+}
+
+.btn-primary:hover {
+  background: var(--dark);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--moss);
+  border: 2px solid var(--moss);
+}
+
+.btn-secondary:hover {
+  background: var(--moss);
+  color: var(--white);
+}
+
+.btn-amber {
+  background: var(--amber);
+  color: var(--white);
+}
+
+.btn-amber:hover {
+  background: #B06030;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-full { width: 100%; }
+.btn-lg { padding: 15px 36px; font-size: 15px; }
+
+/* ── 알림 박스 ── */
+.alert {
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  font-size: 13px;
+  margin-bottom: 20px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  line-height: 1.6;
+}
+
+.alert-info {
+  background: #EEF5F0;
+  border-left: 4px solid var(--moss);
+  color: var(--dark);
+}
+
+.alert-warning {
+  background: #FDF5EA;
+  border-left: 4px solid var(--amber);
+  color: #5A3A10;
+}
+
+.alert-success {
+  background: #EAF7EE;
+  border-left: 4px solid var(--success);
+  color: #1A4D30;
+}
+
+.alert-danger {
+  background: #FDECEA;
+  border-left: 4px solid var(--danger);
+  color: #7A1A14;
+}
+
+/* ── 결과 안내 스텝 ── */
+.step-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.step-item {
+  display: flex;
+  gap: 16px;
+  position: relative;
+  padding-bottom: 24px;
+}
+
+.step-item:last-child { padding-bottom: 0; }
+
+.step-item::before {
+  content: '';
+  position: absolute;
+  left: 18px;
+  top: 38px;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg, var(--sage-lt), transparent);
+}
+
+.step-item:last-child::before { display: none; }
+
+.step-num {
+  width: 38px;
+  height: 38px;
+  background: var(--moss);
+  color: var(--white);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.step-content h4 {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--dark);
+  margin-bottom: 3px;
+}
+
+.step-content p {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* ── 자격증 카드 (발급) ── */
+.cert-card-preview {
+  background: linear-gradient(135deg, var(--dark) 0%, var(--moss) 100%);
+  border-radius: var(--radius-lg);
+  padding: 36px 32px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  margin: 24px 0;
+}
+
+.cert-card-preview::before {
+  content: '';
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.04);
+}
+
+.cert-card-preview .cert-title-sm {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--sage-lt);
+  margin-bottom: 6px;
+}
+
+.cert-card-preview .cert-name-lg {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--white);
+  margin-bottom: 4px;
+}
+
+.cert-card-preview .cert-level-lg {
+  font-size: 13px;
+  color: var(--amber-lt);
+  margin-bottom: 16px;
+}
+
+.cert-card-preview .cert-holder {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--white);
+  margin-bottom: 4px;
+}
+
+.cert-card-preview .cert-number {
+  font-size: 11px;
+  color: rgba(255,255,255,.6);
+  font-family: monospace;
+  letter-spacing: 1px;
+}
+
+/* ── 상태 뱃지 ── */
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.badge-green { background: #D4EDDA; color: #1A5C35; }
+.badge-amber { background: #FFF0D4; color: #8A5200; }
+.badge-blue  { background: #D4E8F5; color: #1A4870; }
+.badge-gray  { background: #E8ECEE; color: #4A5760; }
+
+/* ── 섹션 구분선 ── */
+.section-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 28px 0;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0.5px;
+}
+
+.section-divider::before,
+.section-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--cream-d);
+}
+
+/* ── 검색 결과 테이블 ── */
+.result-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.result-table th {
+  background: var(--dark);
+  color: var(--white);
+  padding: 10px 14px;
+  text-align: left;
+  font-weight: 500;
+  font-size: 12px;
+  letter-spacing: 0.3px;
+}
+
+.result-table th:first-child { border-radius: 8px 0 0 0; }
+.result-table th:last-child  { border-radius: 0 8px 0 0; }
+
+.result-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--cream-d);
+  vertical-align: middle;
+}
+
+.result-table tr:hover td { background: #F0F5F1; }
+.result-table tr:last-child td { border-bottom: none; }
+
+/* ── 푸터 ── */
+.bjw-footer {
+  background: var(--dark);
+  color: rgba(255,255,255,.5);
+  text-align: center;
+  padding: 28px 24px;
+  font-size: 12px;
+  line-height: 1.8;
+  margin-top: 60px;
+}
+
+.bjw-footer strong { color: var(--sage-lt); }
+
+/* ── 로딩 스피너 ── */
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--cream-d);
+  border-top-color: var(--moss);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+  margin: 24px auto;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── 토스트 알림 ── */
+#toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.toast {
+  background: var(--dark);
+  color: var(--white);
+  padding: 12px 20px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  box-shadow: var(--shadow-md);
+  animation: slideIn .3s ease;
+  max-width: 300px;
+}
+
+.toast.success { background: var(--success); }
+.toast.error   { background: var(--danger);  }
+
+@keyframes slideIn {
+  from { transform: translateX(20px); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+/* ── 반응형 ── */
+@media (max-width: 640px) {
+  .bjw-header nav { display: none; }
+  .bjw-card { padding: 20px 16px; }
+  .cert-tabs { flex-direction: column; }
+  .cert-tab { min-width: auto; }
+}
+
+</style>
   <style>
-    /* ── 공지사항 배너 */
+/* ── 공지사항 배너 */
   #notice-banner {
     display: none;
     background: #1C4A2A;
@@ -213,8 +660,7 @@
     flex-shrink: 0;
   }
 
-
-    .notice-list-wrap { max-width: 800px; margin: 0 auto; padding: 0 20px 60px; }
+    /* 공지사항 전용 */
     .notice-item {
       border-bottom: 1px solid var(--cream-d);
       padding: 20px 0;
@@ -246,6 +692,11 @@
       color: var(--muted);
       flex-shrink: 0;
     }
+    .notice-chevron {
+      font-size: 12px;
+      color: var(--muted);
+      transition: transform 0.2s;
+    }
     .notice-body {
       display: none;
       margin-top: 14px;
@@ -262,7 +713,7 @@
       padding: 80px 0;
       color: var(--muted);
     }
-    .notice-empty div:first-child { font-size: 48px; margin-bottom: 12px; }
+    .notice-empty-icon { font-size: 48px; margin-bottom: 12px; }
   </style>
 </head>
 <body>
@@ -291,19 +742,17 @@
 <div class="bjw-hero">
   <div class="cert-badge">📢 NOTICE BOARD</div>
   <h1>공지사항</h1>
-  <p>박진우원예치료센터의 시험 일정, 합격자 발표 등<br>중요한 공지사항을 확인하세요.</p>
+  <p>박진우원예치료센터의 시험 일정 안내, 합격자 발표 등<br>중요한 공지사항을 확인하세요.</p>
 </div>
 
 <!-- 공지 목록 -->
 <div class="bjw-container">
   <div class="bjw-card">
     <h2><span class="icon">📋</span> 전체 공지사항</h2>
-    <div class="notice-list-wrap" style="padding:0">
-      <div id="notice-list">
-        <div class="notice-empty">
-          <div>📭</div>
-          <div>공지사항을 불러오는 중...</div>
-        </div>
+    <div id="notice-list">
+      <div class="notice-empty">
+        <div class="notice-empty-icon">📭</div>
+        <div>공지사항을 불러오는 중...</div>
       </div>
     </div>
   </div>
@@ -320,7 +769,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getFirestore, collection, getDocs, query, orderBy, limit, where }
+  import { getFirestore, collection, getDocs, query, orderBy, where, limit }
     from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   const app = initializeApp({
@@ -333,7 +782,7 @@
   });
   const db = getFirestore(app);
 
-  // ── 공지사항 로드
+  // ── 전체 공지 목록
   (async () => {
     const container = document.getElementById('notice-list');
     try {
@@ -341,36 +790,32 @@
         query(collection(db, 'bjw_notices'), orderBy('createdAt', 'desc'), limit(50))
       );
       if (snap.empty) {
-        container.innerHTML = `
-          <div class="notice-empty">
-            <div>📭</div>
-            <div>등록된 공지사항이 없습니다.</div>
-          </div>`;
+        container.innerHTML = '<div class="notice-empty"><div class="notice-empty-icon">📭</div><div>등록된 공지사항이 없습니다.</div></div>';
         return;
       }
       container.innerHTML = snap.docs.map((doc, i) => {
         const d = doc.data();
         const date = d.createdAt?.toDate
-          ? d.createdAt.toDate().toLocaleDateString('ko-KR', {year:'numeric',month:'long',day:'numeric'})
+          ? d.createdAt.toDate().toLocaleDateString('ko-KR', {year:'numeric', month:'long', day:'numeric'})
           : '';
-        return `
-          <div class="notice-item" onclick="toggleBody(${i})">
-            <div class="notice-item-header">
-              ${d.pinned ? '<span class="notice-pin-badge">📌 공지</span>' : ''}
-              <span class="notice-title">${d.title || '제목 없음'}</span>
-              <span class="notice-date">${date}</span>
-              <span style="color:var(--muted);font-size:13px;margin-left:4px">▼</span>
-            </div>
-            <div class="notice-body" id="notice-body-${i}">${d.content || ''}</div>
-          </div>`;
+        const safeContent = (d.content || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        return `<div class="notice-item" onclick="toggleBody(${i}, this)">
+          <div class="notice-item-header">
+            ${d.pinned ? '<span class="notice-pin-badge">📌 공지</span>' : ''}
+            <span class="notice-title">${d.title || '제목 없음'}</span>
+            <span class="notice-date">${date}</span>
+            <span class="notice-chevron">▼</span>
+          </div>
+          <div class="notice-body" id="notice-body-${i}">${safeContent}</div>
+        </div>`;
       }).join('');
     } catch(e) {
-      container.innerHTML = `<div class="notice-empty"><div>⚠️</div><div>공지사항을 불러오지 못했습니다.</div></div>`;
+      container.innerHTML = '<div class="notice-empty"><div class="notice-empty-icon">⚠️</div><div>공지사항을 불러오지 못했습니다.</div></div>';
       console.error(e);
     }
   })();
 
-  // ── 공지사항 배너 로드 (고정 공지만)
+  // ── 상단 배너 (고정 공지만)
   (async () => {
     try {
       const snap = await getDocs(
@@ -383,7 +828,7 @@
       list.innerHTML = snap.docs.map(d => {
         const data = d.data();
         const date = data.createdAt?.toDate
-          ? data.createdAt.toDate().toLocaleDateString('ko-KR', {month:'numeric',day:'numeric'})
+          ? data.createdAt.toDate().toLocaleDateString('ko-KR', {month:'numeric', day:'numeric'})
           : '';
         return `<div class="notice-banner-item">
           <span class="notice-banner-badge">📌 공지</span>
@@ -395,10 +840,13 @@
     } catch(e) { console.warn('배너 로드 실패:', e.message); }
   })();
 
-  window.toggleBody = function(i) {
-    const el = document.getElementById('notice-body-' + i);
-    if (!el) return;
-    el.style.display = el.style.display === 'block' ? 'none' : 'block';
+  window.toggleBody = function(i, el) {
+    const body    = document.getElementById('notice-body-' + i);
+    const chevron = el.querySelector('.notice-chevron');
+    if (!body) return;
+    const isOpen = body.style.display === 'block';
+    body.style.display = isOpen ? 'none' : 'block';
+    if (chevron) chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
   };
 
   function showToast(msg, type='') {
