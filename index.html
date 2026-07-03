@@ -957,6 +957,7 @@ body {
         <div class="sidebar-menu-item" onclick="showPage('passedit', this)">✏️ 합격자 관리</div>
         <div class="sidebar-menu-item" onclick="showPage('refreshed', this)">🔄 보수교육 재발급</div>
         <div class="sidebar-menu-item" onclick="showPage('forms', this)">📁 양식 파일 관리</div>
+        <div class="sidebar-menu-item" onclick="showPage('notices', this)">📢 공지사항 관리</div>
         <div class="sidebar-menu-item" onclick="showPage('supervisors', this)">👮 감독관 계정 관리</div>
       </div>
     </div>
@@ -1178,61 +1179,35 @@ body {
         <div class="bjw-card" style="margin-bottom:0; grid-column:1/-1">
           <h2 style="font-size:15px"><span class="icon">✏️</span> 필기시험 일자 <small style="font-weight:400;color:var(--muted)">(여러 개 등록 가능)</small></h2>
           <div id="written-dates-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px"></div>
-          <button class="btn btn-secondary" style="font-size:12px;padding:8px 16px" onclick="addWrittenDate()">
-            ➕ 시험일자 추가
-          </button>
+          <button class="btn btn-secondary" style="font-size:12px;padding:8px 16px" onclick="addDateRow('written-dates-list','written')">➕ 일자 추가</button>
         </div>
 
         <!-- 필기합격 발표 -->
-        <div class="bjw-card" style="margin-bottom:0">
-          <h2 style="font-size:15px"><span class="icon">📢</span> 필기합격 발표</h2>
-          <div class="form-group" style="margin-bottom:14px">
-            <label>발표일</label>
-            <input type="date" id="sch-written-result">
-          </div>
-          <div class="form-group">
-            <label>발표 안내 문구</label>
-            <input type="text" id="sch-written-result-label" placeholder="예: 2025년 하반기 필기시험 합격자 발표">
-          </div>
+        <div class="bjw-card" style="margin-bottom:0; grid-column:1/-1">
+          <h2 style="font-size:15px"><span class="icon">📢</span> 필기합격 발표일 <small style="font-weight:400;color:var(--muted)">(여러 개 등록 가능)</small></h2>
+          <div id="wresult-dates-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px"></div>
+          <button class="btn btn-secondary" style="font-size:12px;padding:8px 16px" onclick="addDateRow('wresult-dates-list','wresult','date','발표 안내 문구','예: 2025년 하반기 필기 합격자 발표')">➕ 발표일 추가</button>
         </div>
 
         <!-- 서류 제출 기간 -->
-        <div class="bjw-card" style="margin-bottom:0">
-          <h2 style="font-size:15px"><span class="icon">📂</span> 서류 제출 기간</h2>
-          <div class="form-group" style="margin-bottom:14px">
-            <label>제출 시작일</label>
-            <input type="date" id="sch-doc-start">
-          </div>
-          <div class="form-group">
-            <label>제출 마감일</label>
-            <input type="date" id="sch-doc-end">
-          </div>
+        <div class="bjw-card" style="margin-bottom:0; grid-column:1/-1">
+          <h2 style="font-size:15px"><span class="icon">📂</span> 서류 제출 기간 <small style="font-weight:400;color:var(--muted)">(여러 개 등록 가능)</small></h2>
+          <div id="doc-dates-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px"></div>
+          <button class="btn btn-secondary" style="font-size:12px;padding:8px 16px" onclick="addDateRow('doc-dates-list','doc','range')">➕ 기간 추가</button>
         </div>
 
-        <!-- 실기시험 -->
-        <div class="bjw-card" style="margin-bottom:0">
-          <h2 style="font-size:15px"><span class="icon">🌿</span> 실기시험</h2>
-          <div class="form-group" style="margin-bottom:14px">
-            <label>실기시험일</label>
-            <input type="date" id="sch-practical-date">
-          </div>
-          <div class="form-group">
-            <label>시험 시간</label>
-            <input type="time" id="sch-practical-time" value="10:00">
-          </div>
+        <!-- 서류심사 -->
+        <div class="bjw-card" style="margin-bottom:0; grid-column:1/-1">
+          <h2 style="font-size:15px"><span class="icon">🌿</span> 서류심사 일자 <small style="font-weight:400;color:var(--muted)">(여러 개 등록 가능)</small></h2>
+          <div id="practical-dates-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px"></div>
+          <button class="btn btn-secondary" style="font-size:12px;padding:8px 16px" onclick="addDateRow('practical-dates-list','practical')">➕ 일자 추가</button>
         </div>
 
         <!-- 최종합격 발표 -->
-        <div class="bjw-card" style="margin-bottom:0">
-          <h2 style="font-size:15px"><span class="icon">🏆</span> 최종합격 발표</h2>
-          <div class="form-group" style="margin-bottom:14px">
-            <label>발표일</label>
-            <input type="date" id="sch-final-result">
-          </div>
-          <div class="form-group">
-            <label>발표 안내 문구</label>
-            <input type="text" id="sch-final-result-label" placeholder="예: 2025년 하반기 최종합격자 발표">
-          </div>
+        <div class="bjw-card" style="margin-bottom:0; grid-column:1/-1">
+          <h2 style="font-size:15px"><span class="icon">🏆</span> 최종합격 발표일 <small style="font-weight:400;color:var(--muted)">(여러 개 등록 가능)</small></h2>
+          <div id="fresult-dates-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px"></div>
+          <button class="btn btn-secondary" style="font-size:12px;padding:8px 16px" onclick="addDateRow('fresult-dates-list','fresult','date','발표 안내 문구','예: 2025년 하반기 최종합격자 발표')">➕ 발표일 추가</button>
         </div>
 
       </div><!-- /grid -->
@@ -1248,6 +1223,18 @@ body {
           <div class="form-group">
             <label>시험 시행 회차</label>
             <input type="text" id="sch-round" placeholder="예: 2025년 하반기">
+          </div>
+          <div class="form-group full">
+            <label>응시 안내 문구 1</label>
+            <input type="text" id="sch-notice1" placeholder="예: 시험 당일 신분증 지참 필수">
+          </div>
+          <div class="form-group full">
+            <label>응시 안내 문구 2</label>
+            <input type="text" id="sch-notice2" placeholder="예: 주차 공간이 없으니 대중교통 이용 권장">
+          </div>
+          <div class="form-group full">
+            <label>응시 안내 문구 3</label>
+            <input type="text" id="sch-notice3" placeholder="예: 시험 30분 전까지 입실 완료">
           </div>
           <div class="form-group full">
             <label>공지사항 (응시자에게 표시)</label>
@@ -1421,7 +1408,7 @@ body {
         <input type="text" id="search-admit" placeholder="이름 또는 접수번호..." oninput="filterAdmitTable()">
         <select id="filter-admit-status" onchange="filterAdmitTable()">
           <option value="applied">필기시험 응시자</option>
-          <option value="written_pass">실기시험 응시자</option>
+          <option value="written_pass">서류심사 응시자</option>
           <option value="">전체</option>
         </select>
         <button class="btn btn-primary" style="font-size:12px;padding:8px 16px" onclick="loadAdmitList()">
@@ -2134,6 +2121,53 @@ body {
       </div>
     </div><!-- /page-forms -->
 
+    <!-- ═ 공지사항 관리 ═ -->
+    <div class="admin-page" id="page-notices">
+      <h2 style="font-family:'Noto Serif KR',serif;font-size:20px;margin-bottom:6px;color:var(--dark)">
+        📢 공지사항 관리
+      </h2>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:20px">
+        작성한 공지사항은 자격증 발급 페이지 공지사항 탭에 즉시 반영됩니다.
+      </p>
+
+      <!-- 공지 작성 -->
+      <div class="bjw-card" style="margin-bottom:20px">
+        <h2 style="font-size:15px;margin-bottom:16px"><span class="icon">✏️</span> 공지사항 작성</h2>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>제목 <span class="req">*</span></label>
+            <input type="text" id="notice-title" placeholder="공지사항 제목을 입력하세요">
+          </div>
+          <div class="form-group full">
+            <label>내용 <span class="req">*</span></label>
+            <textarea id="notice-content" rows="6" placeholder="공지사항 내용을 입력하세요."></textarea>
+          </div>
+          <div class="form-group">
+            <label>상단 고정</label>
+            <div style="display:flex;align-items:center;gap:10px;padding-top:8px">
+              <input type="checkbox" id="notice-pinned" style="width:18px;height:18px;cursor:pointer">
+              <label for="notice-pinned" style="font-size:13px;color:var(--text);cursor:pointer">📌 공지 상단 고정</label>
+            </div>
+          </div>
+        </div>
+        <div id="notice-write-error" class="alert alert-danger" style="display:none;margin-top:12px"></div>
+        <button class="btn btn-primary" style="margin-top:16px" onclick="saveNotice()">
+          📢 공지사항 등록
+        </button>
+      </div>
+
+      <!-- 공지 목록 -->
+      <div class="bjw-card">
+        <h2 style="font-size:15px;margin-bottom:16px">
+          <span class="icon">📋</span> 등록된 공지사항
+          <button class="btn btn-secondary" style="font-size:11px;padding:5px 10px;margin-left:10px" onclick="loadNoticeList()">🔄</button>
+        </h2>
+        <div id="notice-admin-list">
+          <div style="text-align:center;padding:20px;color:var(--muted)">로딩 중...</div>
+        </div>
+      </div>
+    </div><!-- /page-notices -->
+
     <!-- ═ 감독관 계정 관리 ═ -->
     <div class="admin-page" id="page-supervisors">
       <h2 style="font-family:'Noto Serif KR',serif; font-size:20px; margin-bottom:6px; color:var(--dark)">
@@ -2197,7 +2231,7 @@ body {
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getFirestore, collection, getDocs, getDoc, doc, updateDoc, deleteDoc, addDoc, setDoc, query, where, orderBy, limit, Timestamp }
+  import { getFirestore, collection, getDocs, getDoc, doc, updateDoc, deleteDoc, addDoc, setDoc, query, where, orderBy, limit, Timestamp, serverTimestamp }
     from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
   import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged }
     from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -2254,7 +2288,7 @@ body {
       } else {
         // 관리자: 전체 기능 (개별 독립 실행)
         const fns = [
-          ['loadDashboard',loadDashboard],['loadApplicants',loadApplicants],
+          ['loadDashboard',loadDashboard],['loadApplicants',loadApplicants],['loadNoticeList',loadNoticeList],
           ['loadResults',loadResults],['loadCerts',loadCerts],
           ['loadDocs',loadDocs],['loadSchedule',loadSchedule],
           ['loadPassList',loadPassList],['loadAdmitList',loadAdmitList],
@@ -3228,7 +3262,7 @@ body {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--muted)">로딩 중...</td></tr>';
 
     const certFilter = document.getElementById('idcheck-cert-filter')?.value || '';
-    const statusMap  = { applied:'필기시험', written_pass:'실기시험', final_pass:'최종합격', issued:'발급완료' };
+    const statusMap  = { applied:'필기시험', written_pass:'서류심사', final_pass:'최종합격', issued:'발급완료' };
 
     try {
       let q = query(collection(db,'bjw_applicants'), where('status','in',['applied','written_pass']));
@@ -3304,6 +3338,77 @@ body {
   };
 
   // ── 감독관 계정 관리
+
+  // ── 공지사항 관리
+  window.saveNotice = async function() {
+    const title   = document.getElementById('notice-title').value.trim();
+    const content = document.getElementById('notice-content').value.trim();
+    const pinned  = document.getElementById('notice-pinned').checked;
+    const errEl   = document.getElementById('notice-write-error');
+    if (!title || !content) {
+      errEl.textContent = '제목과 내용을 모두 입력해 주세요.'; errEl.style.display = 'block'; return;
+    }
+    errEl.style.display = 'none';
+    try {
+      await addDoc(collection(db, 'bjw_notices'), {
+        title, content, pinned,
+        createdAt: Timestamp.now()
+      });
+      document.getElementById('notice-title').value   = '';
+      document.getElementById('notice-content').value = '';
+      document.getElementById('notice-pinned').checked = false;
+      showToast('✅ 공지사항이 등록되었습니다.', 'success');
+      loadNoticeList();
+    } catch(e) { errEl.textContent = '등록 실패: ' + e.message; errEl.style.display = 'block'; }
+  };
+
+  window.loadNoticeList = async function() {
+    const container = document.getElementById('notice-admin-list');
+    if (!container) return;
+    container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted)">로딩 중...</div>';
+    try {
+      const snap = await getDocs(query(collection(db, 'bjw_notices'), orderBy('createdAt', 'desc')));
+      if (snap.empty) {
+        container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted)">등록된 공지사항이 없습니다.</div>';
+        return;
+      }
+      container.innerHTML = `
+        <table class="admin-table">
+          <thead><tr><th>고정</th><th>제목</th><th>등록일</th><th>관리</th></tr></thead>
+          <tbody>
+            ${snap.docs.map(d => {
+              const data = d.data();
+              const date = data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString('ko-KR') : '';
+              return `<tr>
+                <td>${data.pinned ? '📌' : '—'}</td>
+                <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${data.title}</td>
+                <td>${date}</td>
+                <td>
+                  <button class="save-btn-sm" style="background:#E53E3E;color:#fff" onclick="deleteNotice('${d.id}')">🗑️ 삭제</button>
+                  <button class="save-btn-sm" style="margin-top:4px" onclick="toggleNoticePin('${d.id}',${!!data.pinned})">${data.pinned ? '📌 고정해제' : '📌 고정'}</button>
+                </td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>`;
+    } catch(e) { container.innerHTML = '<div class="alert alert-danger">로드 실패: ' + e.message + '</div>'; }
+  };
+
+  window.deleteNotice = async function(id) {
+    if (!confirm('이 공지사항을 삭제하시겠습니까?')) return;
+    try {
+      await deleteDoc(doc(db, 'bjw_notices', id));
+      showToast('삭제 완료', 'success'); loadNoticeList();
+    } catch(e) { showToast('삭제 실패: ' + e.message, 'error'); }
+  };
+
+  window.toggleNoticePin = async function(id, current) {
+    try {
+      await updateDoc(doc(db, 'bjw_notices', id), { pinned: !current });
+      showToast(current ? '고정 해제됨' : '상단 고정됨', 'success'); loadNoticeList();
+    } catch(e) { showToast('실패: ' + e.message, 'error'); }
+  };
+
   window.loadSupervisors = async function() {
     const tbody = document.getElementById('supervisors-tbody');
     if (!tbody) return;
@@ -3586,7 +3691,7 @@ body {
     if (!tbody) return;
     const statusMap = {
       applied:      { label: '필기시험', badge: 'badge-gray' },
-      written_pass: { label: '실기시험', badge: 'badge-amber' },
+      written_pass: { label: '서류심사', badge: 'badge-amber' },
       final_pass:   { label: '최종합격', badge: 'badge-green' },
       issued:       { label: '발급완료', badge: 'badge-green' },
     };
@@ -3621,7 +3726,7 @@ body {
     const sch = await getSchedule();
     const typeMap = {
       applied:      '필기시험',
-      written_pass: '실기시험',
+      written_pass: '서류심사',
       final_pass:   '최종합격',
       issued:       '자격증 발급완료'
     };
@@ -3860,81 +3965,128 @@ body {
       const snap = await getDoc(doc(db, 'bjw_config', SCH_DOC));
       if (!snap.exists()) { showToast('저장된 일정이 없습니다.'); return; }
       const d = snap.data();
-      const fields = [
-        'reg-start','reg-end',
-        'written-result','written-result-label',
-        'doc-start','doc-end',
-        'practical-date','practical-time','final-result','final-result-label',
-        'venue','round','notice'
-      ];
+      const fields = ['reg-start','reg-end','venue','round','notice'];
       fields.forEach(k => {
         const el = document.getElementById('sch-' + k);
         if (el && d[k] !== undefined) el.value = d[k];
       });
-      // 여러 필기시험 일자 복원
-      const container = document.getElementById('written-dates-list');
-      if (container) {
-        container.innerHTML = '';
-        const wdates = d['written-dates'] || (d['written-date'] ? [{ date: d['written-date'], time: d['written-time']||'10:00' }] : []);
-        if (wdates.length === 0) addWrittenDate();
-        else wdates.forEach(w => addWrittenDate(w.date, w.time));
-      }
+      // 날짜 배열 복원 헬퍼
+      const restoreRows = (containerId, cls, arr, mode='date+time') => {
+        const c = document.getElementById(containerId);
+        if (!c) return;
+        c.innerHTML = '';
+        if (!arr || arr.length === 0) return;
+        arr.forEach(item => {
+          addDateRow(containerId, cls, mode);
+          const last = c.querySelector('.'+cls+'-date-row:last-child');
+          if (!last) return;
+          if (mode==='range') {
+            if(last.querySelector('.'+cls+'-start')) last.querySelector('.'+cls+'-start').value = item.start||'';
+            if(last.querySelector('.'+cls+'-end'))   last.querySelector('.'+cls+'-end').value   = item.end||'';
+          } else if (mode==='date') {
+            if(last.querySelector('.'+cls+'-date'))  last.querySelector('.'+cls+'-date').value  = item.date||'';
+            if(last.querySelector('.'+cls+'-label')) last.querySelector('.'+cls+'-label').value = item.label||'';
+          } else {
+            if(last.querySelector('.'+cls+'-date'))  last.querySelector('.'+cls+'-date').value  = item.date||'';
+            if(last.querySelector('.'+cls+'-time'))  last.querySelector('.'+cls+'-time').value  = item.time||'10:00';
+          }
+        });
+      };
+      const wd = d['written-dates']   || (d['written-date'] ? [{date:d['written-date'],time:d['written-time']||'10:00'}] : []);
+      restoreRows('written-dates-list',   'written',   wd,                     'date+time');
+      restoreRows('wresult-dates-list',   'wresult',   d['wresult-dates']||[], 'date');
+      restoreRows('doc-dates-list',       'doc',       d['doc-dates']||[],     'range');
+      restoreRows('practical-dates-list', 'practical', d['practical-dates']||[],'date+time');
+      restoreRows('fresult-dates-list',   'fresult',   d['fresult-dates']||[], 'date');
+      // 안내 문구 복원
+      ['notice1','notice2','notice3'].forEach(k => {
+        const el = document.getElementById('sch-'+k);
+        if (el && d[k]) el.value = d[k];
+      });
       renderSchedulePreview(d);
       showToast('✅ 일정을 불러왔습니다.', 'success');
     } catch(e) { console.error(e); showToast('불러오기 실패', 'error'); }
   };
 
 
-  // ── 필기시험 일자 행 추가
-  window.addWrittenDate = function(date='', time='10:00') {
-    const container = document.getElementById('written-dates-list');
+  // ── 날짜 행 범용 추가 함수
+  // type: 'written'|'wresult'|'doc'|'practical'|'fresult'
+  // mode: 'date+time'(기본)|'date'(날짜+라벨)|'range'(시작~종료)
+  window.addDateRow = function(containerId, type, mode='date+time', labelPlaceholder='', labelExample='') {
+    const container = document.getElementById(containerId);
     if (!container) return;
-    const idx = container.querySelectorAll('.written-date-row').length + 1;
+    const inp = (cls, t='date', ph='', val='') =>
+      `<input type="${t}" class="${cls}" value="${val}" placeholder="${ph}"
+        style="width:100%;border:1.5px solid #D5DFD7;border-radius:var(--radius);padding:9px 12px;font-family:'Noto Sans KR',sans-serif;font-size:13px;outline:none;background:var(--cream)">`;
+    let inner = '';
+    if (mode === 'range') {
+      inner = `
+        <div style="flex:1"><label style="font-size:11px;color:var(--muted)">시작일</label>${inp(type+'-start')}</div>
+        <div style="flex:1"><label style="font-size:11px;color:var(--muted)">종료일</label>${inp(type+'-end')}</div>`;
+    } else if (mode === 'date') {
+      inner = `
+        <div style="flex:1"><label style="font-size:11px;color:var(--muted)">날짜</label>${inp(type+'-date')}</div>
+        <div style="flex:2"><label style="font-size:11px;color:var(--muted)">${labelPlaceholder||'안내 문구'}</label>${inp(type+'-label','text',labelExample)}</div>`;
+    } else {
+      inner = `
+        <div style="flex:1"><label style="font-size:11px;color:var(--muted)">날짜</label>${inp(type+'-date')}</div>
+        <div style="width:130px"><label style="font-size:11px;color:var(--muted)">시간</label>${inp(type+'-time','time','','10:00')}</div>`;
+    }
     const row = document.createElement('div');
-    row.className = 'written-date-row';
-    row.style.cssText = 'display:flex;gap:10px;align-items:center;';
-    row.innerHTML = `
-      <div style="flex:1">
-        <label style="font-size:11px;color:var(--muted)">시험일 ${idx}</label>
-        <input type="date" class="wd-date" value="${date}"
-          style="width:100%;border:1.5px solid #D5DFD7;border-radius:var(--radius);padding:9px 12px;font-family:'Noto Sans KR',sans-serif;font-size:13px;outline:none;background:var(--cream)">
-      </div>
-      <div style="width:130px">
-        <label style="font-size:11px;color:var(--muted)">시간</label>
-        <input type="time" class="wd-time" value="${time}"
-          style="width:100%;border:1.5px solid #D5DFD7;border-radius:var(--radius);padding:9px 12px;font-family:'Noto Sans KR',sans-serif;font-size:13px;outline:none;background:var(--cream)">
-      </div>
-      <div style="padding-top:18px">
-        <button class="save-btn-sm" style="color:var(--danger)" onclick="this.closest('.written-date-row').remove()">🗑️</button>
-      </div>`;
+    row.className = type+'-date-row';
+    row.style.cssText = 'display:flex;gap:10px;align-items:flex-end;';
+    row.innerHTML = inner + `<div><button class="save-btn-sm" style="color:var(--danger);margin-bottom:2px" onclick="this.closest('.${type}-date-row').remove()">🗑️</button></div>`;
     container.appendChild(row);
+  };
+  // 하위 호환
+  window.addWrittenDate = (date='',time='10:00') => {
+    addDateRow('written-dates-list','written');
+    const rows = document.querySelectorAll('.written-date-row');
+    const last = rows[rows.length-1];
+    if(last){ last.querySelector('.written-date').value=date; last.querySelector('.written-time').value=time||'10:00'; }
   };
 
   window.saveSchedule = async function() {
-    const fields = [
-      'reg-start','reg-end',
-      'written-result','written-result-label',
-      'doc-start','doc-end',
-      'practical-date','practical-time','final-result','final-result-label',
-      'venue','round','notice'
-    ];
+    const fields = ['reg-start','reg-end','venue','round','notice'];
     const data = {};
     fields.forEach(k => {
       const el = document.getElementById('sch-' + k);
       data[k] = el ? el.value : '';
     });
-    // 여러 필기시험 일자 수집
-    const writtenRows = document.querySelectorAll('.written-date-row');
-    const writtenDates = [];
-    writtenRows.forEach(row => {
-      const date = row.querySelector('.wd-date').value;
-      const time = row.querySelector('.wd-time').value;
-      if (date) writtenDates.push({ date, time });
-    });
-    data['written-dates'] = writtenDates;
-    // 하위 호환: 첫 번째 날짜를 기존 필드에도 저장
-    data['written-date'] = writtenDates[0]?.date || '';
-    data['written-time'] = writtenDates[0]?.time || '';
+    // 날짜 배열 수집 헬퍼
+    const collectRows = (cls, mode='date+time', type='') => {
+      const rows = document.querySelectorAll('.'+cls+'-date-row');
+      const arr = [];
+      rows.forEach(r => {
+        if (mode==='range') {
+          const s=r.querySelector('.'+cls+'-start')?.value, e=r.querySelector('.'+cls+'-end')?.value;
+          if (s||e) arr.push({start:s||'',end:e||''});
+        } else if (mode==='date') {
+          const d=r.querySelector('.'+cls+'-date')?.value, l=r.querySelector('.'+cls+'-label')?.value;
+          if (d) arr.push({date:d,label:l||''});
+        } else {
+          const d=r.querySelector('.'+cls+'-date')?.value, t=r.querySelector('.'+cls+'-time')?.value;
+          if (d) arr.push({date:d,time:t||''});
+        }
+      });
+      return arr;
+    };
+    const writtenDates   = collectRows('written',   'date+time');
+    const wresultDates   = collectRows('wresult',   'date');
+    const docDates       = collectRows('doc',       'range');
+    const practicalDates = collectRows('practical', 'date+time');
+    const fresultDates   = collectRows('fresult',   'date');
+    data['written-dates']   = writtenDates;
+    data['wresult-dates']   = wresultDates;
+    data['doc-dates']       = docDates;
+    data['practical-dates'] = practicalDates;
+    data['fresult-dates']   = fresultDates;
+    // 하위 호환 단일 필드
+    data['written-date']  = writtenDates[0]?.date  || '';
+    data['written-time']  = writtenDates[0]?.time  || '';
+    data['notice1'] = document.getElementById('sch-notice1')?.value || '';
+    data['notice2'] = document.getElementById('sch-notice2')?.value || '';
+    data['notice3'] = document.getElementById('sch-notice3')?.value || '';
     data.updatedAt = new Date().toISOString();
 
     try {
@@ -3962,22 +4114,33 @@ body {
 
   function renderSchedulePreview(d) {
     const el = document.getElementById('schedule-preview');
-    el.innerHTML = [
-      ['📝 접수 기간',   (d['reg-start']||'—') + ' ~ ' + (d['reg-end']||'—')],
-      ['✏️ 필기시험',   formatDate(d['written-date'], d['written-time'])],
-      ['📢 필기발표',   formatDate(d['written-result']) + (d['written-result-label'] ? ' · ' + d['written-result-label'] : '')],
-      ['📂 서류제출',   (d['doc-start']||'—') + ' ~ ' + (d['doc-end']||'—')],
-      ['🌿 실기시험',   formatDate(d['practical-date'], d['practical-time'])],
-      ['🏆 최종발표',   formatDate(d['final-result']) + (d['final-result-label'] ? ' · ' + d['final-result-label'] : '')],
-      ['📍 시험 장소',  d['venue'] || '—'],
-      ['🗓️ 시행 회차',  d['round'] || '—'],
-    ].map(([label, val]) =>
-      `<div style="display:flex; gap:12px; padding:5px 0; border-bottom:1px solid var(--cream-d)">
-        <span style="width:110px; color:var(--dark); font-weight:600; flex-shrink:0">${label}</span>
+    const fmtArr = (arr, mode) => {
+      if (!arr || arr.length===0) return '—';
+      return arr.map(item => {
+        if (mode==='range') return (item.start||'—')+' ~ '+(item.end||'—');
+        if (mode==='date')  return formatDate(item.date) + (item.label?' · '+item.label:'');
+        return formatDate(item.date, item.time);
+      }).join('<br>');
+    };
+    const rows = [
+      ['📝 접수 기간',  (d['reg-start']||'—')+' ~ '+(d['reg-end']||'—')],
+      ['✏️ 필기시험',  fmtArr(d['written-dates'],  'date+time')],
+      ['📢 필기합격발표',fmtArr(d['wresult-dates'], 'date')],
+      ['📂 서류제출',  fmtArr(d['doc-dates'],       'range')],
+      ['🌿 서류심사',  fmtArr(d['practical-dates'], 'date+time')],
+      ['🏆 최종합격발표',fmtArr(d['fresult-dates'], 'date')],
+      ['📍 시험 장소',  d['venue']||'—'],
+      ['🗓️ 시행 회차',  d['round']||'—'],
+    ];
+    const notices = [d['notice1'],d['notice2'],d['notice3']].filter(Boolean);
+    el.innerHTML = rows.map(([label, val]) =>
+      `<div style="display:flex;gap:12px;padding:5px 0;border-bottom:1px solid var(--cream-d)">
+        <span style="width:120px;color:var(--dark);font-weight:600;flex-shrink:0">${label}</span>
         <span style="color:var(--text)">${val}</span>
       </div>`
     ).join('') +
-    (d['notice'] ? `<div style="margin-top:10px; padding:10px 14px; background:#FDF5EA; border-left:3px solid var(--amber); border-radius:6px; font-size:12px; color:#5A3A10">📌 공지: ${d['notice']}</div>` : '');
+    (notices.length ? `<div style="margin-top:10px;padding:10px 14px;background:#FDF5EA;border-left:3px solid var(--amber);border-radius:6px;font-size:12px;color:#5A3A10">📌 ${notices.join(' / ')}</div>` : '') +
+    (d['notice'] ? `<div style="margin-top:6px;padding:10px 14px;background:#EEF5F0;border-left:3px solid var(--moss);border-radius:6px;font-size:12px;color:#1C4A2A">📣 ${d['notice']}</div>` : '');
   }
 
   // 페이지 로드 시 일정 자동 로드
