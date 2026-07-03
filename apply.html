@@ -866,18 +866,10 @@ body {
 </select>
       </div>
       <div class="form-group">
-        <label>응시 구분 <span class="req">*</span></label>
-        <select id="examType" onchange="updateExamDate()" required>
-          <option value="">선택하세요</option>
-          <option value="written">필기시험</option>
-          <option value="practical">자격심사</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>응시 일자 <span class="req">*</span></label>
-        <select id="examDate" required>
-          <option value="">응시 구분을 먼저 선택하세요</option>
-        </select>
+        <label>응시 일자</label>
+        <input type="text" id="examDate" readonly
+          style="background:#EEF5F0;color:var(--moss);font-weight:600;cursor:default;"
+          placeholder="일정 로딩 중...">
       </div>
       <div class="form-group">
         <label>최종 학력</label>
@@ -1057,46 +1049,29 @@ body {
 
       // 전역 날짜 저장 (응시일자 선택란에 사용)
     
-  // 응시 구분 선택 시 응시일자 선택란 업데이트
-  window.updateExamDate = function() {
-    const type = document.getElementById('examType').value;
-    const sel  = document.getElementById('examDate');
-    const d    = window._scheduleData || {};
-
-    sel.innerHTML = '';
-
-    if (!type) {
-      sel.innerHTML = '<option value="">응시 구분을 먼저 선택하세요</option>';
-      return;
-    }
-
-    const fmt = s => {
-      if (!s) return null;
+  // 필기시험 일자 자동 표시
+  function setExamDateFromSchedule(d) {
+    const el = document.getElementById('examDate');
+    if (!el) return;
+    const date = d && d['written-date'];
+    const time = d && d['written-time'] ? ' ' + d['written-time'] : '';
+    if (date) {
       try {
-        const dt = new Date(s);
-        return dt.getFullYear() + '년 ' + (dt.getMonth()+1) + '월 ' + dt.getDate() + '일 (' +
-          ['일','월','화','수','목','금','토'][dt.getDay()] + ')';
-      } catch(e) { return s; }
-    };
-
-    if (type === 'written') {
-      const date = d['written-date'];
-      const time = d['written-time'] ? ' ' + d['written-time'] : '';
-      const label = date ? fmt(date) + time : '필기시험 일정 미정';
-      sel.innerHTML = date
-        ? `<option value="${date}">${label}</option>`
-        : '<option value="">필기시험 일정이 아직 미정입니다</option>';
-    } else if (type === 'practical') {
-      const date = d['practical-date'];
-      const time = d['practical-time'] ? ' ' + d['practical-time'] : '';
-      const label = date ? fmt(date) + time : '자격심사 일정 미정';
-      sel.innerHTML = date
-        ? `<option value="${date}">${label}</option>`
-        : '<option value="">자격심사 일정이 아직 미정입니다</option>';
+        const dt = new Date(date);
+        const label = dt.getFullYear() + '년 ' + (dt.getMonth()+1) + '월 ' + dt.getDate() + '일 (' +
+          ['일','월','화','수','목','금','토'][dt.getDay()] + ')' + time;
+        el.value = label;
+        el.dataset.rawDate = date;
+      } catch(e) { el.value = date + time; el.dataset.rawDate = date; }
+    } else {
+      el.value = '일정 미정 (추후 공지)';
+      el.dataset.rawDate = '';
     }
-  };
+  }
 
-  window._scheduleData = d;
+      // 필기일자 자동 세팅
+      window._scheduleData = d;
+      setExamDateFromSchedule(d);
 
     } catch(e) { console.error('일정 로드 실패', e); }
   }
@@ -1121,13 +1096,10 @@ body {
     const c1       = document.getElementById('consent1').checked;
     const c2       = document.getElementById('consent2').checked;
 
-    const examType = document.getElementById('examType').value;
-    const examDate = document.getElementById('examDate').value;
+    const examDateEl = document.getElementById('examDate');
+    const examDate = examDateEl ? (examDateEl.dataset.rawDate || '') : '';
     if (!name || !birth || !phone || !email || !certType) {
       showToast('필수 항목을 모두 입력해 주세요.', 'error'); return;
-    }
-    if (!examType || !examDate) {
-      showToast('응시 구분과 응시 일자를 선택해 주세요.', 'error'); return;
     }
     if (!c1 || !c2) {
       showToast('필수 동의 항목에 체크해 주세요.', 'error'); return;
@@ -1163,7 +1135,6 @@ body {
         education: document.getElementById('education').value,
         affiliation: document.getElementById('affiliation').value.trim(),
         motivation: document.getElementById('motivation').value.trim(),
-        examType:    examType,
         examDate:    examDate,
         consentMarketing: document.getElementById('consent3').checked,
         status: 'applied',          // applied → written_pass → final_pass → issued
