@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>로그인 테스트</title>
+<style>
+body { font-family: sans-serif; max-width: 400px; margin: 60px auto; padding: 20px; }
+input { display:block; width:100%; margin:8px 0; padding:10px; font-size:16px; box-sizing:border-box; border:1px solid #ccc; border-radius:6px; }
+button { width:100%; padding:12px; background:#1C4A2A; color:#fff; border:none; border-radius:6px; font-size:16px; cursor:pointer; margin-top:8px; }
+#log { margin-top:20px; padding:12px; background:#f5f5f5; border-radius:6px; font-size:13px; white-space:pre-wrap; min-height:60px; }
+</style>
+</head>
+<body>
+<h2>🔐 Firebase 로그인 테스트</h2>
+<input type="email" id="email" placeholder="이메일" value="bakjinwoo92@daum.net">
+<input type="password" id="pw" placeholder="비밀번호">
+<button id="btn">로그인 테스트</button>
+<div id="log">결과가 여기에 표시됩니다...</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+  const app  = initializeApp({
+    apiKey:            "AIzaSyA40OooHSHAyCc-kwps50pDJ504f92hxfo",
+    authDomain:        "pjw-cert.firebaseapp.com",
+    projectId:         "pjw-cert",
+    storageBucket:     "pjw-cert.firebasestorage.app",
+    messagingSenderId: "819294382402",
+    appId:             "1:819294382402:web:1dd27376446616af09c0db"
+  });
+  const auth = getAuth(app);
+  const log  = document.getElementById('log');
+
+  document.getElementById('btn').addEventListener('click', async () => {
+    const email = document.getElementById('email').value.trim();
+    const pw    = document.getElementById('pw').value.trim();
+    log.textContent = '시도 중...';
+    try {
+      const cred = await signInWithEmailAndPassword(auth, email, pw);
+      log.textContent = '✅ 로그인 성공!\nUID: ' + cred.user.uid + '\nEmail: ' + cred.user.email;
+      log.style.background = '#e8f5e9';
+    } catch(e) {
+      log.textContent = '❌ 오류 코드: ' + e.code + '\n오류 메시지: ' + e.message;
+      log.style.background = '#ffebee';
+    }
+  });
+</script>
+</body>
+</html>

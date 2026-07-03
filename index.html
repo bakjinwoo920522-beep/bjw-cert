@@ -2237,7 +2237,7 @@ body {
             el.style.opacity = '0.35';
             el.style.pointerEvents = 'none';
           });
-          const idcheckMenu = document.querySelector('[onclick="showPage('idcheck', this)"]');
+          const idcheckMenu = document.querySelector('[onclick*="idcheck"]');
           if (idcheckMenu) {
             idcheckMenu.style.opacity = '1';
             idcheckMenu.style.pointerEvents = 'auto';
@@ -2263,9 +2263,12 @@ body {
           loadSupervisors();
         }
       } catch(e) {
+        console.error('역할 확인 오류:', e);
         // 역할 정보 없으면 관리자로 처리
         loadDashboard();
         loadApplicants();
+        loadResults();
+        loadCerts();
       }
     } else {
       document.getElementById('login-screen').style.display = 'flex';
