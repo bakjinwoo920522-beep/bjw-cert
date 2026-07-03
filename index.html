@@ -921,7 +921,7 @@ body {
     <input type="email" id="login-email" placeholder="관리자 이메일">
     <input type="password" id="login-pw" placeholder="비밀번호"
       onkeydown="if(event.key==='Enter') doLogin()">
-    <div id="login-error">이메일 또는 비밀번호가 올바르지 않습니다.</div>
+    <div id="login-error" style="display:none">이메일 또는 비밀번호가 올바르지 않습니다.</div>
     <button class="btn btn-primary btn-full" style="margin-top:8px" onclick="doLogin()">
       로그인
     </button>
@@ -2202,7 +2202,7 @@ body {
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getFirestore, collection, getDocs, getDoc, doc, updateDoc, deleteDoc, addDoc, setDoc, query, where, orderBy, limit, Timestamp }
     from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
+  import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged }
     from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
   const firebaseConfig = {
@@ -3234,8 +3234,6 @@ body {
 
     try {
       // Firebase Auth에 계정 생성
-      const { createUserWithEmailAndPassword, getAuth: _getAuth } =
-        await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
       const { uid } = (await createUserWithEmailAndPassword(auth, email, pw)).user;
 
       // Firestore에 감독관 정보 저장
