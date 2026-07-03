@@ -2224,54 +2224,54 @@ body {
   // 로그인 상태 감시
   onAuthStateChanged(auth, async user => {
     if (user) {
-      document.getElementById('login-screen').style.display = 'none';
+      // 로그인 화면 숨기기
+      const loginScreen = document.getElementById('login-screen');
+      if (loginScreen) loginScreen.style.display = 'none';
 
-      // 역할 확인 (감독관 vs 관리자)
+      // 역할 확인 후 페이지 로드
+      let role = 'admin';
       try {
-        const roleSnap = await getDoc(doc(db,'bjw_roles',user.uid));
-        const role = roleSnap.exists() ? roleSnap.data().role : 'admin';
-
-        if (role === 'supervisor') {
-          // 감독관: 신분증 확인 탭만 허용
-          document.querySelectorAll('.sidebar-menu-item').forEach(el => {
-            el.style.opacity = '0.35';
-            el.style.pointerEvents = 'none';
-          });
-          const idcheckMenu = document.querySelector('[onclick*="idcheck"]');
-          if (idcheckMenu) {
-            idcheckMenu.style.opacity = '1';
-            idcheckMenu.style.pointerEvents = 'auto';
-            idcheckMenu.click();
-          }
-          document.getElementById('user-role-badge').style.display = 'inline-block';
-          loadTodayApplicants();
-          loadIdCheckList();
-        } else {
-          // 관리자: 전체 기능
-          loadDashboard();
-          loadApplicants();
-          loadResults();
-          loadCerts();
-          loadDocs();
-          loadSchedule();
-          loadPassList();
-          loadAdmitList();
-          loadIdCheckList();
-          loadPassEditList();
-          loadRefreshHistory();
-          loadFormsStatus();
-          loadSupervisors();
-        }
+        const roleSnap = await getDoc(doc(db, 'bjw_roles', user.uid));
+        if (roleSnap.exists()) role = roleSnap.data().role || 'admin';
       } catch(e) {
-        console.error('역할 확인 오류:', e);
-        // 역할 정보 없으면 관리자로 처리
+        console.warn('역할 확인 실패, 관리자로 처리:', e.code);
+      }
+
+      if (role === 'supervisor') {
+        // 감독관: 신분증 확인만
+        document.querySelectorAll('.sidebar-menu-item').forEach(el => {
+          el.style.opacity = '0.35';
+          el.style.pointerEvents = 'none';
+        });
+        const idcheckMenu = document.querySelector('[onclick*="idcheck"]');
+        if (idcheckMenu) {
+          idcheckMenu.style.opacity = '1';
+          idcheckMenu.style.pointerEvents = 'auto';
+          idcheckMenu.click();
+        }
+        const badge = document.getElementById('user-role-badge');
+        if (badge) badge.style.display = 'inline-block';
+        loadTodayApplicants();
+        loadIdCheckList();
+      } else {
+        // 관리자: 전체 기능
         loadDashboard();
         loadApplicants();
         loadResults();
         loadCerts();
+        loadDocs();
+        loadSchedule();
+        loadPassList();
+        loadAdmitList();
+        loadIdCheckList();
+        loadPassEditList();
+        loadRefreshHistory();
+        loadFormsStatus();
+        loadSupervisors();
       }
     } else {
-      document.getElementById('login-screen').style.display = 'flex';
+      const loginScreen = document.getElementById('login-screen');
+      if (loginScreen) loginScreen.style.display = 'flex';
     }
   });
 
@@ -2287,8 +2287,11 @@ body {
     }
     btnEl.textContent = '로그인 중...'; btnEl.disabled = true;
     try {
-      await signInWithEmailAndPassword(auth, email, pw);
+      const cred = await signInWithEmailAndPassword(auth, email, pw);
       errEl.style.display = 'none';
+      // 명시적으로 로그인 화면 숨기기 (onAuthStateChanged 대기 없이)
+      const ls = document.getElementById('login-screen');
+      if (ls) ls.style.display = 'none';
     } catch(e) {
       const msg = e.code === 'auth/user-not-found'  ? '등록되지 않은 이메일입니다.' :
                   e.code === 'auth/wrong-password'   ? '비밀번호가 올바르지 않습니다.' :
