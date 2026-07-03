@@ -1108,7 +1108,9 @@ body {
           ' (' + ['일','월','화','수','목','금','토'][dt.getDay()] + ')';
       }
 
-      if (d['round']) document.getElementById('sch-round-title').textContent = d['round'] + ' 시험 일정';
+      // 시행 회차 — 첫 번째 회차만 제목에 표시
+      const roundVal = (d['rounds'] && d['rounds'].length) ? d['rounds'][0] : (d['round'] || '');
+      if (roundVal) document.getElementById('sch-round-title').textContent = roundVal + ' 시험 일정';
       if (d['reg-start'] && d['reg-end']) {
         document.getElementById('disp-reg').textContent =
           fmtShort(d['reg-start']) + ' – ' + fmtShort(d['reg-end']);
@@ -1122,14 +1124,19 @@ body {
         document.getElementById('disp-practical').textContent = fmtShort(d['practical-date']);
         document.getElementById('disp-practical-time').textContent = d['practical-time'] ? '오전 ' + d['practical-time'] : '';
       }
-      if (d['venue']) {
-        document.getElementById('disp-venue-alert').innerHTML =
-          '⚠️ ' + d['venue'] + ' 접수 시 이메일 주소를 정확히 입력해 주세요.';
+      // 시험 장소 (배열 우선)
+      const venues = (d['venues'] && d['venues'].length) ? d['venues'] : (d['venue'] ? [d['venue']] : []);
+      if (venues.length) {
+        const venueEl = document.getElementById('disp-venue-alert');
+        venueEl.innerHTML = venues.map(v => '⚠️ ' + v).join('<br>');
+        venueEl.style.display = 'flex';
       }
-      if (d['notice']) {
+      // 공지 문구 (notice1~3 + notice)
+      const notices = [d['notice1'], d['notice2'], d['notice3'], d['notice']].filter(Boolean);
+      if (notices.length) {
         const nb = document.getElementById('disp-notice-box');
         nb.style.display = 'flex';
-        nb.textContent = '📌 ' + d['notice'];
+        nb.innerHTML = notices.map(n => '📌 ' + n).join('<br>');
       }
 
       // 응시일자 자동 세팅
