@@ -2394,7 +2394,8 @@ body {
       applied:      '<span class="badge badge-gray">접수완료</span>',
       written_pass: '<span class="badge badge-amber">필기합격</span>',
       final_pass:   '<span class="badge badge-blue">최종합격</span>',
-      issued:       '<span class="badge badge-green">발급완료</span>'
+      issued:       '<span class="badge badge-green">발급완료</span>',
+      fail:         '<span class="badge badge-red" style="background:#FED7D7;color:#C53030">불합격</span>'
     };
     document.getElementById('applicants-tbody').innerHTML = list.length
       ? list.map(d => `
@@ -2410,16 +2411,46 @@ body {
                 <option value="written_pass" ${d.status==='written_pass'?'selected':''}>필기합격</option>
                 <option value="final_pass"   ${d.status==='final_pass'?'selected':''}>최종합격</option>
                 <option value="issued"       ${d.status==='issued'?'selected':''}>발급완료</option>
+                <option value="fail"         ${d.status==='fail'?'selected':''} style="color:#C53030">불합격</option>
               </select>
               <button class="save-btn-sm" onclick="saveStatus('${d.id}')">저장</button>
               <button class="save-btn-sm" style="background:${d.feeConfirmed?'var(--success)':'var(--amber)'};margin-top:4px;"
                 onclick="toggleFeeConfirm('${d.id}', ${!!d.feeConfirmed})">
                 ${d.feeConfirmed ? '💳 납부확인됨' : '💳 납부확인'}
               </button>
+              <button class="save-btn-sm" style="background:#E53E3E;color:#fff;margin-top:4px;"
+                onclick="setFail('${d.id}','${d.name}')">
+                ❌ 불합격
+              </button>
+              <button class="save-btn-sm" style="background:#555;color:#fff;margin-top:4px;"
+                onclick="deleteApplicant('${d.id}','${d.name}')">
+                🗑️ 삭제
+              </button>
             </td>
           </tr>`).join('')
       : '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">데이터가 없습니다.</td></tr>';
   }
+
+
+  // ── 불합격 처리
+  window.setFail = async function(id, name) {
+    if (!confirm(name + '님을 불합격 처리하시겠습니까?\n(상태가 "불합격"으로 변경됩니다)')) return;
+    try {
+      await updateDoc(doc(db, 'bjw_applicants', id), { status: 'fail', failedAt: Timestamp.now() });
+      showToast(name + '님 불합격 처리 완료', 'success');
+      loadApplicants();
+    } catch(e) { showToast('처리 실패: ' + e.message, 'error'); }
+  };
+
+  // ── 응시자 삭제
+  window.deleteApplicant = async function(id, name) {
+    if (!confirm('[⚠️ 주의] ' + name + '님의 데이터를 완전히 삭제합니다.\n이 작업은 되돌릴 수 없습니다.\n\n정말 삭제하시겠습니까?')) return;
+    try {
+      await deleteDoc(doc(db, 'bjw_applicants', id));
+      showToast(name + '님 데이터 삭제 완료', 'success');
+      loadApplicants();
+    } catch(e) { showToast('삭제 실패: ' + e.message, 'error'); }
+  };
 
   window.filterTable = function() {
     const search  = document.getElementById('search-applicant').value.toLowerCase();
@@ -2842,6 +2873,52 @@ body {
     showToast(`✅ ${count}명 자격번호 부여 완료!`, 'success');
     loadPassEditList();
   };
+
+  // ── 유효기간 일괄 등록
+  window.bulkAssignValidDate = async function() {
+    const targets = allPassEdit.filter(d => !d.validDate && d.issuedDate);
+    const noDate  = allPassEdit.filter(d => !d.validDate && !d.issuedDate);
+
+    if (targets.length === 0 && noDate.length === 0) {
+      showToast('유효기간이 없는 합격자가 없습니다.', 'success'); return;
+    }
+
+    const total = targets.length + noDate.length;
+    const today = new Date().toISOString().slice(0, 10);
+    let msg = '';
+    if (targets.length > 0)
+      msg += `발급일 기준 +3년으로 ${targets.length}명 등록`;
+    if (noDate.length > 0)
+      msg += (msg ? '\n' : '') + `발급일 없는 ${noDate.length}명은 오늘(${today}) 기준 +3년 등록`;
+
+    if (!confirm(msg + '\n\n계속하시겠습니까?')) return;
+
+    const resultEl = document.getElementById('bulk-result');
+    if (resultEl) { resultEl.style.display='block'; resultEl.innerHTML='<div class="alert alert-info">처리 중...</div>'; }
+
+    let count = 0;
+    for (const d of [...targets, ...noDate]) {
+      const base = d.issuedDate || today;
+      const vd   = new Date(base);
+      vd.setFullYear(vd.getFullYear() + 3);
+      const validStr = vd.toISOString().slice(0, 10);
+      try {
+        const upd = { validDate: validStr };
+        if (!d.issuedDate) upd.issuedDate = today;
+        await updateDoc(doc(db, 'bjw_applicants', d.id), upd);
+        count++;
+      } catch(e) { console.error(e); }
+    }
+
+    if (resultEl) resultEl.innerHTML = `<div class="alert alert-success">✅ ${count}명 유효기간 등록 완료!</div>`;
+    showToast(`✅ ${count}명 유효기간 등록 완료!`, 'success');
+    loadPassEditList();
+  };
+
+
+  // ── 유효기간 일괄 등록
+
+
 
   // 수정 모달
   window.openEditPassModal = function(data) {
