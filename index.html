@@ -919,10 +919,9 @@ body {
     <h2>관리자 로그인</h2>
     <p>박진우원예치료센터 자격증 관리시스템</p>
     <input type="email" id="login-email" placeholder="관리자 이메일">
-    <input type="password" id="login-pw" placeholder="비밀번호"
-      onkeydown="if(event.key==='Enter') doLogin()">
-    <div id="login-error" style="display:none">이메일 또는 비밀번호가 올바르지 않습니다.</div>
-    <button class="btn btn-primary btn-full" style="margin-top:8px" onclick="doLogin()">
+    <input type="password" id="login-pw" placeholder="비밀번호">
+    <div id="login-error" style="display:none;color:#e53e3e;font-size:13px;margin-top:8px">이메일 또는 비밀번호가 올바르지 않습니다.</div>
+    <button class="btn btn-primary btn-full" style="margin-top:8px" id="login-btn">
       로그인
     </button>
   </div>
@@ -2273,16 +2272,41 @@ body {
     }
   });
 
-  window.doLogin = async function() {
-    const email = document.getElementById('login-email').value.trim();
-    const pw    = document.getElementById('login-pw').value;
+  // ── 로그인
+  async function doLoginFn() {
+    const email  = document.getElementById('login-email').value.trim();
+    const pw     = document.getElementById('login-pw').value.trim();
+    const errEl  = document.getElementById('login-error');
+    const btnEl  = document.getElementById('login-btn');
+    if (!email || !pw) {
+      errEl.textContent = '이메일과 비밀번호를 입력하세요.';
+      errEl.style.display = 'block'; return;
+    }
+    btnEl.textContent = '로그인 중...'; btnEl.disabled = true;
     try {
       await signInWithEmailAndPassword(auth, email, pw);
-      document.getElementById('login-error').style.display = 'none';
+      errEl.style.display = 'none';
     } catch(e) {
-      document.getElementById('login-error').style.display = 'block';
+      const msg = e.code === 'auth/user-not-found'  ? '등록되지 않은 이메일입니다.' :
+                  e.code === 'auth/wrong-password'   ? '비밀번호가 올바르지 않습니다.' :
+                  e.code === 'auth/invalid-email'    ? '이메일 형식이 올바르지 않습니다.' :
+                  e.code === 'auth/invalid-credential' ? '이메일 또는 비밀번호를 확인하세요.' :
+                  '로그인 실패: ' + e.code;
+      errEl.textContent = msg;
+      errEl.style.display = 'block';
+    } finally {
+      btnEl.textContent = '로그인'; btnEl.disabled = false;
     }
-  };
+  }
+  window.doLogin = doLoginFn;
+
+  // 이벤트 리스너 (module 스크립트 안에서 직접 연결)
+  document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('login-btn');
+    const pw  = document.getElementById('login-pw');
+    if (btn) btn.addEventListener('click', doLoginFn);
+    if (pw)  pw.addEventListener('keydown', e => { if(e.key==='Enter') doLoginFn(); });
+  });
 
   window.doLogout = async function() {
     await signOut(auth);
