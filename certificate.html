@@ -911,6 +911,7 @@ body {
   <nav>
     <a href="apply.html">응시 신청</a>
     <a href="written-pass.html">필기합격 조회</a>
+    <a href="admit-card.html">응시표 출력</a>
     <a href="doc-submit.html">심사서류 제출</a>
     <a href="final-pass.html">최종합격 조회</a>
     <a href="certificate.html">자격증 발급</a>
@@ -1040,6 +1041,22 @@ body {
         <div class="fee-row">
           <span>합계</span>
           <span id="total-fee">53,000원</span>
+        </div>
+      </div>
+
+      <!-- 보수교육 안내 -->
+      <div style="background:linear-gradient(135deg,#FDF5EA,#FFF8F0);border:1.5px solid var(--amber,#C8864A);border-radius:12px;padding:18px 20px;margin-bottom:20px;">
+        <div style="display:flex;gap:12px;align-items:flex-start">
+          <div style="font-size:22px;flex-shrink:0">📌</div>
+          <div>
+            <div style="font-weight:700;font-size:13px;color:#5A3A10;margin-bottom:6px">자격증 유효기간 및 보수교육 안내</div>
+            <div style="font-size:12px;color:#7A5010;line-height:1.9">
+              · 자격증 유효기간은 <strong>발급일로부터 3년</strong>입니다.<br>
+              · 유효기간 내 보수교육(<strong>8시간 이상</strong>)을 이수하지 않으면 자격이 <strong style="color:#C0392B">정지</strong>됩니다.<br>
+              · 보수교육 이수 후 센터에 신청하시면 유효기간을 <strong>3년 연장</strong>하여 재발급 받으실 수 있습니다.<br>
+              · 문의: jinwoo_hort@daum.net
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1296,8 +1313,20 @@ body {
                 </div>
                 <div class="meta-row" style="margin-top:4px">
                   <span>⏳ 유효: ~${data.validDate || '—'}</span>
-                  <span class="badge badge-green">✅ 유효</span>
+                  ${(() => {
+                    if (!data.validDate) return '<span class="badge badge-gray">기간미설정</span>';
+                    const exp=new Date(data.validDate), today=new Date();
+                    const sixMo=new Date(); sixMo.setMonth(sixMo.getMonth()+6);
+                    if(exp<today) return '<span class="badge" style="background:#FDECEA;color:#C0392B">⚠️자격정지</span>';
+                    if(exp<sixMo) return '<span class="badge badge-amber">⚠️만료임박</span>';
+                    return '<span class="badge badge-green">✅ 유효</span>';
+                  })()}
                 </div>
+                ${data.validDate && new Date(data.validDate)<new Date()
+                  ? '<div style="font-size:11px;color:#C0392B;padding:5px 10px;background:#FDECEA;border-radius:6px;margin-top:6px">보수교육 이수 후 재발급 신청이 필요합니다.</div>'
+                  : data.validDate && (() => { const s=new Date(); s.setMonth(s.getMonth()+6); return new Date(data.validDate)<s; })()
+                    ? '<div style="font-size:11px;color:#8A5200;padding:5px 10px;background:#FFF0D4;border-radius:6px;margin-top:6px">6개월 내 만료 — 보수교육을 준비하세요.</div>'
+                    : ''}
               </div>
               <div class="cert-actions">
                 <button class="btn btn-secondary" style="font-size:12px;padding:8px 14px"
