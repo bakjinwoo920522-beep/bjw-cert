@@ -1,0 +1,1881 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>관리자 | 박진우원예치료센터 자격증시스템</title>
+  <style>
+    body { background: #F0F2F0; }
+
+    .admin-layout {
+      display: flex;
+      min-height: calc(100vh - 72px);
+    }
+
+    /* 사이드바 */
+    .admin-sidebar {
+      width: 220px;
+      background: var(--dark);
+      padding: 24px 0;
+      flex-shrink: 0;
+      position: sticky;
+      top: 72px;
+      height: calc(100vh - 72px);
+      overflow-y: auto;
+    }
+
+    .admin-sidebar .sidebar-section {
+      padding: 0 16px;
+      margin-bottom: 24px;
+    }
+
+    .admin-sidebar .sidebar-label {
+      font-size: 10px;
+      color: rgba(255,255,255,.3);
+      letter-spacing: 1.5px;
+      padding: 0 8px;
+      margin-bottom: 6px;
+    }
+
+    .sidebar-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: var(--radius);
+      color: rgba(255,255,255,.6);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all var(--transition);
+      margin-bottom: 2px;
+    }
+
+    .sidebar-menu-item:hover {
+      background: rgba(255,255,255,.08);
+      color: var(--white);
+    }
+
+    .sidebar-menu-item.active {
+      background: var(--moss);
+      color: var(--white);
+    }
+
+    /* 메인 영역 */
+    .admin-main {
+      flex: 1;
+      padding: 28px 24px;
+      overflow-x: hidden;
+    }
+
+    .admin-page { display: none; }
+    .admin-page.active { display: block; }
+
+    /* 대시보드 카드 */
+    .dash-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 900px) { .dash-stats { grid-template-columns: repeat(2, 1fr); } }
+
+    .stat-card {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .stat-card .s-icon {
+      width: 42px; height: 42px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      margin-bottom: 4px;
+    }
+
+    .stat-card .s-label {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .stat-card .s-num {
+      font-size: 30px;
+      font-weight: 700;
+      font-family: 'Noto Serif KR', serif;
+      color: var(--dark);
+    }
+
+    .stat-card.green .s-icon { background: #EAF5EE; }
+    .stat-card.amber .s-icon { background: #FFF3E0; }
+    .stat-card.blue  .s-icon { background: #E3F0FB; }
+    .stat-card.moss  .s-icon { background: #EEF5F0; }
+
+    /* 테이블 액션 */
+    .table-toolbar {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .table-toolbar input {
+      border: 1.5px solid var(--cream-d);
+      border-radius: var(--radius);
+      padding: 8px 14px;
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 13px;
+      outline: none;
+      width: 220px;
+    }
+
+    .table-toolbar select {
+      border: 1.5px solid var(--cream-d);
+      border-radius: var(--radius);
+      padding: 8px 14px;
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 13px;
+      outline: none;
+      background: var(--white);
+    }
+
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .admin-table th {
+      background: var(--dark);
+      color: var(--white);
+      padding: 12px 14px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+    }
+
+    .admin-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--cream-d);
+      vertical-align: middle;
+    }
+
+    .admin-table tr:last-child td { border-bottom: none; }
+    .admin-table tr:hover td { background: #F5F8F5; }
+
+    .action-select {
+      border: 1.5px solid var(--cream-d);
+      border-radius: 6px;
+      padding: 5px 8px;
+      font-size: 12px;
+      font-family: 'Noto Sans KR', sans-serif;
+      background: var(--white);
+      cursor: pointer;
+    }
+
+    .save-btn-sm {
+      background: var(--moss);
+      color: var(--white);
+      border: none;
+      border-radius: 6px;
+      padding: 5px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      font-family: 'Noto Sans KR', sans-serif;
+      margin-left: 4px;
+    }
+
+    .save-btn-sm:hover { background: var(--dark); }
+
+    /* 모달 */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .modal-box {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      width: 90%;
+      max-width: 520px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-box h3 {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--cream-d);
+    }
+
+    /* 로그인 */
+    #login-screen {
+      position: fixed; inset: 0;
+      background: linear-gradient(135deg, var(--dark) 0%, var(--moss) 100%);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999;
+    }
+
+    .login-box {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 40px;
+      width: 380px;
+      text-align: center;
+      box-shadow: var(--shadow-md);
+    }
+
+    .login-box h2 {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 6px;
+    }
+
+    .login-box p {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 24px;
+    }
+
+    .login-box input {
+      width: 100%;
+      border: 1.5px solid var(--cream-d);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 14px;
+      margin-bottom: 12px;
+      outline: none;
+      transition: border-color var(--transition);
+    }
+
+    .login-box input:focus { border-color: var(--moss); }
+
+    #login-error {
+      color: var(--danger);
+      font-size: 12px;
+      margin: 8px 0;
+      display: none;
+    }
+
+    /* 차트 바 */
+    .mini-bar-wrap { margin-top: 12px; }
+    .mini-bar-row {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 8px; font-size: 12px;
+    }
+    .mini-bar-label { width: 110px; color: var(--muted); flex-shrink: 0; }
+    .mini-bar-track { flex: 1; height: 8px; background: var(--cream-d); border-radius: 4px; }
+    .mini-bar-fill  { height: 100%; border-radius: 4px; background: var(--moss); }
+    .mini-bar-val   { width: 36px; text-align: right; color: var(--dark); font-weight: 600; }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+/* ============================================================
+   박진우원예치료센터 자격증시스템 — 공통 스타일
+   팔레트: 이끼그린 #3D6B47 / 세이지 #7A9E82 / 크림 #F7F4EE
+           다크 #1C2B20 / 포인트 #C8864A
+   ============================================================ */
+
+:root {
+  --moss:    #3D6B47;
+  --sage:    #7A9E82;
+  --sage-lt: #B8D4BE;
+  --cream:   #F7F4EE;
+  --cream-d: #EDE9E0;
+  --dark:    #1C2B20;
+  --amber:   #C8864A;
+  --amber-lt:#F0D4B4;
+  --text:    #2C3E30;
+  --muted:   #6B7F70;
+  --white:   #FFFFFF;
+  --danger:  #C0392B;
+  --success: #2D7A4F;
+
+  --radius:  10px;
+  --radius-lg: 18px;
+  --shadow:  0 4px 20px rgba(28,43,32,.10);
+  --shadow-md: 0 8px 32px rgba(28,43,32,.15);
+  --transition: 0.22s ease;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  background: var(--cream);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.7;
+}
+
+/* ── 헤더 ── */
+.bjw-header {
+  background: var(--dark);
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 72px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 12px rgba(0,0,0,.3);
+}
+
+.bjw-header .logo-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.bjw-header .logo-main {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--white);
+  letter-spacing: -0.3px;
+}
+
+.bjw-header .logo-sub {
+  font-size: 10px;
+  color: var(--sage-lt);
+  letter-spacing: 0.5px;
+}
+
+.bjw-header nav {
+  display: flex;
+  gap: 6px;
+}
+
+.bjw-header nav a {
+  font-size: 12px;
+  color: var(--sage-lt);
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: 20px;
+  transition: background var(--transition), color var(--transition);
+}
+
+.bjw-header nav a:hover {
+  background: rgba(255,255,255,.1);
+  color: var(--white);
+}
+
+/* ── 히어로 배너 ── */
+.bjw-hero {
+  background: linear-gradient(135deg, var(--dark) 0%, var(--moss) 60%, var(--sage) 100%);
+  padding: 56px 24px 48px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.bjw-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+.bjw-hero .cert-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(200,134,74,.25);
+  border: 1px solid rgba(200,134,74,.5);
+  color: var(--amber-lt);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  padding: 5px 14px;
+  border-radius: 20px;
+  margin-bottom: 16px;
+}
+
+.bjw-hero h1 {
+  font-family: 'Noto Serif KR', serif;
+  font-size: clamp(22px, 4vw, 32px);
+  font-weight: 700;
+  color: var(--white);
+  margin-bottom: 10px;
+  letter-spacing: -0.5px;
+  line-height: 1.4;
+}
+
+.bjw-hero p {
+  font-size: 14px;
+  color: var(--sage-lt);
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+/* ── 카드 & 컨테이너 ── */
+.bjw-container {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 40px 20px 80px;
+}
+
+.bjw-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 32px;
+  margin-bottom: 24px;
+}
+
+.bjw-card h2 {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--dark);
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--cream-d);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bjw-card h2 .icon {
+  width: 32px;
+  height: 32px;
+  background: var(--moss);
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+/* ── 자격증 선택 탭 ── */
+.cert-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.cert-tab {
+  flex: 1;
+  min-width: 150px;
+  background: var(--white);
+  border: 2px solid var(--cream-d);
+  border-radius: var(--radius);
+  padding: 16px 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.cert-tab:hover {
+  border-color: var(--sage);
+  transform: translateY(-2px);
+}
+
+.cert-tab.active {
+  border-color: var(--moss);
+  background: linear-gradient(135deg, #EEF5F0, #F7FBF8);
+  box-shadow: 0 4px 16px rgba(61,107,71,.15);
+}
+
+.cert-tab .cert-icon { font-size: 28px; margin-bottom: 8px; }
+
+.cert-tab .cert-name {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--dark);
+  margin-bottom: 4px;
+}
+
+.cert-tab .cert-level {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.cert-tab.active .cert-name { color: var(--moss); }
+
+/* ── 폼 스타일 ── */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 560px) {
+  .form-grid { grid-template-columns: 1fr; }
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group.full { grid-column: 1 / -1; }
+
+.form-group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--dark);
+  letter-spacing: 0.3px;
+}
+
+.form-group label .req {
+  color: var(--amber);
+  margin-left: 2px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  border: 1.5px solid #D5DFD7;
+  border-radius: var(--radius);
+  padding: 11px 14px;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--cream);
+  transition: border-color var(--transition), box-shadow var(--transition);
+  outline: none;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: var(--moss);
+  box-shadow: 0 0 0 3px rgba(61,107,71,.12);
+  background: var(--white);
+}
+
+.form-group textarea { resize: vertical; min-height: 80px; }
+
+/* ── 버튼 ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 28px;
+  border-radius: var(--radius);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all var(--transition);
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: var(--moss);
+  color: var(--white);
+}
+
+.btn-primary:hover {
+  background: var(--dark);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--moss);
+  border: 2px solid var(--moss);
+}
+
+.btn-secondary:hover {
+  background: var(--moss);
+  color: var(--white);
+}
+
+.btn-amber {
+  background: var(--amber);
+  color: var(--white);
+}
+
+.btn-amber:hover {
+  background: #B06030;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-full { width: 100%; }
+.btn-lg { padding: 15px 36px; font-size: 15px; }
+
+/* ── 알림 박스 ── */
+.alert {
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  font-size: 13px;
+  margin-bottom: 20px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  line-height: 1.6;
+}
+
+.alert-info {
+  background: #EEF5F0;
+  border-left: 4px solid var(--moss);
+  color: var(--dark);
+}
+
+.alert-warning {
+  background: #FDF5EA;
+  border-left: 4px solid var(--amber);
+  color: #5A3A10;
+}
+
+.alert-success {
+  background: #EAF7EE;
+  border-left: 4px solid var(--success);
+  color: #1A4D30;
+}
+
+.alert-danger {
+  background: #FDECEA;
+  border-left: 4px solid var(--danger);
+  color: #7A1A14;
+}
+
+/* ── 결과 안내 스텝 ── */
+.step-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.step-item {
+  display: flex;
+  gap: 16px;
+  position: relative;
+  padding-bottom: 24px;
+}
+
+.step-item:last-child { padding-bottom: 0; }
+
+.step-item::before {
+  content: '';
+  position: absolute;
+  left: 18px;
+  top: 38px;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg, var(--sage-lt), transparent);
+}
+
+.step-item:last-child::before { display: none; }
+
+.step-num {
+  width: 38px;
+  height: 38px;
+  background: var(--moss);
+  color: var(--white);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.step-content h4 {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--dark);
+  margin-bottom: 3px;
+}
+
+.step-content p {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* ── 자격증 카드 (발급) ── */
+.cert-card-preview {
+  background: linear-gradient(135deg, var(--dark) 0%, var(--moss) 100%);
+  border-radius: var(--radius-lg);
+  padding: 36px 32px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  margin: 24px 0;
+}
+
+.cert-card-preview::before {
+  content: '';
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.04);
+}
+
+.cert-card-preview .cert-title-sm {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--sage-lt);
+  margin-bottom: 6px;
+}
+
+.cert-card-preview .cert-name-lg {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--white);
+  margin-bottom: 4px;
+}
+
+.cert-card-preview .cert-level-lg {
+  font-size: 13px;
+  color: var(--amber-lt);
+  margin-bottom: 16px;
+}
+
+.cert-card-preview .cert-holder {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--white);
+  margin-bottom: 4px;
+}
+
+.cert-card-preview .cert-number {
+  font-size: 11px;
+  color: rgba(255,255,255,.6);
+  font-family: monospace;
+  letter-spacing: 1px;
+}
+
+/* ── 상태 뱃지 ── */
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.badge-green { background: #D4EDDA; color: #1A5C35; }
+.badge-amber { background: #FFF0D4; color: #8A5200; }
+.badge-blue  { background: #D4E8F5; color: #1A4870; }
+.badge-gray  { background: #E8ECEE; color: #4A5760; }
+
+/* ── 섹션 구분선 ── */
+.section-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 28px 0;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0.5px;
+}
+
+.section-divider::before,
+.section-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--cream-d);
+}
+
+/* ── 검색 결과 테이블 ── */
+.result-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.result-table th {
+  background: var(--dark);
+  color: var(--white);
+  padding: 10px 14px;
+  text-align: left;
+  font-weight: 500;
+  font-size: 12px;
+  letter-spacing: 0.3px;
+}
+
+.result-table th:first-child { border-radius: 8px 0 0 0; }
+.result-table th:last-child  { border-radius: 0 8px 0 0; }
+
+.result-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--cream-d);
+  vertical-align: middle;
+}
+
+.result-table tr:hover td { background: #F0F5F1; }
+.result-table tr:last-child td { border-bottom: none; }
+
+/* ── 푸터 ── */
+.bjw-footer {
+  background: var(--dark);
+  color: rgba(255,255,255,.5);
+  text-align: center;
+  padding: 28px 24px;
+  font-size: 12px;
+  line-height: 1.8;
+  margin-top: 60px;
+}
+
+.bjw-footer strong { color: var(--sage-lt); }
+
+/* ── 로딩 스피너 ── */
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--cream-d);
+  border-top-color: var(--moss);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+  margin: 24px auto;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── 토스트 알림 ── */
+#toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.toast {
+  background: var(--dark);
+  color: var(--white);
+  padding: 12px 20px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  box-shadow: var(--shadow-md);
+  animation: slideIn .3s ease;
+  max-width: 300px;
+}
+
+.toast.success { background: var(--success); }
+.toast.error   { background: var(--danger);  }
+
+@keyframes slideIn {
+  from { transform: translateX(20px); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+/* ── 반응형 ── */
+@media (max-width: 640px) {
+  .bjw-header nav { display: none; }
+  .bjw-card { padding: 20px 16px; }
+  .cert-tabs { flex-direction: column; }
+  .cert-tab { min-width: auto; }
+}
+
+</style>
+</head>
+<body>
+
+<!-- 로그인 화면 -->
+<div id="login-screen">
+  <div class="login-box">
+    <div style="font-size:40px; margin-bottom:12px">🌿</div>
+    <h2>관리자 로그인</h2>
+    <p>박진우원예치료센터 자격증 관리시스템</p>
+    <input type="email" id="login-email" placeholder="관리자 이메일">
+    <input type="password" id="login-pw" placeholder="비밀번호"
+      onkeydown="if(event.key==='Enter') doLogin()">
+    <div id="login-error">이메일 또는 비밀번호가 올바르지 않습니다.</div>
+    <button class="btn btn-primary btn-full" style="margin-top:8px" onclick="doLogin()">
+      로그인
+    </button>
+  </div>
+</div>
+
+<!-- 헤더 -->
+<header class="bjw-header">
+  <div class="logo-wrap">
+    <img src="data:image/png;base64,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" alt="박진우원예치료센터" style="height:44px; object-fit:contain; filter:brightness(0) invert(1);">
+  </div>
+  <nav>
+    <a href="../pages/apply.html" target="_blank">응시 신청</a>
+    <a href="#" onclick="doLogout()" style="color:rgba(255,100,100,.8)">로그아웃</a>
+  </nav>
+</header>
+
+<div class="admin-layout">
+
+  <!-- 사이드바 -->
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar">
+      <div class="admin-sidebar .sidebar-section">
+        <div class="sidebar-label">MENU</div>
+        <div class="sidebar-menu-item active" onclick="showPage('dashboard', this)">📊 대시보드</div>
+        <div class="sidebar-menu-item" onclick="showPage('applicants', this)">📋 응시자 관리</div>
+        <div class="sidebar-menu-item" onclick="showPage('results', this)">✏️ 성적 입력</div>
+        <div class="sidebar-menu-item" onclick="showPage('certs', this)">📜 자격증 관리</div>
+        <div class="sidebar-menu-item" onclick="showPage('docs', this)">📂 서류 심사</div>
+        <div class="sidebar-menu-item" onclick="showPage('schedule', this)">📅 시험 일정 관리</div>
+        <div class="sidebar-menu-item" onclick="showPage('passlist', this)">🏆 최종합격자 명단</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- 메인 -->
+  <main class="admin-main">
+
+    <!-- ═ 대시보드 ═ -->
+    <div class="admin-page active" id="page-dashboard">
+      <h2 style="font-family:'Noto Serif KR',serif; font-size:20px; margin-bottom:20px; color:var(--dark)">
+        📊 대시보드
+      </h2>
+
+      <div class="dash-stats">
+        <div class="stat-card green">
+          <div class="s-icon">📝</div>
+          <div class="s-label">전체 응시자</div>
+          <div class="s-num" id="d-total">—</div>
+        </div>
+        <div class="stat-card amber">
+          <div class="s-icon">✏️</div>
+          <div class="s-label">필기합격자</div>
+          <div class="s-num" id="d-written">—</div>
+        </div>
+        <div class="stat-card blue">
+          <div class="s-icon">🏆</div>
+          <div class="s-label">최종합격자</div>
+          <div class="s-num" id="d-final">—</div>
+        </div>
+        <div class="stat-card moss">
+          <div class="s-icon">📜</div>
+          <div class="s-label">자격증 발급</div>
+          <div class="s-num" id="d-issued">—</div>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px">
+        <div class="bjw-card">
+          <h2 style="font-size:15px"><span class="icon">📊</span> 자격증별 응시 현황</h2>
+          <div id="cert-bar-chart" class="mini-bar-wrap">
+            <p style="color:var(--muted);font-size:13px">로딩 중...</p>
+          </div>
+        </div>
+        <div class="bjw-card">
+          <h2 style="font-size:15px"><span class="icon">🔔</span> 최근 접수</h2>
+          <div id="recent-list">
+            <p style="color:var(--muted);font-size:13px">로딩 중...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═ 응시자 관리 ═ -->
+    <div class="admin-page" id="page-applicants">
+      <h2 style="font-family:'Noto Serif KR',serif; font-size:20px; margin-bottom:20px; color:var(--dark)">
+        📋 응시자 관리
+      </h2>
+      <div class="table-toolbar">
+        <input type="text" id="search-applicant" placeholder="이름 검색..." oninput="filterTable()">
+        <select id="filter-cert" onchange="filterTable()">
+          <option value="">전체 자격증</option>
+          <option value="hort">원예심리상담사</option>
+          <option value="color">색채심리상담사</option>
+          <option value="garden">힐링정원사</option>
+        </select>
+        <select id="filter-status" onchange="filterTable()">
+          <option value="">전체 상태</option>
+          <option value="applied">접수완료</option>
+          <option value="written_pass">필기합격</option>
+          <option value="final_pass">최종합격</option>
+          <option value="issued">발급완료</option>
+        </select>
+        <button class="btn btn-primary" style="font-size:12px;padding:8px 16px" onclick="loadApplicants()">
+          🔄 새로고침
+        </button>
+      </div>
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>접수번호</th>
+            <th>성명</th>
+            <th>자격증</th>
+            <th>연락처</th>
+            <th>상태</th>
+            <th>상태 변경</th>
+          </tr>
+        </thead>
+        <tbody id="applicants-tbody">
+          <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">로딩 중...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ═ 성적 입력 ═ -->
+    <div class="admin-page" id="page-results">
+      <h2 style="font-family:'Noto Serif KR',serif; font-size:20px; margin-bottom:20px; color:var(--dark)">
+        ✏️ 성적 입력
+      </h2>
+      <div class="alert alert-warning">
+        ⚠️ 성적 입력 후 상태가 자동으로 업데이트됩니다. 필기 60점 이상, 실기 60점 이상 시 합격 처리됩니다.
+      </div>
+      <div class="table-toolbar">
+        <input type="text" id="search-result" placeholder="이름 검색..." oninput="filterResultTable()">
+        <select id="filter-result-status" onchange="filterResultTable()">
+          <option value="applied">접수완료 (필기 미입력)</option>
+          <option value="written_pass">필기합격 (실기 미입력)</option>
+          <option value="">전체</option>
+        </select>
+        <button class="btn btn-primary" style="font-size:12px;padding:8px 16px" onclick="loadResults()">
+          🔄 새로고침
+        </button>
+      </div>
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>성명</th>
+            <th>자격증</th>
+            <th>현재상태</th>
+            <th>필기점수</th>
+            <th>실기점수</th>
+            <th>저장</th>
+          </tr>
+        </thead>
+        <tbody id="results-tbody">
+          <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">로딩 중...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ═ 자격증 관리 ═ -->
+    <div class="admin-page" id="page-certs">
+      <h2 style="font-family:'Noto Serif KR',serif; font-size:20px; margin-bottom:20px; color:var(--dark)">
+        📜 자격증 관리
+      </h2>
+      <div class="table-toolbar">
+        <input type="text" id="search-cert-admin" placeholder="이름 또는 자격증번호..." oninput="filterCertTable()">
+        <button class="btn btn-primary" style="font-size:12px;padding:8px 16px" onclick="loadCerts()">
+          🔄 새로고침
+        </button>
+      </div>
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>자격증 번호</th>
+            <th>성명</th>
+            <th>자격증</th>
+            <th>발급일</th>
+            <th>유효기간</th>
+            <th>수령방법</th>
+            <th>관리</th>
+          </tr>
+        </thead>
+        <tbody id="certs-tbody">
+          <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted)">로딩 중...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ═ 서류 심사 ═ -->
+    <div class="admin-page" id="page-docs">
+      <h2 style="font-family:'Noto Serif KR',serif; font-size:20px; margin-bottom:20px; color:var(--dark)">
+        📂 서류 심사
+      </h2>
+      <div class="table-toolbar">
+        <input type="text" id="search-doc" placeholder="이름 검색..." oninput="filterDocTable()">
+        <select id="filter-doc-status" onchange="filterDocTable()">
+          <option value="">전체</option>
+          <option value="reviewing">검토중</option>
+          <option value="approved">승인</option>
+          <option value="rejected">반려</option>
+        </select>
+        <button class="btn btn-primary" style="font-size:12px;padding:8px 16px" onclick="loadDocs()">
+          🔄 새로고침
+        </button>
+      </div>
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>성명</th>
+            <th>자격증</th>
+            <th>제출일</th>
+            <th>서류 현황</th>
+            <th>심사 상태</th>
+            <th>처리</th>
+          </tr>
+        </thead>
+        <tbody id="docs-tbody">
+          <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">로딩 중...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ═ 시험 일정 관리 ═ -->
+    <div class="admin-page" id="page-schedule">
+      <h2 style="font-family:'Noto Serif KR',serif; font-size:20px; margin-bottom:6px; color:var(--dark)">
+        📅 시험 일정 관리
+      </h2>
+      <p style="font-size:13px; color:var(--muted); margin-bottom:24px">
+        여기서 저장한 일정은 응시 신청·합격 조회 페이지에 자동으로 반영됩니다.
+      </p>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px">
+
+        <!-- 접수 기간 -->
+        <div class="bjw-card" style="margin-bottom:0">
+          <h2 style="font-size:15px"><span class="icon">📝</span> 접수 기간</h2>
+          <div class="form-group" style="margin-bottom:14px">
+            <label>접수 시작일</label>
+            <input type="date" id="sch-reg-start">
+          </div>
+          <div class="form-group">
+            <label>접수 종료일</label>
+            <input type="date" id="sch-reg-end">
+          </div>
+        </div>
+
+        <!-- 필기시험 -->
+        <div class="bjw-card" style="margin-bottom:0">
+          <h2 style="font-size:15px"><span class="icon">✏️</span> 필기시험</h2>
+          <div class="form-group" style="margin-bottom:14px">
+            <label>필기시험일</label>
+            <input type="date" id="sch-written-date">
+          </div>
+          <div class="form-group">
+            <label>시험 시간</label>
+            <input type="time" id="sch-written-time" value="10:00">
+          </div>
+        </div>
+
+        <!-- 필기합격 발표 -->
+        <div class="bjw-card" style="margin-bottom:0">
+          <h2 style="font-size:15px"><span class="icon">📢</span> 필기합격 발표</h2>
+          <div class="form-group" style="margin-bottom:14px">
+            <label>발표일</label>
+            <input type="date" id="sch-written-result">
+          </div>
+          <div class="form-group">
+            <label>발표 안내 문구</label>
+            <input type="text" id="sch-written-result-label" placeholder="예: 2025년 하반기 필기시험 합격자 발표">
+          </div>
+        </div>
+
+        <!-- 서류 제출 기간 -->
+        <div class="bjw-card" style="margin-bottom:0">
+          <h2 style="font-size:15px"><span class="icon">📂</span> 서류 제출 기간</h2>
+          <div class="form-group" style="margin-bottom:14px">
+            <label>제출 시작일</label>
+            <input type="date" id="sch-doc-start">
+          </div>
+          <div class="form-group">
+            <label>제출 마감일</label>
+            <input type="date" id="sch-doc-end">
+          </div>
+        </div>
+
+        <!-- 실기시험 -->
+        <div class="bjw-card" style="margin-bottom:0">
+          <h2 style="font-size:15px"><span class="icon">🌿</span> 실기시험</h2>
+          <div class="form-group" style="margin-bottom:14px">
+            <label>실기시험일</label>
+            <input type="date" id="sch-practical-date">
+          </div>
+          <div class="form-group">
+            <label>시험 시간</label>
+            <input type="time" id="sch-practical-time" value="10:00">
+          </div>
+        </div>
+
+        <!-- 최종합격 발표 -->
+        <div class="bjw-card" style="margin-bottom:0">
+          <h2 style="font-size:15px"><span class="icon">🏆</span> 최종합격 발표</h2>
+          <div class="form-group" style="margin-bottom:14px">
+            <label>발표일</label>
+            <input type="date" id="sch-final-result">
+          </div>
+          <div class="form-group">
+            <label>발표 안내 문구</label>
+            <input type="text" id="sch-final-result-label" placeholder="예: 2025년 하반기 최종합격자 발표">
+          </div>
+        </div>
+
+      </div><!-- /grid -->
+
+      <!-- 기타 안내 -->
+      <div class="bjw-card" style="margin-top:20px">
+        <h2 style="font-size:15px"><span class="icon">📌</span> 추가 안내 문구</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>시험 장소 안내</label>
+            <input type="text" id="sch-venue" placeholder="예: 접수 마감 후 개별 이메일 안내">
+          </div>
+          <div class="form-group">
+            <label>시험 시행 회차</label>
+            <input type="text" id="sch-round" placeholder="예: 2025년 하반기">
+          </div>
+          <div class="form-group full">
+            <label>공지사항 (응시자에게 표시)</label>
+            <textarea id="sch-notice" rows="3" placeholder="응시자에게 별도 안내할 내용을 입력하세요."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- 미리보기 -->
+      <div class="bjw-card" style="margin-top:4px; background:var(--cream)">
+        <h2 style="font-size:15px"><span class="icon">👁️</span> 페이지 표시 미리보기</h2>
+        <div id="schedule-preview" style="font-size:13px; color:var(--muted); line-height:2">
+          저장 후 미리보기가 업데이트됩니다.
+        </div>
+      </div>
+
+      <div style="display:flex; gap:12px; margin-top:8px">
+        <button class="btn btn-primary btn-lg" onclick="saveSchedule()">
+          💾 일정 저장 · 페이지 반영
+        </button>
+        <button class="btn btn-secondary" onclick="loadSchedule()" style="padding:15px 24px">
+          🔄 현재 저장된 일정 불러오기
+        </button>
+      </div>
+      <div id="schedule-feedback" style="margin-top:16px"></div>
+
+    </div><!-- /page-schedule -->
+
+    <!-- ═ 최종합격자 명단 ═ -->
+    <div class="admin-page" id="page-passlist">
+      <h2 style="font-family:'Noto Serif KR',serif; font-size:20px; margin-bottom:6px; color:var(--dark)">
+        🏆 최종합격자 명단
+      </h2>
+      <p style="font-size:13px; color:var(--muted); margin-bottom:24px">
+        관리자만 열람 가능한 전체 최종합격자 목록입니다.
+      </p>
+
+      <div class="table-toolbar">
+        <input type="text" id="search-passlist" placeholder="이름 검색..." oninput="filterPassList()">
+        <select id="filter-passlist-cert" onchange="filterPassList()">
+          <option value="">전체 자격증</option>
+          <option value="hort">원예심리상담사</option>
+          <option value="color">색채심리상담사</option>
+          <option value="garden">힐링정원사</option>
+        </select>
+        <button class="btn btn-primary" style="font-size:12px;padding:8px 16px" onclick="loadPassList()">
+          🔄 새로고침
+        </button>
+        <button class="btn btn-secondary" style="font-size:12px;padding:8px 16px" onclick="exportPassListCSV()">
+          📥 CSV 내보내기
+        </button>
+      </div>
+
+      <div style="display:flex; gap:12px; margin-bottom:16px">
+        <div class="stat-card green" style="padding:14px 20px; flex:1">
+          <div class="s-label">최종합격자</div>
+          <div class="s-num" id="pl-total" style="font-size:22px">—</div>
+        </div>
+        <div class="stat-card moss" style="padding:14px 20px; flex:1">
+          <div class="s-label">자격증 발급완료</div>
+          <div class="s-num" id="pl-issued" style="font-size:22px">—</div>
+        </div>
+        <div class="stat-card amber" style="padding:14px 20px; flex:1">
+          <div class="s-label">발급 대기</div>
+          <div class="s-num" id="pl-pending" style="font-size:22px">—</div>
+        </div>
+      </div>
+
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>번호</th>
+            <th>성명</th>
+            <th>생년월일</th>
+            <th>연락처</th>
+            <th>자격증</th>
+            <th>합격일</th>
+            <th>발급 상태</th>
+            <th>자격증 번호</th>
+          </tr>
+        </thead>
+        <tbody id="passlist-tbody">
+          <tr><td colspan="8" style="text-align:center;padding:24px;color:var(--muted)">로딩 중...</td></tr>
+        </tbody>
+      </table>
+    </div><!-- /page-passlist -->
+
+  </main>
+</div>
+
+<div id="toast-container"></div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, collection, getDocs, doc, updateDoc, query, where, orderBy, limit }
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyA40OooHSHAyCc-kwps50pDJ504f92hxfo",
+    authDomain: "pjw-cert.firebaseapp.com",
+    projectId: "pjw-cert",
+    storageBucket: "pjw-cert.firebasestorage.app",
+    messagingSenderId: "819294382402",
+    appId: "1:819294382402:web:1dd27376446616af09c0db"
+  };
+
+  const app  = initializeApp(firebaseConfig);
+  const db   = getFirestore(app);
+  const auth = getAuth(app);
+
+  let allApplicants = [];
+  let allResults    = [];
+  let allCerts      = [];
+
+  // 로그인 상태 감시
+  onAuthStateChanged(auth, user => {
+    if (user) {
+      document.getElementById('login-screen').style.display = 'none';
+      loadDashboard();
+      loadApplicants();
+      loadResults();
+      loadCerts();
+    } else {
+      document.getElementById('login-screen').style.display = 'flex';
+    }
+  });
+
+  window.doLogin = async function() {
+    const email = document.getElementById('login-email').value.trim();
+    const pw    = document.getElementById('login-pw').value;
+    try {
+      await signInWithEmailAndPassword(auth, email, pw);
+      document.getElementById('login-error').style.display = 'none';
+    } catch(e) {
+      document.getElementById('login-error').style.display = 'block';
+    }
+  };
+
+  window.doLogout = async function() {
+    await signOut(auth);
+    showToast('로그아웃되었습니다.');
+  };
+
+  // 페이지 전환
+  window.showPage = function(page, el) {
+    document.querySelectorAll('.admin-page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.sidebar-menu-item').forEach(i => i.classList.remove('active'));
+    document.getElementById('page-' + page).classList.add('active');
+    el.classList.add('active');
+  };
+
+  // ── 대시보드
+  async function loadDashboard() {
+    try {
+      const snap = await getDocs(collection(db,'bjw_applicants'));
+      const all  = snap.docs.map(d => d.data());
+      const total   = all.length;
+      const written = all.filter(d => ['written_pass','final_pass','issued'].includes(d.status)).length;
+      const final_  = all.filter(d => ['final_pass','issued'].includes(d.status)).length;
+      const issued  = all.filter(d => d.status === 'issued').length;
+
+      document.getElementById('d-total').textContent   = total;
+      document.getElementById('d-written').textContent = written;
+      document.getElementById('d-final').textContent   = final_;
+      document.getElementById('d-issued').textContent  = issued;
+
+      // 자격증별 집계
+      const certCount = {};
+      all.forEach(d => {
+        const ct = d.certLabel || d.certType || '기타';
+        certCount[ct] = (certCount[ct] || 0) + 1;
+      });
+      const maxCount = Math.max(...Object.values(certCount), 1);
+      const chart = document.getElementById('cert-bar-chart');
+      chart.innerHTML = Object.entries(certCount).sort((a,b)=>b[1]-a[1]).map(([k,v]) => `
+        <div class="mini-bar-row">
+          <span class="mini-bar-label">${k}</span>
+          <div class="mini-bar-track">
+            <div class="mini-bar-fill" style="width:${v/maxCount*100}%"></div>
+          </div>
+          <span class="mini-bar-val">${v}</span>
+        </div>`).join('');
+
+      // 최근 접수
+      const recent = all.slice(-5).reverse();
+      document.getElementById('recent-list').innerHTML = recent.length
+        ? recent.map(d => `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--cream-d);font-size:12px">
+              <span><strong>${d.name}</strong> · ${d.certLabel || d.certType}</span>
+              <span class="badge badge-gray">${d.appNo}</span>
+            </div>`).join('')
+        : '<p style="color:var(--muted);font-size:13px">접수자가 없습니다.</p>';
+
+    } catch(e) { console.error(e); }
+  }
+
+  // ── 응시자 목록
+  window.loadApplicants = async function() {
+    const tbody = document.getElementById('applicants-tbody');
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">로딩 중...</td></tr>';
+    try {
+      const snap = await getDocs(collection(db,'bjw_applicants'));
+      allApplicants = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderApplicants(allApplicants);
+    } catch(e) { tbody.innerHTML = '<tr><td colspan="6" style="color:var(--danger);text-align:center;padding:16px">로드 실패</td></tr>'; }
+  };
+
+  function renderApplicants(list) {
+    const statusLabels = {
+      applied:      '<span class="badge badge-gray">접수완료</span>',
+      written_pass: '<span class="badge badge-amber">필기합격</span>',
+      final_pass:   '<span class="badge badge-blue">최종합격</span>',
+      issued:       '<span class="badge badge-green">발급완료</span>'
+    };
+    document.getElementById('applicants-tbody').innerHTML = list.length
+      ? list.map(d => `
+          <tr>
+            <td><small style="font-family:monospace">${d.appNo || '—'}</small></td>
+            <td><strong>${d.name}</strong></td>
+            <td>${d.certLabel || d.certType}</td>
+            <td>${d.phone || '—'}</td>
+            <td>${statusLabels[d.status] || d.status}</td>
+            <td>
+              <select class="action-select" id="st-${d.id}" onchange="">
+                <option value="applied"      ${d.status==='applied'?'selected':''}>접수완료</option>
+                <option value="written_pass" ${d.status==='written_pass'?'selected':''}>필기합격</option>
+                <option value="final_pass"   ${d.status==='final_pass'?'selected':''}>최종합격</option>
+                <option value="issued"       ${d.status==='issued'?'selected':''}>발급완료</option>
+              </select>
+              <button class="save-btn-sm" onclick="saveStatus('${d.id}')">저장</button>
+            </td>
+          </tr>`).join('')
+      : '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">데이터가 없습니다.</td></tr>';
+  }
+
+  window.filterTable = function() {
+    const search  = document.getElementById('search-applicant').value.toLowerCase();
+    const cert    = document.getElementById('filter-cert').value;
+    const status  = document.getElementById('filter-status').value;
+    const filtered = allApplicants.filter(d =>
+      (!search || d.name.includes(search)) &&
+      (!cert   || (d.certType || '').startsWith(cert)) &&
+      (!status || d.status === status)
+    );
+    renderApplicants(filtered);
+  };
+
+  window.saveStatus = async function(id) {
+    const sel = document.getElementById('st-' + id);
+    const newStatus = sel.value;
+    try {
+      await updateDoc(doc(db,'bjw_applicants',id), { status: newStatus });
+      showToast('✅ 상태가 업데이트되었습니다.', 'success');
+      loadApplicants();
+      loadDashboard();
+    } catch(e) { showToast('저장 실패', 'error'); }
+  };
+
+  // ── 성적 입력
+  window.loadResults = async function() {
+    const tbody = document.getElementById('results-tbody');
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">로딩 중...</td></tr>';
+    try {
+      const snap = await getDocs(collection(db,'bjw_applicants'));
+      allResults = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderResults(allResults);
+    } catch(e) { tbody.innerHTML = '<tr><td colspan="6" style="color:var(--danger)">로드 실패</td></tr>'; }
+  };
+
+  function renderResults(list) {
+    const tbody = document.getElementById('results-tbody');
+    tbody.innerHTML = list.length
+      ? list.map(d => `
+          <tr>
+            <td><strong>${d.name}</strong></td>
+            <td>${d.certLabel || d.certType}</td>
+            <td><span class="badge badge-gray">${d.status}</span></td>
+            <td>
+              <input type="number" min="0" max="100" value="${d.writtenScore || ''}"
+                id="ws-${d.id}" style="width:70px;border:1.5px solid var(--cream-d);border-radius:6px;padding:5px 8px;font-size:13px;outline:none" placeholder="0–100">
+            </td>
+            <td>
+              <input type="number" min="0" max="100" value="${d.practicalScore || ''}"
+                id="ps-${d.id}" style="width:70px;border:1.5px solid var(--cream-d);border-radius:6px;padding:5px 8px;font-size:13px;outline:none" placeholder="0–100">
+            </td>
+            <td>
+              <button class="save-btn-sm" onclick="saveScore('${d.id}')">저장</button>
+            </td>
+          </tr>`).join('')
+      : '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">데이터가 없습니다.</td></tr>';
+  }
+
+  window.filterResultTable = function() {
+    const search = document.getElementById('search-result').value.toLowerCase();
+    const filtered = allResults.filter(d => !search || d.name.includes(search));
+    renderResults(filtered);
+  };
+
+  window.saveScore = async function(id) {
+    const ws = parseInt(document.getElementById('ws-' + id).value) || null;
+    const ps = parseInt(document.getElementById('ps-' + id).value) || null;
+
+    let newStatus = 'applied';
+    if (ws !== null) {
+      newStatus = ws >= 60 ? 'written_pass' : 'applied';
+    }
+    if (ws !== null && ps !== null) {
+      newStatus = (ws >= 60 && ps >= 60) ? 'final_pass' : (ws >= 60 ? 'written_pass' : 'applied');
+    }
+
+    try {
+      await updateDoc(doc(db,'bjw_applicants',id), {
+        writtenScore:   ws,
+        practicalScore: ps,
+        status: newStatus
+      });
+      showToast('✅ 성적이 저장되었습니다. 상태: ' + newStatus, 'success');
+      loadResults();
+      loadDashboard();
+    } catch(e) { showToast('저장 실패', 'error'); }
+  };
+
+  // ── 자격증 관리
+  window.loadCerts = async function() {
+    const tbody = document.getElementById('certs-tbody');
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted)">로딩 중...</td></tr>';
+    try {
+      const q = query(collection(db,'bjw_applicants'), where('status','==','issued'));
+      const snap = await getDocs(q);
+      allCerts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderCerts(allCerts);
+    } catch(e) { tbody.innerHTML = '<tr><td colspan="7" style="color:var(--danger)">로드 실패</td></tr>'; }
+  };
+
+  function renderCerts(list) {
+    const tbody = document.getElementById('certs-tbody');
+    tbody.innerHTML = list.length
+      ? list.map(d => `
+          <tr>
+            <td><small style="font-family:monospace;color:var(--moss)">${d.certNumber || '—'}</small></td>
+            <td><strong>${d.name}</strong></td>
+            <td>${d.certLabel || d.certType}</td>
+            <td>${d.issuedDate || '—'}</td>
+            <td>${d.validDate || '—'}</td>
+            <td>${d.deliveryType === 'mail'
+              ? '<span class="badge badge-blue">📮 우편</span>'
+              : '<span class="badge badge-amber">🏢 방문</span>'}</td>
+            <td>
+              <button class="save-btn-sm" onclick="revokeCert('${d.id}')">⚠️ 취소</button>
+            </td>
+          </tr>`).join('')
+      : '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted)">발급된 자격증이 없습니다.</td></tr>';
+  }
+
+  window.filterCertTable = function() {
+    const search = document.getElementById('search-cert-admin').value.toLowerCase();
+    const filtered = allCerts.filter(d =>
+      !search || d.name.includes(search) || (d.certNumber||'').toLowerCase().includes(search)
+    );
+    renderCerts(filtered);
+  };
+
+  window.revokeCert = async function(id) {
+    if (!confirm('⚠️ 자격증 발급을 취소하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
+    try {
+      await updateDoc(doc(db,'bjw_applicants',id), {
+        status: 'final_pass',
+        certNumber: null,
+        issuedDate: null,
+        validDate: null
+      });
+      showToast('자격증이 취소되었습니다.', 'success');
+      loadCerts();
+      loadDashboard();
+    } catch(e) { showToast('취소 실패', 'error'); }
+  };
+
+
+  // ── 서류 심사
+  let allDocs = [];
+
+  window.loadDocs = async function() {
+    const tbody = document.getElementById('docs-tbody');
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">로딩 중...</td></tr>';
+    try {
+      const { getDocs: _gd, collection: _col, query: _q, where: _w } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+      const snap = await getDocs(query(collection(db,'bjw_applicants'), where('docSubmitted','==',true)));
+      allDocs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderDocs(allDocs);
+    } catch(e) {
+      tbody.innerHTML = '<tr><td colspan="6" style="color:var(--danger);text-align:center;padding:16px">로드 실패</td></tr>';
+    }
+  };
+
+  function renderDocs(list) {
+    const DOC_NAMES = {
+      edu:'졸업증명서', clinical:'임상실습확인서',
+      prevcert:'자격증사본', resume:'이력서', recommend:'교수추천서'
+    };
+    const statusMap = {
+      reviewing: '<span class="badge badge-amber">검토중</span>',
+      approved:  '<span class="badge badge-green">승인</span>',
+      rejected:  '<span class="badge badge-gray">반려</span>'
+    };
+    const tbody = document.getElementById('docs-tbody');
+    tbody.innerHTML = list.length ? list.map(d => {
+      const files = d.docFiles || {};
+      const fileList = Object.entries(files).map(([k,v]) =>
+        `<span style="font-size:11px;margin-right:6px">${DOC_NAMES[k]||k}: ${
+          v === 'N/A' ? '해당없음' : `<a href="${v}" target="_blank" style="color:var(--moss)">보기</a>`
+        }</span>`
+      ).join('');
+      const submittedAt = d.docSubmittedAt?.toDate?.()?.toLocaleDateString('ko-KR') || '—';
+      return `<tr>
+        <td><strong>${d.name}</strong></td>
+        <td>${d.certLabel || d.certType}</td>
+        <td>${submittedAt}</td>
+        <td style="max-width:220px;line-height:1.8">${fileList || '—'}</td>
+        <td>${statusMap[d.docStatus] || '<span class="badge badge-gray">미확인</span>'}</td>
+        <td>
+          <select class="action-select" id="ds-${d.id}">
+            <option value="reviewing" ${d.docStatus==='reviewing'?'selected':''}>검토중</option>
+            <option value="approved"  ${d.docStatus==='approved' ?'selected':''}>승인</option>
+            <option value="rejected"  ${d.docStatus==='rejected' ?'selected':''}>반려</option>
+          </select>
+          <button class="save-btn-sm" onclick="saveDocStatus('${d.id}')">저장</button>
+        </td>
+      </tr>`;
+    }).join('')
+    : '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">제출된 서류가 없습니다.</td></tr>';
+  }
+
+  window.filterDocTable = function() {
+    const search = document.getElementById('search-doc').value.toLowerCase();
+    const status = document.getElementById('filter-doc-status').value;
+    renderDocs(allDocs.filter(d =>
+      (!search || d.name.includes(search)) &&
+      (!status || d.docStatus === status)
+    ));
+  };
+
+  window.saveDocStatus = async function(id) {
+    const val = document.getElementById('ds-' + id).value;
+    try {
+      await updateDoc(doc(db,'bjw_applicants',id), { docStatus: val });
+      showToast('✅ 서류 심사 상태 업데이트: ' + val, 'success');
+      loadDocs();
+    } catch(e) { showToast('저장 실패', 'error'); }
+  };
+
+
+
+  // ── 최종합격자 명단 (관리자 전용)
+  let allPassList = [];
+
+  window.loadPassList = async function() {
+    const tbody = document.getElementById('passlist-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--muted)">로딩 중...</td></tr>';
+    try {
+      const snap = await getDocs(
+        query(collection(db, 'bjw_applicants'),
+          where('status', 'in', ['final_pass', 'issued']))
+      );
+      allPassList = snap.docs.map((d, i) => ({ idx: i + 1, id: d.id, ...d.data() }));
+
+      // 통계
+      const total   = allPassList.length;
+      const issued  = allPassList.filter(d => d.status === 'issued').length;
+      const pending = total - issued;
+      const plTotal  = document.getElementById('pl-total');
+      const plIssued = document.getElementById('pl-issued');
+      const plPend   = document.getElementById('pl-pending');
+      if (plTotal)  plTotal.textContent  = total;
+      if (plIssued) plIssued.textContent = issued;
+      if (plPend)   plPend.textContent   = pending;
+
+      renderPassList(allPassList);
+    } catch(e) {
+      console.error(e);
+      tbody.innerHTML = '<tr><td colspan="8" style="color:var(--danger);text-align:center;padding:16px">로드 실패</td></tr>';
+    }
+  };
+
+  function renderPassList(list) {
+    const tbody = document.getElementById('passlist-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = list.length ? list.map(d => `
+      <tr>
+        <td style="color:var(--muted);font-size:12px">${d.idx}</td>
+        <td><strong>${d.name}</strong></td>
+        <td style="font-size:12px">${d.birth || '—'}</td>
+        <td style="font-size:12px">${d.phone || '—'}</td>
+        <td>${d.certLabel || d.certType || '—'}</td>
+        <td style="font-size:12px">${d.issuedDate || (d.practicalResultDate || '—')}</td>
+        <td>${d.status === 'issued'
+          ? '<span class="badge badge-green">발급완료</span>'
+          : '<span class="badge badge-amber">발급대기</span>'}</td>
+        <td style="font-size:11px;font-family:monospace;color:var(--moss)">${d.certNumber || '—'}</td>
+      </tr>`).join('')
+    : '<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--muted)">최종합격자가 없습니다.</td></tr>';
+  }
+
+  window.filterPassList = function() {
+    const search = document.getElementById('search-passlist')?.value.toLowerCase() || '';
+    const cert   = document.getElementById('filter-passlist-cert')?.value || '';
+    renderPassList(allPassList.filter(d =>
+      (!search || d.name.includes(search) || (d.certNumber||'').toLowerCase().includes(search)) &&
+      (!cert   || (d.certType||'').startsWith(cert))
+    ));
+  };
+
+  window.exportPassListCSV = function() {
+    if (!allPassList.length) { showToast('내보낼 데이터가 없습니다.', 'error'); return; }
+    const header = ['번호','성명','생년월일','연락처','자격증','발급상태','자격증번호'];
+    const rows = allPassList.map(d => [
+      d.idx, d.name, d.birth||'', d.phone||'',
+      d.certLabel||d.certType||'',
+      d.status === 'issued' ? '발급완료' : '발급대기',
+      d.certNumber||''
+    ]);
+    const csv = [header, ...rows].map(r => r.join(',')).join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = '최종합격자명단_' + new Date().toLocaleDateString('ko-KR').replace(/\. /g,'-').replace('.','') + '.csv';
+    a.click();
+    showToast('✅ CSV 파일을 내보냈습니다.', 'success');
+  };
+
+  // ── 시험 일정 관리
+  const SCH_DOC = 'bjw_schedule';  // Firestore 단일 문서 ID
+
+  window.loadSchedule = async function() {
+    try {
+      const { getDoc, doc: _doc, setDoc } =
+        await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+      const snap = await getDoc(_doc(db, 'bjw_config', SCH_DOC));
+      if (!snap.exists()) { showToast('저장된 일정이 없습니다.'); return; }
+      const d = snap.data();
+      const fields = [
+        'reg-start','reg-end',
+        'written-date','written-time','written-result','written-result-label',
+        'doc-start','doc-end',
+        'practical-date','practical-time','final-result','final-result-label',
+        'venue','round','notice'
+      ];
+      fields.forEach(k => {
+        const el = document.getElementById('sch-' + k);
+        if (el && d[k] !== undefined) el.value = d[k];
+      });
+      renderSchedulePreview(d);
+      showToast('✅ 일정을 불러왔습니다.', 'success');
+    } catch(e) { console.error(e); showToast('불러오기 실패', 'error'); }
+  };
+
+  window.saveSchedule = async function() {
+    const fields = [
+      'reg-start','reg-end',
+      'written-date','written-time','written-result','written-result-label',
+      'doc-start','doc-end',
+      'practical-date','practical-time','final-result','final-result-label',
+      'venue','round','notice'
+    ];
+    const data = {};
+    fields.forEach(k => {
+      const el = document.getElementById('sch-' + k);
+      data[k] = el ? el.value : '';
+    });
+    data.updatedAt = new Date().toISOString();
+
+    try {
+      const { setDoc, doc: _doc } =
+        await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+      await setDoc(_doc(db, 'bjw_config', SCH_DOC), data);
+
+      renderSchedulePreview(data);
+      document.getElementById('schedule-feedback').innerHTML =
+        '<div class="alert alert-success">✅ 일정이 저장되었습니다. 각 페이지에 자동 반영됩니다.<br>' +
+        '<small style="color:var(--muted)">최종 저장: ' + new Date().toLocaleString('ko-KR') + '</small></div>';
+      showToast('✅ 시험 일정이 저장되었습니다!', 'success');
+    } catch(e) {
+      console.error(e);
+      showToast('저장 실패: ' + e.message, 'error');
+    }
+  };
+
+  function formatDate(dateStr, timeStr) {
+    if (!dateStr) return '미설정';
+    try {
+      const d = new Date(dateStr);
+      const ymd = d.toLocaleDateString('ko-KR', {year:'numeric', month:'long', day:'numeric', weekday:'short'});
+      return timeStr ? ymd + ' ' + timeStr : ymd;
+    } catch { return dateStr; }
+  }
+
+  function renderSchedulePreview(d) {
+    const el = document.getElementById('schedule-preview');
+    el.innerHTML = [
+      ['📝 접수 기간',   (d['reg-start']||'—') + ' ~ ' + (d['reg-end']||'—')],
+      ['✏️ 필기시험',   formatDate(d['written-date'], d['written-time'])],
+      ['📢 필기발표',   formatDate(d['written-result']) + (d['written-result-label'] ? ' · ' + d['written-result-label'] : '')],
+      ['📂 서류제출',   (d['doc-start']||'—') + ' ~ ' + (d['doc-end']||'—')],
+      ['🌿 실기시험',   formatDate(d['practical-date'], d['practical-time'])],
+      ['🏆 최종발표',   formatDate(d['final-result']) + (d['final-result-label'] ? ' · ' + d['final-result-label'] : '')],
+      ['📍 시험 장소',  d['venue'] || '—'],
+      ['🗓️ 시행 회차',  d['round'] || '—'],
+    ].map(([label, val]) =>
+      `<div style="display:flex; gap:12px; padding:5px 0; border-bottom:1px solid var(--cream-d)">
+        <span style="width:110px; color:var(--dark); font-weight:600; flex-shrink:0">${label}</span>
+        <span style="color:var(--text)">${val}</span>
+      </div>`
+    ).join('') +
+    (d['notice'] ? `<div style="margin-top:10px; padding:10px 14px; background:#FDF5EA; border-left:3px solid var(--amber); border-radius:6px; font-size:12px; color:#5A3A10">📌 공지: ${d['notice']}</div>` : '');
+  }
+
+  // 페이지 로드 시 일정 자동 로드
+  loadSchedule();
+
+  function showToast(msg, type='') {
+    const tc = document.getElementById('toast-container');
+    const t  = document.createElement('div');
+    t.className = 'toast ' + type;
+    t.textContent = msg;
+    tc.appendChild(t);
+    setTimeout(() => t.remove(), 3500);
+  }
+</script>
+</body>
+</html>
