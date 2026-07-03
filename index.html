@@ -958,6 +958,7 @@ body {
         <div class="sidebar-menu-item" onclick="showPage('passedit', this)">✏️ 합격자 관리</div>
         <div class="sidebar-menu-item" onclick="showPage('refreshed', this)">🔄 보수교육 재발급</div>
         <div class="sidebar-menu-item" onclick="showPage('forms', this)">📁 양식 파일 관리</div>
+        <div class="sidebar-menu-item" onclick="showPage('supervisors', this)">👮 감독관 계정 관리</div>
       </div>
     </div>
   </aside>
@@ -1529,10 +1530,61 @@ body {
       <h2 style="font-family:'Noto Serif KR',serif; font-size:20px; margin-bottom:6px; color:var(--dark)">
         ✅ 신분증 확인 처리
       </h2>
-      <p style="font-size:13px; color:var(--muted); margin-bottom:24px">
-        시험 당일 응시자 신분증 확인 후 처리합니다. 접수번호 또는 이름으로 검색하세요.
+      <p style="font-size:13px; color:var(--muted); margin-bottom:16px">
+        시험 당일 응시자 신분증을 확인 처리합니다.
       </p>
 
+      <!-- 탭 -->
+      <div style="display:flex;background:var(--cream-d);border-radius:var(--radius);padding:4px;margin-bottom:20px;gap:4px;">
+        <button id="idtab-list" onclick="switchIdTab('list')"
+          style="flex:1;padding:9px;border:none;border-radius:7px;background:var(--white);font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:700;color:var(--dark);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08);">
+          📋 오늘 응시자 목록
+        </button>
+        <button id="idtab-search" onclick="switchIdTab('search')"
+          style="flex:1;padding:9px;border:none;border-radius:7px;background:transparent;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;">
+          🔍 이름/접수번호 검색
+        </button>
+      </div>
+
+      <!-- 오늘 응시자 목록 탭 -->
+      <div id="idtab-content-list">
+        <div style="display:flex;gap:10px;margin-bottom:16px;align-items:center;flex-wrap:wrap;">
+          <select id="idcheck-cert-filter" onchange="loadTodayApplicants()"
+            style="border:1.5px solid #D5DFD7;border-radius:var(--radius);padding:9px 14px;font-family:'Noto Sans KR',sans-serif;font-size:13px;outline:none;background:var(--cream);">
+            <option value="">전체 자격증</option>
+            <option value="hort">원예심리상담사</option>
+            <option value="color">색채원예심리상담사</option>
+            <option value="garden">힐링정원사</option>
+          </select>
+          <button class="btn btn-primary" style="font-size:12px;padding:8px 16px" onclick="loadTodayApplicants()">
+            🔄 새로고침
+          </button>
+          <span style="font-size:13px;color:var(--muted)">
+            전체 <strong id="today-total-count">0</strong>명 /
+            확인완료 <strong id="today-done-count" style="color:var(--success)">0</strong>명 /
+            미확인 <strong id="today-pending-count" style="color:var(--amber)">0</strong>명
+          </span>
+        </div>
+
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>접수번호</th>
+              <th>성명</th>
+              <th>자격증</th>
+              <th>시험 구분</th>
+              <th>신분증 확인</th>
+              <th>처리</th>
+            </tr>
+          </thead>
+          <tbody id="today-applicants-tbody">
+            <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">로딩 중...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 검색 탭 -->
+      <div id="idtab-content-search" style="display:none">
       <!-- 검색 -->
       <div class="bjw-card" style="margin-bottom:20px">
         <div style="display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap">
@@ -1678,6 +1730,9 @@ body {
           </button>
           <button class="btn btn-secondary" onclick="loadPassEditList()" style="padding:12px 16px; font-size:13px">
             🔄 목록 새로고침
+          </button>
+          <button class="btn btn-amber" onclick="bulkAssignValidDate()" style="padding:12px 16px; font-size:13px">
+            📅 유효기간 일괄 등록
           </button>
         </div>
         <div id="bulk-result" style="display:none; margin-top:14px"></div>
@@ -2082,6 +2137,62 @@ body {
       </div>
     </div><!-- /page-forms -->
 
+    <!-- ═ 감독관 계정 관리 ═ -->
+    <div class="admin-page" id="page-supervisors">
+      <h2 style="font-family:'Noto Serif KR',serif; font-size:20px; margin-bottom:6px; color:var(--dark)">
+        👮 감독관 계정 관리
+      </h2>
+      <p style="font-size:13px; color:var(--muted); margin-bottom:20px">
+        감독관 계정을 등록하면 감독관이 관리자 페이지에 로그인하여 신분증 확인 업무만 수행할 수 있습니다.
+      </p>
+
+      <div class="alert alert-info" style="margin-bottom:20px">
+        ℹ️ 감독관은 <strong>✅ 신분증 확인</strong> 탭만 접근 가능합니다. 다른 관리 기능은 비활성화됩니다.
+      </div>
+
+      <!-- 감독관 등록 폼 -->
+      <div class="bjw-card" style="margin-bottom:20px">
+        <h2 style="font-size:15px; margin-bottom:16px"><span class="icon">➕</span> 감독관 계정 등록</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>감독관 이름 <span class="req">*</span></label>
+            <input type="text" id="sv-name" placeholder="홍길동">
+          </div>
+          <div class="form-group">
+            <label>이메일 (로그인 ID) <span class="req">*</span></label>
+            <input type="email" id="sv-email" placeholder="supervisor@example.com">
+          </div>
+          <div class="form-group">
+            <label>임시 비밀번호 <span class="req">*</span></label>
+            <input type="text" id="sv-pw" placeholder="영문+숫자 8자 이상">
+          </div>
+          <div class="form-group">
+            <label>소속/메모</label>
+            <input type="text" id="sv-note" placeholder="○○대학교 등">
+          </div>
+        </div>
+        <div id="sv-register-error" class="alert alert-danger" style="display:none;margin-top:12px"></div>
+        <button class="btn btn-primary" style="margin-top:16px" onclick="registerSupervisor()">
+          👮 감독관 계정 등록
+        </button>
+      </div>
+
+      <!-- 감독관 목록 -->
+      <div class="bjw-card">
+        <h2 style="font-size:15px; margin-bottom:16px"><span class="icon">📋</span> 등록된 감독관
+          <button class="btn btn-secondary" style="font-size:11px;padding:5px 10px;margin-left:10px" onclick="loadSupervisors()">🔄</button>
+        </h2>
+        <table class="admin-table">
+          <thead>
+            <tr><th>이름</th><th>이메일</th><th>소속/메모</th><th>등록일</th><th>관리</th></tr>
+          </thead>
+          <tbody id="supervisors-tbody">
+            <tr><td colspan="5" style="text-align:center;padding:20px;color:var(--muted)">로딩 중...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div><!-- /page-supervisors -->
+
   </main>
 </div>
 
@@ -2112,13 +2223,51 @@ body {
   let allCerts      = [];
 
   // 로그인 상태 감시
-  onAuthStateChanged(auth, user => {
+  onAuthStateChanged(auth, async user => {
     if (user) {
       document.getElementById('login-screen').style.display = 'none';
-      loadDashboard();
-      loadApplicants();
-      loadResults();
-      loadCerts();
+
+      // 역할 확인 (감독관 vs 관리자)
+      try {
+        const roleSnap = await getDoc(doc(db,'bjw_roles',user.uid));
+        const role = roleSnap.exists() ? roleSnap.data().role : 'admin';
+
+        if (role === 'supervisor') {
+          // 감독관: 신분증 확인 탭만 허용
+          document.querySelectorAll('.sidebar-menu-item').forEach(el => {
+            el.style.opacity = '0.35';
+            el.style.pointerEvents = 'none';
+          });
+          const idcheckMenu = document.querySelector('[onclick="showPage('idcheck', this)"]');
+          if (idcheckMenu) {
+            idcheckMenu.style.opacity = '1';
+            idcheckMenu.style.pointerEvents = 'auto';
+            idcheckMenu.click();
+          }
+          document.getElementById('user-role-badge').style.display = 'inline-block';
+          loadTodayApplicants();
+          loadIdCheckList();
+        } else {
+          // 관리자: 전체 기능
+          loadDashboard();
+          loadApplicants();
+          loadResults();
+          loadCerts();
+          loadDocs();
+          loadSchedule();
+          loadPassList();
+          loadAdmitList();
+          loadIdCheckList();
+          loadPassEditList();
+          loadRefreshHistory();
+          loadFormsStatus();
+          loadSupervisors();
+        }
+      } catch(e) {
+        // 역할 정보 없으면 관리자로 처리
+        loadDashboard();
+        loadApplicants();
+      }
     } else {
       document.getElementById('login-screen').style.display = 'flex';
     }
@@ -2944,6 +3093,188 @@ body {
 
   window.sendExpiryNotice = function() {
     showToast('만료 예정자 이메일 안내 기능은 추후 지원 예정입니다.', 'success');
+  };
+
+
+  // ── 신분증 확인 탭 전환
+  window.switchIdTab = function(tab) {
+    ['list','search'].forEach(t => {
+      const content = document.getElementById('idtab-content-' + t);
+      const btn     = document.getElementById('idtab-' + t);
+      if (content) content.style.display = t === tab ? 'block' : 'none';
+      if (btn) {
+        btn.style.background  = t === tab ? 'var(--white)' : 'transparent';
+        btn.style.fontWeight  = t === tab ? '700' : '500';
+        btn.style.color       = t === tab ? 'var(--dark)' : 'var(--muted)';
+        btn.style.boxShadow   = t === tab ? '0 2px 8px rgba(0,0,0,.08)' : 'none';
+      }
+    });
+    if (tab === 'list') loadTodayApplicants();
+  };
+
+  // ── 오늘 응시자 목록 로드
+  window.loadTodayApplicants = async function() {
+    const tbody = document.getElementById('today-applicants-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--muted)">로딩 중...</td></tr>';
+
+    const certFilter = document.getElementById('idcheck-cert-filter')?.value || '';
+    const statusMap  = { applied:'필기시험', written_pass:'실기시험', final_pass:'최종합격', issued:'발급완료' };
+
+    try {
+      let q = query(collection(db,'bjw_applicants'), where('status','in',['applied','written_pass']));
+      const snap = await getDocs(q);
+      let list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      if (certFilter) list = list.filter(d => d.certType === certFilter);
+      list.sort((a,b) => (a.name||'').localeCompare(b.name||''));
+
+      const total   = list.length;
+      const done    = list.filter(d => d.idChecked).length;
+      const pending = total - done;
+      document.getElementById('today-total-count').textContent   = total;
+      document.getElementById('today-done-count').textContent    = done;
+      document.getElementById('today-pending-count').textContent = pending;
+
+      tbody.innerHTML = list.length ? list.map(d => `
+        <tr style="${d.idChecked ? 'background:#F0FBF4' : ''}">
+          <td style="font-family:monospace;font-size:11px;color:var(--moss)">${d.appNo||'—'}</td>
+          <td><strong>${d.name}</strong></td>
+          <td style="font-size:12px">${d.certLabel||d.certType||'—'}</td>
+          <td><span class="badge badge-gray" style="font-size:11px">${statusMap[d.status]||d.status}</span></td>
+          <td>${d.idChecked
+            ? `<span class="badge badge-green" style="font-size:11px">✅ 확인완료</span>
+               <div style="font-size:10px;color:var(--muted);margin-top:2px">${(() => {
+                 try { const dt = d.idCheckedAt?.toDate ? d.idCheckedAt.toDate() : new Date(d.idCheckedAt);
+                   return dt.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}); } catch(e){ return ''; }
+               })()}</div>`
+            : '<span class="badge badge-amber" style="font-size:11px">⏳ 미확인</span>'}</td>
+          <td>
+            ${d.idChecked
+              ? `<button class="save-btn-sm" style="color:var(--danger);font-size:11px"
+                   onclick="quickCancelIdCheck('${d.id}','${d.name}')">↩ 취소</button>`
+              : `<button class="save-btn-sm" style="background:var(--moss);color:#fff;font-size:11px"
+                   onclick="quickConfirmIdCheck('${d.id}','${d.name}')">✅ 확인</button>`}
+          </td>
+        </tr>`).join('')
+      : '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">응시자가 없습니다.</td></tr>';
+
+    } catch(e) {
+      tbody.innerHTML = '<tr><td colspan="6" style="color:var(--danger);text-align:center;padding:16px">로드 실패: ' + e.message + '</td></tr>';
+    }
+  };
+
+  // ── 빠른 신분증 확인 (목록에서 바로 처리)
+  window.quickConfirmIdCheck = async function(id, name) {
+    const supervisor = prompt(`${name}님 신분증 확인
+
+감독관 이름을 입력하세요:`);
+    if (!supervisor) return;
+    try {
+      await updateDoc(doc(db,'bjw_applicants',id), {
+        idChecked:   true,
+        idCheckedAt: Timestamp.now(),
+        idCheckedBy: supervisor,
+        idType:      '주민등록증',
+      });
+      showToast(`✅ ${name}님 신분증 확인 완료!`, 'success');
+      loadTodayApplicants();
+      loadIdCheckList();
+    } catch(e) { showToast('처리 실패: ' + e.message, 'error'); }
+  };
+
+  window.quickCancelIdCheck = async function(id, name) {
+    if (!confirm(`${name}님의 신분증 확인을 취소하시겠습니까?`)) return;
+    try {
+      await updateDoc(doc(db,'bjw_applicants',id), {
+        idChecked: false, idCheckedAt: null, idCheckedBy: null, idType: null,
+      });
+      showToast('신분증 확인이 취소됐습니다.', 'success');
+      loadTodayApplicants();
+      loadIdCheckList();
+    } catch(e) { showToast('취소 실패: ' + e.message, 'error'); }
+  };
+
+  // ── 감독관 계정 관리
+  window.loadSupervisors = async function() {
+    const tbody = document.getElementById('supervisors-tbody');
+    if (!tbody) return;
+    try {
+      const snap = await getDoc(doc(db,'bjw_config','bjw_supervisors'));
+      const list = snap.exists() ? (snap.data().list || []) : [];
+      tbody.innerHTML = list.length ? list.map((sv, i) => `
+        <tr>
+          <td><strong>${sv.name}</strong></td>
+          <td style="font-family:monospace;font-size:12px">${sv.email}</td>
+          <td style="font-size:12px;color:var(--muted)">${sv.note||'—'}</td>
+          <td style="font-size:11px;color:var(--muted)">${sv.createdAt ? new Date(sv.createdAt).toLocaleDateString('ko-KR') : '—'}</td>
+          <td><button class="save-btn-sm" style="color:var(--danger)" onclick="deleteSupervisor(${i})">🗑️ 삭제</button></td>
+        </tr>`).join('')
+      : '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--muted)">등록된 감독관이 없습니다.</td></tr>';
+    } catch(e) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--muted)">등록된 감독관이 없습니다.</td></tr>';
+    }
+  };
+
+  window.registerSupervisor = async function() {
+    const name  = document.getElementById('sv-name').value.trim();
+    const email = document.getElementById('sv-email').value.trim();
+    const pw    = document.getElementById('sv-pw').value.trim();
+    const note  = document.getElementById('sv-note').value.trim();
+    const errEl = document.getElementById('sv-register-error');
+
+    if (!name || !email || !pw) {
+      errEl.textContent = '이름, 이메일, 비밀번호는 필수입니다.';
+      errEl.style.display = 'flex'; return;
+    }
+    if (pw.length < 8) {
+      errEl.textContent = '비밀번호는 8자 이상이어야 합니다.';
+      errEl.style.display = 'flex'; return;
+    }
+    errEl.style.display = 'none';
+
+    try {
+      // Firebase Auth에 계정 생성
+      const { createUserWithEmailAndPassword, getAuth: _getAuth } =
+        await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
+      const { uid } = (await createUserWithEmailAndPassword(auth, email, pw)).user;
+
+      // Firestore에 감독관 정보 저장
+      const snap = await getDoc(doc(db,'bjw_config','bjw_supervisors'));
+      const current = snap.exists() ? (snap.data().list || []) : [];
+      current.push({ name, email, note, uid, role:'supervisor', createdAt: new Date().toISOString() });
+      await setDoc(doc(db,'bjw_config','bjw_supervisors'), { list: current });
+
+      // 역할 저장 (로그인 시 역할 구분용)
+      await setDoc(doc(db,'bjw_roles',uid), { role:'supervisor', name, email });
+
+      showToast(`✅ 감독관 ${name} 계정이 등록됐습니다!`, 'success');
+      document.getElementById('sv-name').value  = '';
+      document.getElementById('sv-email').value = '';
+      document.getElementById('sv-pw').value    = '';
+      document.getElementById('sv-note').value  = '';
+      loadSupervisors();
+
+    } catch(e) {
+      const msg = e.code === 'auth/email-already-in-use'
+        ? '이미 등록된 이메일입니다.'
+        : e.code === 'auth/invalid-email'
+          ? '이메일 형식이 올바르지 않습니다.'
+          : '등록 실패: ' + e.message;
+      errEl.textContent = msg;
+      errEl.style.display = 'flex';
+    }
+  };
+
+  window.deleteSupervisor = async function(idx) {
+    const snap = await getDoc(doc(db,'bjw_config','bjw_supervisors'));
+    if (!snap.exists()) return;
+    const list = snap.data().list || [];
+    const sv   = list[idx];
+    if (!confirm(`'${sv.name}' 감독관 계정을 삭제하시겠습니까?`)) return;
+    list.splice(idx, 1);
+    await setDoc(doc(db,'bjw_config','bjw_supervisors'), { list });
+    showToast('감독관 계정이 삭제됐습니다.', 'success');
+    loadSupervisors();
   };
 
   // ── 신분증 확인 처리
