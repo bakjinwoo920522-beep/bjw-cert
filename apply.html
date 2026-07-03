@@ -866,10 +866,10 @@ body {
 </select>
       </div>
       <div class="form-group">
-        <label>응시 일자</label>
-        <input type="text" id="examDate" readonly
-          style="background:#EEF5F0;color:var(--moss);font-weight:600;cursor:default;"
-          placeholder="일정 로딩 중...">
+        <label>응시 일자 <span class="req">*</span></label>
+        <select id="examDate" required>
+          <option value="">일정 로딩 중...</option>
+        </select>
       </div>
       <div class="form-group">
         <label>최종 학력</label>
@@ -1008,12 +1008,50 @@ body {
   const db = getFirestore(app);
 
 
+  // 필기시험 일자 select 옵션 생성
+  function setExamDateFromSchedule(d) {
+    const sel = document.getElementById('examDate');
+    if (!sel) return;
+    sel.innerHTML = '';
+
+    const fmt = dateStr => {
+      try {
+        const dt = new Date(dateStr);
+        return dt.getFullYear() + '년 ' + (dt.getMonth()+1) + '월 ' + dt.getDate() + '일 (' +
+          ['일','월','화','수','목','금','토'][dt.getDay()] + ')';
+      } catch(e) { return dateStr; }
+    };
+
+    // written-dates 배열 우선, 없으면 단일 written-date 사용
+    const dates = (d && d['written-dates'] && d['written-dates'].length > 0)
+      ? d['written-dates']
+      : (d && d['written-date'] ? [{ date: d['written-date'], time: d['written-time'] || '' }] : []);
+
+    if (dates.length === 0) {
+      sel.innerHTML = '<option value="">일정 미정 (추후 공지)</option>';
+      return;
+    }
+
+    if (dates.length > 1) {
+      sel.innerHTML = '<option value="">응시 일자를 선택하세요</option>';
+    }
+
+    dates.forEach(w => {
+      const timeStr = w.time ? ' ' + w.time : '';
+      const label = fmt(w.date) + timeStr;
+      const opt = document.createElement('option');
+      opt.value = w.date;
+      opt.textContent = label;
+      sel.appendChild(opt);
+    });
+  }
+
   // 시험 일정 Firestore에서 로드
   async function loadPageSchedule() {
     try {
       const { getDoc, doc: _doc } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
       const snap = await getDoc(_doc(db, 'bjw_config', 'bjw_schedule'));
-      if (!snap.exists()) return;
+      if (!snap.exists()) { setExamDateFromSchedule(null); return; }
       const d = snap.data();
 
       function fmtShort(dateStr) {
@@ -1047,33 +1085,14 @@ body {
         nb.textContent = '📌 ' + d['notice'];
       }
 
-      // 전역 날짜 저장 (응시일자 선택란에 사용)
-    
-  // 필기시험 일자 자동 표시
-  function setExamDateFromSchedule(d) {
-    const el = document.getElementById('examDate');
-    if (!el) return;
-    const date = d && d['written-date'];
-    const time = d && d['written-time'] ? ' ' + d['written-time'] : '';
-    if (date) {
-      try {
-        const dt = new Date(date);
-        const label = dt.getFullYear() + '년 ' + (dt.getMonth()+1) + '월 ' + dt.getDate() + '일 (' +
-          ['일','월','화','수','목','금','토'][dt.getDay()] + ')' + time;
-        el.value = label;
-        el.dataset.rawDate = date;
-      } catch(e) { el.value = date + time; el.dataset.rawDate = date; }
-    } else {
-      el.value = '일정 미정 (추후 공지)';
-      el.dataset.rawDate = '';
-    }
-  }
-
-      // 필기일자 자동 세팅
+      // 응시일자 자동 세팅
       window._scheduleData = d;
       setExamDateFromSchedule(d);
 
-    } catch(e) { console.error('일정 로드 실패', e); }
+    } catch(e) {
+      console.error('일정 로드 실패', e);
+      setExamDateFromSchedule(null);
+    }
   }
   loadPageSchedule();
 
@@ -1096,10 +1115,12 @@ body {
     const c1       = document.getElementById('consent1').checked;
     const c2       = document.getElementById('consent2').checked;
 
-    const examDateEl = document.getElementById('examDate');
-    const examDate = examDateEl ? (examDateEl.dataset.rawDate || '') : '';
+    const examDate = document.getElementById('examDate')?.value || '';
     if (!name || !birth || !phone || !email || !certType) {
       showToast('필수 항목을 모두 입력해 주세요.', 'error'); return;
+    }
+    if (!examDate) {
+      showToast('응시 일자를 선택해 주세요.', 'error'); return;
     }
     if (!c1 || !c2) {
       showToast('필수 동의 항목에 체크해 주세요.', 'error'); return;

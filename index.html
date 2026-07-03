@@ -1175,16 +1175,12 @@ body {
         </div>
 
         <!-- 필기시험 -->
-        <div class="bjw-card" style="margin-bottom:0">
-          <h2 style="font-size:15px"><span class="icon">✏️</span> 필기시험</h2>
-          <div class="form-group" style="margin-bottom:14px">
-            <label>필기시험일</label>
-            <input type="date" id="sch-written-date">
-          </div>
-          <div class="form-group">
-            <label>시험 시간</label>
-            <input type="time" id="sch-written-time" value="10:00">
-          </div>
+        <div class="bjw-card" style="margin-bottom:0; grid-column:1/-1">
+          <h2 style="font-size:15px"><span class="icon">✏️</span> 필기시험 일자 <small style="font-weight:400;color:var(--muted)">(여러 개 등록 가능)</small></h2>
+          <div id="written-dates-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px"></div>
+          <button class="btn btn-secondary" style="font-size:12px;padding:8px 16px" onclick="addWrittenDate()">
+            ➕ 시험일자 추가
+          </button>
         </div>
 
         <!-- 필기합격 발표 -->
@@ -3866,7 +3862,7 @@ body {
       const d = snap.data();
       const fields = [
         'reg-start','reg-end',
-        'written-date','written-time','written-result','written-result-label',
+        'written-result','written-result-label',
         'doc-start','doc-end',
         'practical-date','practical-time','final-result','final-result-label',
         'venue','round','notice'
@@ -3875,15 +3871,49 @@ body {
         const el = document.getElementById('sch-' + k);
         if (el && d[k] !== undefined) el.value = d[k];
       });
+      // 여러 필기시험 일자 복원
+      const container = document.getElementById('written-dates-list');
+      if (container) {
+        container.innerHTML = '';
+        const wdates = d['written-dates'] || (d['written-date'] ? [{ date: d['written-date'], time: d['written-time']||'10:00' }] : []);
+        if (wdates.length === 0) addWrittenDate();
+        else wdates.forEach(w => addWrittenDate(w.date, w.time));
+      }
       renderSchedulePreview(d);
       showToast('✅ 일정을 불러왔습니다.', 'success');
     } catch(e) { console.error(e); showToast('불러오기 실패', 'error'); }
   };
 
+
+  // ── 필기시험 일자 행 추가
+  window.addWrittenDate = function(date='', time='10:00') {
+    const container = document.getElementById('written-dates-list');
+    if (!container) return;
+    const idx = container.querySelectorAll('.written-date-row').length + 1;
+    const row = document.createElement('div');
+    row.className = 'written-date-row';
+    row.style.cssText = 'display:flex;gap:10px;align-items:center;';
+    row.innerHTML = `
+      <div style="flex:1">
+        <label style="font-size:11px;color:var(--muted)">시험일 ${idx}</label>
+        <input type="date" class="wd-date" value="${date}"
+          style="width:100%;border:1.5px solid #D5DFD7;border-radius:var(--radius);padding:9px 12px;font-family:'Noto Sans KR',sans-serif;font-size:13px;outline:none;background:var(--cream)">
+      </div>
+      <div style="width:130px">
+        <label style="font-size:11px;color:var(--muted)">시간</label>
+        <input type="time" class="wd-time" value="${time}"
+          style="width:100%;border:1.5px solid #D5DFD7;border-radius:var(--radius);padding:9px 12px;font-family:'Noto Sans KR',sans-serif;font-size:13px;outline:none;background:var(--cream)">
+      </div>
+      <div style="padding-top:18px">
+        <button class="save-btn-sm" style="color:var(--danger)" onclick="this.closest('.written-date-row').remove()">🗑️</button>
+      </div>`;
+    container.appendChild(row);
+  };
+
   window.saveSchedule = async function() {
     const fields = [
       'reg-start','reg-end',
-      'written-date','written-time','written-result','written-result-label',
+      'written-result','written-result-label',
       'doc-start','doc-end',
       'practical-date','practical-time','final-result','final-result-label',
       'venue','round','notice'
@@ -3893,6 +3923,18 @@ body {
       const el = document.getElementById('sch-' + k);
       data[k] = el ? el.value : '';
     });
+    // 여러 필기시험 일자 수집
+    const writtenRows = document.querySelectorAll('.written-date-row');
+    const writtenDates = [];
+    writtenRows.forEach(row => {
+      const date = row.querySelector('.wd-date').value;
+      const time = row.querySelector('.wd-time').value;
+      if (date) writtenDates.push({ date, time });
+    });
+    data['written-dates'] = writtenDates;
+    // 하위 호환: 첫 번째 날짜를 기존 필드에도 저장
+    data['written-date'] = writtenDates[0]?.date || '';
+    data['written-time'] = writtenDates[0]?.time || '';
     data.updatedAt = new Date().toISOString();
 
     try {
