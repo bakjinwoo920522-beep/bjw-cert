@@ -168,6 +168,47 @@
 
     #result-area { display: none; }
     #no-result-area { display: none; }
+
+  /* ── 공지사항 배너 */
+  #notice-banner {
+    display: none;
+    background: #1C4A2A;
+    color: #fff;
+    padding: 0;
+    position: relative;
+    z-index: 100;
+  }
+  .notice-banner-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+  .notice-banner-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    font-size: 13.5px;
+    line-height: 1.5;
+  }
+  .notice-banner-item:last-child { border-bottom: none; }
+  .notice-banner-badge {
+    background: #C8A84B;
+    color: #1C2B20;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+  .notice-banner-text { flex: 1; }
+  .notice-banner-date {
+    font-size: 11px;
+    opacity: 0.6;
+    flex-shrink: 0;
+  }
   </style>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -803,6 +844,11 @@ body {
   </nav>
 </header>
 
+<!-- 공지사항 배너 -->
+<div id="notice-banner">
+  <div class="notice-banner-inner" id="notice-banner-list"></div>
+</div>
+
 <div class="bjw-hero">
   <div class="cert-badge">✏️ WRITTEN EXAM RESULTS</div>
   <h1>필기시험 합격자 조회</h1>
@@ -1111,6 +1157,33 @@ body {
     area.style.display = 'block';
   }
 
+
+  // ── 공지사항 배너 로드
+  (async () => {
+    try {
+      const { getDocs, collection: _col, query: _q, where: _where, orderBy: _orderBy, limit: _limit } =
+        await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+      const snap = await getDocs(
+        _q(_col(db, 'bjw_notices'), _where('pinned','==',true), _orderBy('createdAt','desc'), _limit(5))
+      );
+      if (snap.empty) return;
+      const banner = document.getElementById('notice-banner');
+      const list   = document.getElementById('notice-banner-list');
+      if (!banner || !list) return;
+      list.innerHTML = snap.docs.map(d => {
+        const data = d.data();
+        const date = data.createdAt?.toDate
+          ? data.createdAt.toDate().toLocaleDateString('ko-KR', {month:'numeric',day:'numeric'})
+          : '';
+        return `<div class="notice-banner-item">
+          <span class="notice-banner-badge">📌 공지</span>
+          <span class="notice-banner-text">${data.title}</span>
+          <span class="notice-banner-date">${date}</span>
+        </div>`;
+      }).join('');
+      banner.style.display = 'block';
+    } catch(e) { console.warn('공지 로드 실패:', e.message); }
+  })();
   function showToast(msg, type='') {
     const tc = document.getElementById('toast-container');
     const t = document.createElement('div');
