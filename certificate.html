@@ -1463,8 +1463,19 @@ body {
 
   // ── 발급비 확인 후 다운로드
   window.checkAndDownload = async function(applicantId, certNo, certLabel, holderName, issueDate, validDate) {
-    // bjw_cert_requests에서 승인 여부만 확인 (무조건)
     try {
+      // 1) bjw_applicants에서 feeConfirmed 또는 이미 관리자가 직접 발급한 경우 확인
+      const docSnap = await getDoc(doc(db, 'bjw_applicants', applicantId));
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        // 관리자가 직접 발급 승인한 경우 (feeConfirmed=true)
+        if (data.feeConfirmed) {
+          downloadCert(certNo, certLabel, holderName, issueDate, validDate);
+          return;
+        }
+      }
+
+      // 2) bjw_cert_requests에서 승인 여부 확인
       const q = query(
         collection(db, 'bjw_cert_requests'),
         where('applicantId', '==', applicantId)
@@ -1486,7 +1497,7 @@ body {
       }
     } catch(e) {
       console.error(e);
-      showToast('⚠️ 조회 실패: Firebase 규칙을 확인해 주세요.', 'error');
+      showToast('⚠️ 조회 실패: ' + e.message, 'error');
     }
   };
 
@@ -1783,10 +1794,8 @@ body {
   // ── 공지사항 배너 로드
   (async () => {
     try {
-      const { getDocs, collection: _col, query: _q, where: _where, orderBy: _orderBy, limit: _limit } =
-        await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
       const snap = await getDocs(
-        _q(_col(db, 'bjw_notices'), _where('pinned','==',true), _orderBy('createdAt','desc'), _limit(5))
+        query(collection(db, 'bjw_notices'), where('pinned','==',true), orderBy('createdAt','desc'), limit(5))
       );
       if (snap.empty) return;
       const banner = document.getElementById('notice-banner');
