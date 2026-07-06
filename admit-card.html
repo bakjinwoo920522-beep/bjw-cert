@@ -444,9 +444,21 @@
             writtenDate = dt.toLocaleDateString('ko-KR', {year:'numeric',month:'long',day:'numeric',weekday:'short'});
           }
           if (sch['written-time']) writtenTime = ' ' + sch['written-time'];
-          // venues 배열 우선, 없으면 venue 단수 사용
-          const venues = (sch['venues'] && sch['venues'].length) ? sch['venues'] : (sch['venue'] ? [sch['venue']] : []);
-          if (venues.length) venue = venues.join(' / ');
+          // 응시자의 examDate와 written-dates 배열 매칭 → 같은 인덱스 장소 표시
+          const writtenDates = sch['written-dates'] || [];
+          const venueArr = (sch['venues'] && sch['venues'].length) ? sch['venues'] : (sch['venue'] ? [sch['venue']] : []);
+          const applicantExamDate = data.examDate || '';
+          if (writtenDates.length > 0 && applicantExamDate) {
+            // examDate와 일치하는 인덱스 찾기
+            const matchIdx = writtenDates.findIndex(w => w.date === applicantExamDate);
+            if (matchIdx >= 0 && venueArr[matchIdx]) {
+              venue = venueArr[matchIdx];
+            } else if (venueArr.length > 0) {
+              venue = venueArr[0];
+            }
+          } else if (venueArr.length > 0) {
+            venue = venueArr[0];
+          }
         }
       } catch(e) { console.error(e); }
 
