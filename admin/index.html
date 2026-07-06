@@ -4085,11 +4085,39 @@ body {
       return dt.toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
     }
 
+    // 응시자의 examDate 기준으로 날짜·장소 매칭
     let examDate = '별도 안내 예정';
-    if (data.status === 'written_pass' && sch['practical-date']) {
-      examDate = fmtDate(sch['practical-date']) + (sch['practical-time'] ? ' ' + sch['practical-time'] : '');
-    } else if (sch['written-date']) {
-      examDate = fmtDate(sch['written-date']) + (sch['written-time'] ? ' ' + sch['written-time'] : '');
+    let venue    = '별도 안내 예정';
+
+    const writtenDates = sch['written-dates'] || [];
+    const venueArr = (sch['venues'] && sch['venues'].length) ? sch['venues'] : (sch['venue'] ? [sch['venue']] : []);
+    const applicantExamDate = data.examDate || '';
+
+    if (data.status === 'written_pass') {
+      // 서류심사 응시자
+      const practicalDates = sch['practical-dates'] || [];
+      if (practicalDates.length > 0) {
+        examDate = fmtDate(practicalDates[0].date) + (practicalDates[0].time ? ' ' + practicalDates[0].time : '');
+      } else if (sch['practical-date']) {
+        examDate = fmtDate(sch['practical-date']) + (sch['practical-time'] ? ' ' + sch['practical-time'] : '');
+      }
+      venue = venueArr[0] || '별도 안내 예정';
+    } else {
+      // 필기시험 응시자 — examDate로 매칭
+      if (applicantExamDate && writtenDates.length > 0) {
+        const matchIdx = writtenDates.findIndex(w => w.date === applicantExamDate);
+        if (matchIdx >= 0) {
+          const matched = writtenDates[matchIdx];
+          examDate = fmtDate(matched.date) + (matched.time ? ' ' + matched.time : '');
+          venue = venueArr[matchIdx] || venueArr[0] || '별도 안내 예정';
+        } else {
+          examDate = fmtDate(applicantExamDate);
+          venue = venueArr[0] || '별도 안내 예정';
+        }
+      } else if (sch['written-date']) {
+        examDate = fmtDate(sch['written-date']) + (sch['written-time'] ? ' ' + sch['written-time'] : '');
+        venue = venueArr[0] || '별도 안내 예정';
+      }
     }
 
     document.getElementById('modal-app-no').textContent    = data.appNo || '—';
@@ -4100,7 +4128,7 @@ body {
     document.getElementById('modal-cert').textContent      = data.certLabel || data.certType || '—';
     document.getElementById('modal-exam-type').textContent = typeMap[data.status] || '필기시험';
     document.getElementById('modal-date').textContent      = examDate;
-    document.getElementById('modal-venue').textContent     = sch['venue'] || '별도 안내 예정';
+    document.getElementById('modal-venue').textContent     = venue;
     document.getElementById('modal-today').textContent     =
       new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'});
 
