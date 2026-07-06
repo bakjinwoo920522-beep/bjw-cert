@@ -255,6 +255,7 @@
     <a href="admit-card.html" style="color:#F0D4B4">응시표 출력</a>
     <a href="final-pass.html">최종합격 조회</a>
     <a href="certificate.html">자격증 발급</a>
+    <a href="notice.html">📢 공지사항</a>
   </nav>
 </header>
 
@@ -443,7 +444,9 @@
             writtenDate = dt.toLocaleDateString('ko-KR', {year:'numeric',month:'long',day:'numeric',weekday:'short'});
           }
           if (sch['written-time']) writtenTime = ' ' + sch['written-time'];
-          if (sch['venue'])        venue = sch['venue'];
+          // venues 배열 우선, 없으면 venue 단수 사용
+          const venues = (sch['venues'] && sch['venues'].length) ? sch['venues'] : (sch['venue'] ? [sch['venue']] : []);
+          if (venues.length) venue = venues.join(' / ');
         }
       } catch(e) { console.error(e); }
 
