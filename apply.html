@@ -1108,6 +1108,12 @@ body {
   async function loadPageSchedule() {
     try {
       const snap = await getDoc(doc(db, 'bjw_config', 'bjw_schedule'));
+      console.log('[SCHEDULE] snap exists:', snap.exists());
+      if (snap.exists()) {
+        const raw = snap.data();
+        console.log('[SCHEDULE] written-dates:', JSON.stringify(raw['written-dates']));
+        console.log('[SCHEDULE] written-date:', raw['written-date']);
+      }
       if (!snap.exists()) { setExamDateFromSchedule(null); return; }
       const d = snap.data();
 
