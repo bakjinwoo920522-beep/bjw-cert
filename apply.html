@@ -1039,7 +1039,8 @@ body {
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getFirestore, collection, addDoc, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, Timestamp, getDoc, doc, getDocs, query, where, orderBy, limit}
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   // ★ 여기에 Firebase 프로젝트 설정을 붙여넣으세요 ★
   const firebaseConfig = {
@@ -1096,8 +1097,7 @@ body {
   // 시험 일정 Firestore에서 로드
   async function loadPageSchedule() {
     try {
-      const { getDoc, doc: _doc } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
-      const snap = await getDoc(_doc(db, 'bjw_config', 'bjw_schedule'));
+      const snap = await getDoc(doc(db, 'bjw_config', 'bjw_schedule'));
       if (!snap.exists()) { setExamDateFromSchedule(null); return; }
       const d = snap.data();
 
@@ -1248,10 +1248,8 @@ body {
   // ── 공지사항 배너 로드
   (async () => {
     try {
-      const { getDocs, collection: _col, query: _q, where: _where, orderBy: _orderBy, limit: _limit } =
-        await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
       const snap = await getDocs(
-        _q(_col(db, 'bjw_notices'), _where('pinned','==',true), _orderBy('createdAt','desc'), _limit(5))
+        query(collection(db, 'bjw_notices'), where('pinned','==',true), orderBy('createdAt','desc'), limit(5))
       );
       if (snap.empty) return;
       const banner = document.getElementById('notice-banner');
