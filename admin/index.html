@@ -4011,8 +4011,8 @@ body {
   let allAdmitList = [];
   let scheduleCache = null;
 
-  async function getSchedule() {
-    if (scheduleCache) return scheduleCache;
+  async function getSchedule(forceRefresh=false) {
+    if (scheduleCache && !forceRefresh) return scheduleCache;
     try {
       const snap2 = await getDoc(doc(db, 'bjw_config', 'bjw_schedule'));
       scheduleCache = snap2.exists() ? snap2.data() : {};
@@ -4071,7 +4071,7 @@ body {
   };
 
   window.openAdmitModal = async function(data) {
-    const sch = await getSchedule();
+    const sch = await getSchedule(true);
     const typeMap = {
       applied:      '필기시험',
       written_pass: '서류심사',
