@@ -1044,6 +1044,7 @@ body {
             <th>성명</th>
             <th>자격증</th>
             <th>연락처</th>
+            <th>응시일자</th>
             <th>상태</th>
             <th>상태 변경</th>
           </tr>
@@ -2545,6 +2546,8 @@ body {
                 <option value="fail"         ${d.status==='fail'?'selected':''} style="color:#C53030">불합격</option>
               </select>
               <button class="save-btn-sm" onclick="saveStatus('${d.id}')">저장</button>
+              <button class="save-btn-sm" style="background:var(--moss);color:#fff;margin-top:4px"
+                onclick="openEditApplicant('${d.id}')">✏️ 수정</button>
               <button class="save-btn-sm" style="background:${d.feeConfirmed?'var(--success)':'var(--amber)'};margin-top:4px;"
                 onclick="toggleFeeConfirm('${d.id}', ${!!d.feeConfirmed})">
                 ${d.feeConfirmed ? '💳 납부확인됨' : '💳 납부확인'}
@@ -2564,6 +2567,54 @@ body {
 
 
   // ── 불합격 처리
+
+  // ── 응시자 정보 수정
+  window.openEditApplicant = async function(id) {
+    try {
+      const docSnap = await getDoc(doc(db, 'bjw_applicants', id));
+      if (!docSnap.exists()) { showToast('정보를 찾을 수 없습니다.', 'error'); return; }
+      const d = docSnap.data();
+      document.getElementById('edit-app-id').value       = id;
+      document.getElementById('edit-app-name').value     = d.name || '';
+      document.getElementById('edit-app-birth').value    = d.birth || '';
+      document.getElementById('edit-app-phone').value    = d.phone || '';
+      document.getElementById('edit-app-email').value    = d.email || '';
+      document.getElementById('edit-app-examdate').value = d.examDate || '';
+      document.getElementById('edit-app-certtype').value = d.certType || 'hort';
+      const modal = document.getElementById('edit-applicant-modal');
+      modal.style.display = 'flex';
+    } catch(e) { showToast('오류: ' + e.message, 'error'); }
+  };
+
+  window.closeEditApplicant = function() {
+    document.getElementById('edit-applicant-modal').style.display = 'none';
+  };
+
+  window.saveEditApplicant = async function() {
+    const id       = document.getElementById('edit-app-id').value;
+    const name     = document.getElementById('edit-app-name').value.trim();
+    const birth    = document.getElementById('edit-app-birth').value;
+    const phone    = document.getElementById('edit-app-phone').value.trim();
+    const email    = document.getElementById('edit-app-email').value.trim();
+    const examDate = document.getElementById('edit-app-examdate').value;
+    const certType = document.getElementById('edit-app-certtype').value;
+    const certLabels = { hort:'원예심리상담사', color:'색채원예심리상담사', garden:'힐링정원사' };
+
+    if (!name || !birth) { showToast('성명과 생년월일은 필수입니다.', 'error'); return; }
+
+    try {
+      await updateDoc(doc(db, 'bjw_applicants', id), {
+        name, birth, phone, email, examDate,
+        certType,
+        certLabel: certLabels[certType] || certType,
+        updatedAt: Timestamp.now()
+      });
+      showToast('✅ 수정 완료!', 'success');
+      closeEditApplicant();
+      loadApplicants();
+    } catch(e) { showToast('저장 실패: ' + e.message, 'error'); }
+  };
+
   window.setFail = async function(id, name) {
     if (!confirm(name + '님을 불합격 처리하시겠습니까?\n(상태가 "불합격"으로 변경됩니다)')) return;
     try {
@@ -3384,6 +3435,7 @@ body {
           <td style="font-family:monospace;font-size:11px;color:var(--moss)">${d.appNo||'—'}</td>
           <td><strong>${d.name}</strong></td>
           <td style="font-size:12px">${d.certLabel||d.certType||'—'}</td>
+          <td style="font-size:11px;color:var(--muted)">${d.examDate ? d.examDate.slice(5).replace('-','/') : '—'}</td>
           <td><span class="badge badge-gray" style="font-size:11px">${statusMap[d.status]||d.status}</span></td>
           <td>${d.idChecked
             ? `<span class="badge badge-green" style="font-size:11px">✅ 확인완료</span>
