@@ -1126,15 +1126,15 @@ body {
 
       // 시행 회차 — 첫 번째 회차만 제목에 표시
       const roundVal = (d['rounds'] && d['rounds'].length) ? d['rounds'][0] : (d['round'] || '');
-      if (roundVal) document.getElementById('sch-round-title').textContent = roundVal + ' 시험 일정';
+      const el_round = document.getElementById('sch-round-title'); if (roundVal && el_round) el_round.textContent = roundVal + ' 시험 일정';
       if (d['reg-start'] && d['reg-end']) {
-        document.getElementById('disp-reg').textContent =
+        const el_reg = document.getElementById('disp-reg'); if(el_reg) el_reg.textContent =
           fmtShort(d['reg-start']) + ' – ' + fmtShort(d['reg-end']);
-        document.getElementById('disp-reg-sub').textContent = new Date(d['reg-start']).getFullYear() + '년';
+        const el_sub = document.getElementById('disp-reg-sub'); if(el_sub) el_sub.textContent = new Date(d['reg-start']).getFullYear() + '년';
       }
       if (d['written-date']) {
-        document.getElementById('disp-written').textContent = fmtShort(d['written-date']);
-        document.getElementById('disp-written-time').textContent = d['written-time'] ? '오전 ' + d['written-time'] : '';
+        const el_w = document.getElementById('disp-written'); if(el_w) el_w.textContent = fmtShort(d['written-date']);
+        const el_wt = document.getElementById('disp-written-time'); if(el_wt) el_wt.textContent = d['written-time'] ? '오전 ' + d['written-time'] : '';
       }
       if (d['practical-date']) {
         document.getElementById('disp-practical').textContent = fmtShort(d['practical-date']);
