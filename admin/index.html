@@ -2513,7 +2513,7 @@ body {
   // ── 응시자 목록
   window.loadApplicants = async function() {
     const tbody = document.getElementById('applicants-tbody');
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">로딩 중...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted)">로딩 중...</td></tr>';
     try {
       const snap = await getDocs(collection(db,'bjw_applicants'));
       allApplicants = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -2536,6 +2536,7 @@ body {
             <td><strong>${d.name}</strong></td>
             <td>${d.certLabel || d.certType}</td>
             <td>${d.phone || '—'}</td>
+            <td style="font-size:12px">${d.examDate ? d.examDate.slice(5).replace('-','/') : '—'}</td>
             <td>${statusLabels[d.status] || d.status}</td>
             <td>
               <select class="action-select" id="st-${d.id}" onchange="">
@@ -2562,7 +2563,7 @@ body {
               </button>
             </td>
           </tr>`).join('')
-      : '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">데이터가 없습니다.</td></tr>';
+      : '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted)">데이터가 없습니다.</td></tr>';
   }
 
 
@@ -2660,7 +2661,7 @@ body {
   // ── 성적 입력
   window.loadResults = async function() {
     const tbody = document.getElementById('results-tbody');
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">로딩 중...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted)">로딩 중...</td></tr>';
     try {
       const snap = await getDocs(collection(db,'bjw_applicants'));
       allResults = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -2688,7 +2689,7 @@ body {
               <button class="save-btn-sm" onclick="saveScore('${d.id}')">저장</button>
             </td>
           </tr>`).join('')
-      : '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">데이터가 없습니다.</td></tr>';
+      : '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted)">데이터가 없습니다.</td></tr>';
   }
 
   window.filterResultTable = function() {
@@ -2782,7 +2783,7 @@ body {
 
   window.loadDocs = async function() {
     const tbody = document.getElementById('docs-tbody');
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">로딩 중...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted)">로딩 중...</td></tr>';
     try {
       const snap = await getDocs(query(collection(db,'bjw_applicants'), where('docSubmitted','==',true)));
       allDocs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -2827,7 +2828,7 @@ body {
         </td>
       </tr>`;
     }).join('')
-    : '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">제출된 서류가 없습니다.</td></tr>';
+    : '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted)">제출된 서류가 없습니다.</td></tr>';
   }
 
   window.filterDocTable = function() {
@@ -3452,7 +3453,7 @@ body {
                    onclick="quickConfirmIdCheck('${d.id}','${d.name}')">✅ 확인</button>`}
           </td>
         </tr>`).join('')
-      : '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">응시자가 없습니다.</td></tr>';
+      : '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted)">응시자가 없습니다.</td></tr>';
 
     } catch(e) {
       tbody.innerHTML = '<tr><td colspan="6" style="color:var(--danger);text-align:center;padding:16px">로드 실패: ' + e.message + '</td></tr>';
@@ -4022,7 +4023,7 @@ body {
   window.loadAdmitList = async function() {
     const tbody = document.getElementById('admit-tbody');
     if (!tbody) return;
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">로딩 중...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted)">로딩 중...</td></tr>';
     try {
       const snap = await getDocs(collection(db, 'bjw_applicants'));
       allAdmitList = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -4057,7 +4058,7 @@ body {
         </td>
       </tr>`;
     }).join('')
-    : '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">해당 응시자가 없습니다.</td></tr>';
+    : '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted)">해당 응시자가 없습니다.</td></tr>';
   }
 
   window.filterAdmitTable = function() {
