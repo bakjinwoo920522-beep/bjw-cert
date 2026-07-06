@@ -1137,22 +1137,20 @@ body {
         const el_wt = document.getElementById('disp-written-time'); if(el_wt) el_wt.textContent = d['written-time'] ? '오전 ' + d['written-time'] : '';
       }
       if (d['practical-date']) {
-        document.getElementById('disp-practical').textContent = fmtShort(d['practical-date']);
-        document.getElementById('disp-practical-time').textContent = d['practical-time'] ? '오전 ' + d['practical-time'] : '';
+        const el_p = document.getElementById('disp-practical'); if(el_p) el_p.textContent = fmtShort(d['practical-date']);
+        const el_pt = document.getElementById('disp-practical-time'); if(el_pt) el_pt.textContent = d['practical-time'] ? '오전 ' + d['practical-time'] : '';
       }
       // 시험 장소 (배열 우선)
       const venues = (d['venues'] && d['venues'].length) ? d['venues'] : (d['venue'] ? [d['venue']] : []);
       if (venues.length) {
         const venueEl = document.getElementById('disp-venue-alert');
-        venueEl.innerHTML = venues.map(v => '⚠️ ' + v).join('<br>');
-        venueEl.style.display = 'flex';
+        if (venueEl) { venueEl.innerHTML = venues.map(v => '⚠️ ' + v).join('<br>'); venueEl.style.display = 'flex'; }
       }
       // 공지 문구 (notice1~3 + notice)
       const notices = [d['notice1'], d['notice2'], d['notice3'], d['notice']].filter(Boolean);
       if (notices.length) {
         const nb = document.getElementById('disp-notice-box');
-        nb.style.display = 'flex';
-        nb.innerHTML = notices.map(n => '📌 ' + n).join('<br>');
+        if (nb) { nb.style.display = 'flex'; nb.innerHTML = notices.map(n => '📌 ' + n).join('<br>'); }
       }
 
       // 응시일자 자동 세팅
