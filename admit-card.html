@@ -439,25 +439,39 @@
         const schSnap = await getDoc(doc(db, 'bjw_config', 'bjw_schedule'));
         if (schSnap.exists()) {
           const sch = schSnap.data();
-          if (sch['written-date']) {
-            const dt = new Date(sch['written-date']);
-            writtenDate = dt.toLocaleDateString('ko-KR', {year:'numeric',month:'long',day:'numeric',weekday:'short'});
-          }
-          if (sch['written-time']) writtenTime = ' ' + sch['written-time'];
-          // 응시자의 examDate와 written-dates 배열 매칭 → 같은 인덱스 장소 표시
           const writtenDates = sch['written-dates'] || [];
           const venueArr = (sch['venues'] && sch['venues'].length) ? sch['venues'] : (sch['venue'] ? [sch['venue']] : []);
           const applicantExamDate = data.examDate || '';
-          if (writtenDates.length > 0 && applicantExamDate) {
-            // examDate와 일치하는 인덱스 찾기
+
+          if (applicantExamDate && writtenDates.length > 0) {
+            // examDate와 일치하는 written-dates 항목 찾기
             const matchIdx = writtenDates.findIndex(w => w.date === applicantExamDate);
-            if (matchIdx >= 0 && venueArr[matchIdx]) {
-              venue = venueArr[matchIdx];
-            } else if (venueArr.length > 0) {
-              venue = venueArr[0];
+            if (matchIdx >= 0) {
+              // 날짜 표시
+              const matched = writtenDates[matchIdx];
+              const dt = new Date(matched.date);
+              writtenDate = dt.toLocaleDateString('ko-KR', {year:'numeric',month:'long',day:'numeric',weekday:'short'});
+              if (matched.time) writtenTime = ' ' + matched.time;
+              // 장소 표시
+              if (venueArr[matchIdx]) venue = venueArr[matchIdx];
+              else if (venueArr.length > 0) venue = venueArr[0];
+            } else {
+              // 매칭 안 되면 단수 필드 사용
+              if (sch['written-date']) {
+                const dt = new Date(sch['written-date']);
+                writtenDate = dt.toLocaleDateString('ko-KR', {year:'numeric',month:'long',day:'numeric',weekday:'short'});
+              }
+              if (sch['written-time']) writtenTime = ' ' + sch['written-time'];
+              if (venueArr.length > 0) venue = venueArr[0];
             }
-          } else if (venueArr.length > 0) {
-            venue = venueArr[0];
+          } else {
+            // examDate 없으면 단수 필드 사용
+            if (sch['written-date']) {
+              const dt = new Date(sch['written-date']);
+              writtenDate = dt.toLocaleDateString('ko-KR', {year:'numeric',month:'long',day:'numeric',weekday:'short'});
+            }
+            if (sch['written-time']) writtenTime = ' ' + sch['written-time'];
+            if (venueArr.length > 0) venue = venueArr[0];
           }
         }
       } catch(e) { console.error(e); }
