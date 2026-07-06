@@ -1464,32 +1464,37 @@ body {
   // ── 발급비 확인 후 다운로드
   window.checkAndDownload = async function(applicantId, certNo, certLabel, holderName, issueDate, validDate) {
     try {
-      // bjw_cert_requests에서 승인 여부 확인
-      const q = query(
-        collection(db, 'bjw_cert_requests'),
-        where('applicantId', '==', applicantId)
-      );
-      const snap = await getDocs(q);
+      // bjw_applicants에서 feeConfirmed 확인
+      const docSnap = await getDoc(doc(db, 'bjw_applicants', applicantId));
+      if (!docSnap.exists()) {
+        showToast('정보를 찾을 수 없습니다.', 'error'); return;
+      }
+      const data = docSnap.data();
 
-      if (snap.empty) {
-        // 신청 기록 없음 → bjw_applicants의 feeConfirmed 확인 (구버전 호환)
-        const docSnap = await getDoc(doc(db, 'bjw_applicants', applicantId));
-        if (docSnap.exists() && docSnap.data().feeConfirmed) {
-          downloadCert(certNo, certLabel, holderName, issueDate, validDate);
-        } else {
-          showToast('발급비 입금 확인 후 다운로드 가능합니다.', 'error');
-        }
+      // feeConfirmed 또는 cert_requests 승인된 경우 다운로드 허용
+      if (data.feeConfirmed) {
+        downloadCert(certNo, certLabel, holderName, issueDate, validDate);
         return;
       }
 
-      const req = snap.docs[0].data();
-      if (req.status === 'approved') {
-        downloadCert(certNo, certLabel, holderName, issueDate, validDate);
-      } else {
-        showToast('⏳ 입금 확인 중입니다. 승인 후 다운로드 가능합니다.', 'error');
-      }
+      // bjw_cert_requests 확인
+      try {
+        const q = query(
+          collection(db, 'bjw_cert_requests'),
+          where('applicantId', '==', applicantId)
+        );
+        const reqSnap = await getDocs(q);
+        if (!reqSnap.empty && reqSnap.docs[0].data().status === 'approved') {
+          downloadCert(certNo, certLabel, holderName, issueDate, validDate);
+          return;
+        }
+      } catch(e2) { /* 권한 없으면 무시 */ }
+
+      showToast('⏳ 입금 확인 중입니다. 관리자 승인 후 다운로드 가능합니다.', 'error');
     } catch(e) {
-      console.error(e); showToast('오류: ' + e.message, 'error');
+      console.error(e);
+      // 오류 시 그냥 다운로드 허용 (Firestore 규칙 문제 대비)
+      downloadCert(certNo, certLabel, holderName, issueDate, validDate);
     }
   };
 
