@@ -949,6 +949,7 @@ body {
         <div class="sidebar-menu-item" onclick="showPage('applicants', this)">📋 응시자 관리</div>
         <div class="sidebar-menu-item" onclick="showPage('results', this)">✏️ 성적 입력</div>
         <div class="sidebar-menu-item" onclick="showPage('certs', this)">📜 자격증 관리</div>
+        <div class="sidebar-menu-item" onclick="showPage('certrequests', this)">📬 자격증 발급 신청</div>
         <div class="sidebar-menu-item" onclick="showPage('docs', this)">📂 서류 심사</div>
         <div class="sidebar-menu-item" onclick="showPage('schedule', this)">📅 시험 일정 관리</div>
         <div class="sidebar-menu-item" onclick="showPage('passlist', this)">🏆 최종합격자 명단</div>
@@ -958,6 +959,7 @@ body {
         <div class="sidebar-menu-item" onclick="showPage('refreshed', this)">🔄 보수교육 재발급</div>
         <div class="sidebar-menu-item" onclick="showPage('forms', this)">📁 양식 파일 관리</div>
         <div class="sidebar-menu-item" onclick="showPage('notices', this)">📢 공지사항 관리</div>
+        <div class="sidebar-menu-item" onclick="showPage('relatedsites', this)">🔗 관련 사이트 관리</div>
         <div class="sidebar-menu-item" onclick="showPage('supervisors', this)">👮 감독관 계정 관리</div>
       </div>
     </div>
@@ -1117,6 +1119,52 @@ body {
       </table>
     </div>
 
+    <!-- ═ 자격증 발급 신청 ═ -->
+    <div class="admin-page" id="page-certrequests">
+      <h2 style="font-family:'Noto Serif KR',serif;font-size:20px;margin-bottom:6px;color:var(--dark)">
+        📬 자격증 발급 신청 관리
+      </h2>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:20px">
+        응시자가 신청한 자격증 발급을 검토하고 승인합니다. 입금 확인 후 승인하면 응시자가 다운로드할 수 있습니다.
+      </p>
+
+      <!-- 통계 -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px">
+        <div class="bjw-card" style="text-align:center;padding:20px">
+          <div style="font-size:28px;font-weight:700;color:var(--amber)" id="cr-count-pending">—</div>
+          <div style="font-size:12px;color:var(--muted)">대기 중</div>
+        </div>
+        <div class="bjw-card" style="text-align:center;padding:20px">
+          <div style="font-size:28px;font-weight:700;color:var(--success)" id="cr-count-approved">—</div>
+          <div style="font-size:12px;color:var(--muted)">승인 완료</div>
+        </div>
+        <div class="bjw-card" style="text-align:center;padding:20px">
+          <div style="font-size:28px;font-weight:700;color:var(--dark)" id="cr-count-total">—</div>
+          <div style="font-size:12px;color:var(--muted)">전체</div>
+        </div>
+      </div>
+
+      <!-- 필터 -->
+      <div class="bjw-card" style="margin-bottom:16px">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <select id="cr-filter-status" onchange="loadCertRequests()" style="padding:8px 12px;border:1.5px solid #D5DFD7;border-radius:var(--radius);font-family:'Noto Sans KR',sans-serif;font-size:13px">
+            <option value="">전체</option>
+            <option value="pending">대기 중</option>
+            <option value="approved">승인 완료</option>
+            <option value="rejected">반려</option>
+          </select>
+          <button class="btn btn-secondary" style="font-size:12px;padding:8px 14px" onclick="loadCertRequests()">🔄 새로고침</button>
+        </div>
+      </div>
+
+      <!-- 목록 -->
+      <div class="bjw-card">
+        <div id="cr-list">
+          <div style="text-align:center;padding:20px;color:var(--muted)">로딩 중...</div>
+        </div>
+      </div>
+    </div><!-- /page-certrequests -->
+
     <!-- ═ 서류 심사 ═ -->
     <div class="admin-page" id="page-docs">
       <h2 style="font-family:'Noto Serif KR',serif; font-size:20px; margin-bottom:20px; color:var(--dark)">
@@ -1216,13 +1264,15 @@ body {
       <div class="bjw-card" style="margin-top:20px">
         <h2 style="font-size:15px"><span class="icon">📌</span> 추가 안내 문구</h2>
         <div class="form-grid">
-          <div class="form-group">
-            <label>시험 장소 안내</label>
-            <input type="text" id="sch-venue" placeholder="예: 접수 마감 후 개별 이메일 안내">
+          <div class="form-group full">
+            <label>시험 시행 회차 <small style="font-weight:400;color:var(--muted)">(여러 개 등록 가능)</small></label>
+            <div id="round-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px"></div>
+            <button class="btn btn-secondary" style="font-size:12px;padding:6px 14px" onclick="addTextRow('round-list','round','회차 입력','예: 2025년 하반기')">➕ 회차 추가</button>
           </div>
-          <div class="form-group">
-            <label>시험 시행 회차</label>
-            <input type="text" id="sch-round" placeholder="예: 2025년 하반기">
+          <div class="form-group full">
+            <label>시험 장소 안내 <small style="font-weight:400;color:var(--muted)">(여러 개 등록 가능)</small></label>
+            <div id="venue-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px"></div>
+            <button class="btn btn-secondary" style="font-size:12px;padding:6px 14px" onclick="addTextRow('venue-list','venue','장소 입력','예: 접수 마감 후 개별 이메일 안내')">➕ 장소 추가</button>
           </div>
           <div class="form-group full">
             <label>응시 안내 문구 1</label>
@@ -2121,6 +2171,57 @@ body {
       </div>
     </div><!-- /page-forms -->
 
+    <!-- ═ 관련 사이트 관리 ═ -->
+    <div class="admin-page" id="page-relatedsites">
+      <h2 style="font-family:'Noto Serif KR',serif;font-size:20px;margin-bottom:6px;color:var(--dark)">
+        🔗 관련 사이트 관리
+      </h2>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:20px">
+        홈페이지 하단 관련 사이트 배너를 관리합니다. 저장 시 홈페이지에 즉시 반영됩니다.
+      </p>
+
+      <!-- 사이트 추가 -->
+      <div class="bjw-card" style="margin-bottom:20px">
+        <h2 style="font-size:15px;margin-bottom:16px"><span class="icon">➕</span> 사이트 추가</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>사이트 이름 <span class="req">*</span></label>
+            <input type="text" id="rs-name" placeholder="예: 국립원예특작과학원">
+          </div>
+          <div class="form-group">
+            <label>URL <span class="req">*</span></label>
+            <input type="url" id="rs-url" placeholder="예: https://www.nihhs.go.kr">
+          </div>
+          <div class="form-group">
+            <label>이모지 아이콘</label>
+            <input type="text" id="rs-icon" placeholder="예: 🌿" maxlength="2" style="width:80px">
+          </div>
+          <div class="form-group">
+            <label>강조 표시 (금색 테두리)</label>
+            <div style="display:flex;align-items:center;gap:8px;padding-top:8px">
+              <input type="checkbox" id="rs-highlight" style="width:18px;height:18px">
+              <label for="rs-highlight" style="font-size:13px;cursor:pointer">강조</label>
+            </div>
+          </div>
+        </div>
+        <div id="rs-add-error" class="alert alert-danger" style="display:none;margin-top:12px"></div>
+        <button class="btn btn-primary" style="margin-top:16px" onclick="addRelatedSite()">
+          🔗 사이트 추가
+        </button>
+      </div>
+
+      <!-- 사이트 목록 -->
+      <div class="bjw-card">
+        <h2 style="font-size:15px;margin-bottom:16px">
+          <span class="icon">📋</span> 등록된 사이트
+          <button class="btn btn-secondary" style="font-size:11px;padding:5px 10px;margin-left:10px" onclick="loadRelatedSites()">🔄</button>
+        </h2>
+        <div id="rs-list">
+          <div style="text-align:center;padding:20px;color:var(--muted)">로딩 중...</div>
+        </div>
+      </div>
+    </div><!-- /page-relatedsites -->
+
     <!-- ═ 공지사항 관리 ═ -->
     <div class="admin-page" id="page-notices">
       <h2 style="font-family:'Noto Serif KR',serif;font-size:20px;margin-bottom:6px;color:var(--dark)">
@@ -2288,7 +2389,7 @@ body {
       } else {
         // 관리자: 전체 기능 (개별 독립 실행)
         const fns = [
-          ['loadDashboard',loadDashboard],['loadApplicants',loadApplicants],['loadNoticeList',loadNoticeList],
+          ['loadDashboard',loadDashboard],['loadApplicants',loadApplicants],['loadNoticeList',loadNoticeList],['loadCertRequests',loadCertRequests],['loadRelatedSites',loadRelatedSites],
           ['loadResults',loadResults],['loadCerts',loadCerts],
           ['loadDocs',loadDocs],['loadSchedule',loadSchedule],
           ['loadPassList',loadPassList],['loadAdmitList',loadAdmitList],
@@ -3362,6 +3463,200 @@ body {
     } catch(e) { errEl.textContent = '등록 실패: ' + e.message; errEl.style.display = 'block'; }
   };
 
+
+  // ── 관련 사이트 관리
+  window.addRelatedSite = async function() {
+    const name      = document.getElementById('rs-name').value.trim();
+    const url       = document.getElementById('rs-url').value.trim();
+    const icon      = document.getElementById('rs-icon').value.trim();
+    const highlight = document.getElementById('rs-highlight').checked;
+    const errEl     = document.getElementById('rs-add-error');
+    if (!name || !url) {
+      errEl.textContent = '사이트 이름과 URL을 입력해 주세요.';
+      errEl.style.display = 'block'; return;
+    }
+    errEl.style.display = 'none';
+    try {
+      await addDoc(collection(db, 'bjw_related_sites'), {
+        name, url, icon: icon || '🔗', highlight,
+        order: Date.now(),
+        createdAt: Timestamp.now()
+      });
+      document.getElementById('rs-name').value = '';
+      document.getElementById('rs-url').value  = '';
+      document.getElementById('rs-icon').value = '';
+      document.getElementById('rs-highlight').checked = false;
+      showToast('✅ 사이트가 추가되었습니다.', 'success');
+      loadRelatedSites();
+    } catch(e) { errEl.textContent = '추가 실패: ' + e.message; errEl.style.display = 'block'; }
+  };
+
+
+  // ── 자격증 발급 신청 관리
+  window.loadCertRequests = async function() {
+    const container = document.getElementById('cr-list');
+    if (!container) return;
+    container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted)">로딩 중...</div>';
+    try {
+      const filterStatus = document.getElementById('cr-filter-status')?.value || '';
+      let q = query(collection(db, 'bjw_cert_requests'), orderBy('requestedAt', 'desc'));
+      const snap = await getDocs(q);
+
+      const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const filtered = filterStatus ? all.filter(d => d.status === filterStatus) : all;
+
+      // 통계 업데이트
+      const pending  = all.filter(d => d.status === 'pending').length;
+      const approved = all.filter(d => d.status === 'approved').length;
+      const pendEl  = document.getElementById('cr-count-pending');
+      const appEl   = document.getElementById('cr-count-approved');
+      const totEl   = document.getElementById('cr-count-total');
+      if (pendEl) pendEl.textContent = pending;
+      if (appEl)  appEl.textContent  = approved;
+      if (totEl)  totEl.textContent  = all.length;
+
+      if (filtered.length === 0) {
+        container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted)">신청 내역이 없습니다.</div>';
+        return;
+      }
+
+      const certLabels = { hort:'원예심리상담사', color:'색채원예심리상담사', garden:'힐링정원사' };
+      const statusBadge = s =>
+        s === 'pending'  ? '<span class="badge badge-amber">⏳ 대기 중</span>' :
+        s === 'approved' ? '<span class="badge badge-green">✅ 승인 완료</span>' :
+                          '<span class="badge" style="background:#FED7D7;color:#C53030">❌ 반려</span>';
+
+      container.innerHTML = `
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>신청일</th><th>이름</th><th>자격증</th>
+              <th>연락처</th><th>배송</th><th>상태</th><th>관리</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${filtered.map(d => {
+              const date = d.requestedAt?.toDate
+                ? d.requestedAt.toDate().toLocaleDateString('ko-KR')
+                : '';
+              const certName = certLabels[d.certType] || d.certLabel || d.certType;
+              const delivery = d.delivery === 'mail' ? '📮 우편' : '🏢 방문';
+              return `<tr>
+                <td style="font-size:12px">${date}</td>
+                <td><strong>${d.name}</strong></td>
+                <td>${certName}</td>
+                <td style="font-size:12px">${d.phone}</td>
+                <td style="font-size:12px">${delivery}${d.address ? '<br><span style="color:var(--muted)">' + d.address + '</span>' : ''}</td>
+                <td>${statusBadge(d.status)}</td>
+                <td>
+                  ${d.status === 'pending' ? `
+                    <button class="save-btn-sm" style="background:var(--success);color:#fff;margin-bottom:4px"
+                      onclick="approveCertRequest('${d.id}','${d.applicantId}','${d.name}','${d.certType}')">✅ 승인</button>
+                    <button class="save-btn-sm" style="background:#E53E3E;color:#fff"
+                      onclick="rejectCertRequest('${d.id}','${d.name}')">❌ 반려</button>
+                  ` : '—'}
+                </td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>`;
+    } catch(e) {
+      container.innerHTML = '<div class="alert alert-danger">로드 실패: ' + e.message + '</div>';
+    }
+  };
+
+  window.approveCertRequest = async function(reqId, applicantId, name, certType) {
+    if (!confirm(name + '님의 발급 신청을 승인하시겠습니까? (입금 확인 후 승인해 주세요)')) return;
+    try {
+      // 자격번호 생성
+      const prefixes = { hort:'HT', color:'CP', garden:'HG' };
+      const prefix = prefixes[certType] || 'HT';
+      const today = new Date();
+      const certNo = 'BJW-' + prefix + '-' + today.getFullYear() + '-' + String(Math.floor(Math.random()*9000)+1000);
+      const issueDateStr = today.toISOString().slice(0,10);
+      const validDate = new Date(today); validDate.setFullYear(validDate.getFullYear()+3);
+      const validDateStr = validDate.toISOString().slice(0,10);
+
+      // 신청 상태 승인으로 변경
+      await updateDoc(doc(db, 'bjw_cert_requests', reqId), {
+        status: 'approved',
+        feeConfirmed: true,
+        approvedAt: Timestamp.now()
+      });
+
+      // applicant 상태도 issued로 변경
+      if (applicantId) {
+        await updateDoc(doc(db, 'bjw_applicants', applicantId), {
+          status:      'issued',
+          certNumber:  certNo,
+          issuedDate:  issueDateStr,
+          validDate:   validDateStr,
+          feeConfirmed: true,
+          issueApprovedAt: Timestamp.now()
+        });
+      }
+
+      showToast('✅ ' + name + '님 승인 완료! 자격번호: ' + certNo, 'success');
+      loadCertRequests();
+    } catch(e) { showToast('승인 실패: ' + e.message, 'error'); }
+  };
+
+  window.rejectCertRequest = async function(reqId, name) {
+    const reason = prompt(name + '님 반려 사유를 입력하세요:');
+    if (reason === null) return;
+    try {
+      await updateDoc(doc(db, 'bjw_cert_requests', reqId), {
+        status: 'rejected',
+        rejectedAt: Timestamp.now(),
+        rejectReason: reason
+      });
+      showToast(name + '님 신청이 반려되었습니다.', 'success');
+      loadCertRequests();
+    } catch(e) { showToast('반려 실패: ' + e.message, 'error'); }
+  };
+
+  window.loadRelatedSites = async function() {
+    const container = document.getElementById('rs-list');
+    if (!container) return;
+    container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted)">로딩 중...</div>';
+    try {
+      const snap = await getDocs(query(collection(db, 'bjw_related_sites'), orderBy('order', 'asc')));
+      if (snap.empty) {
+        container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted)">등록된 사이트가 없습니다.</div>';
+        return;
+      }
+      container.innerHTML = `
+        <table class="admin-table">
+          <thead><tr><th>아이콘</th><th>이름</th><th>URL</th><th>강조</th><th>관리</th></tr></thead>
+          <tbody>
+            ${snap.docs.map(d => {
+              const s = d.data();
+              return `<tr>
+                <td style="font-size:20px">${s.icon||'🔗'}</td>
+                <td style="font-weight:600">${s.name}</td>
+                <td style="font-size:12px;color:var(--muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+                  <a href="${s.url}" target="_blank" style="color:var(--moss)">${s.url}</a>
+                </td>
+                <td>${s.highlight ? '⭐' : '—'}</td>
+                <td>
+                  <button class="save-btn-sm" style="background:#E53E3E;color:#fff" onclick="deleteRelatedSite('${d.id}','${s.name}')">🗑️ 삭제</button>
+                </td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>`;
+    } catch(e) { container.innerHTML = '<div class="alert alert-danger">로드 실패: ' + e.message + '</div>'; }
+  };
+
+  window.deleteRelatedSite = async function(id, name) {
+    if (!confirm(name + '을(를) 삭제하시겠습니까?')) return;
+    try {
+      await deleteDoc(doc(db, 'bjw_related_sites', id));
+      showToast('삭제 완료', 'success');
+      loadRelatedSites();
+    } catch(e) { showToast('삭제 실패: ' + e.message, 'error'); }
+  };
+
   window.loadNoticeList = async function() {
     const container = document.getElementById('notice-admin-list');
     if (!container) return;
@@ -3965,11 +4260,21 @@ body {
       const snap = await getDoc(doc(db, 'bjw_config', SCH_DOC));
       if (!snap.exists()) { showToast('저장된 일정이 없습니다.'); return; }
       const d = snap.data();
-      const fields = ['reg-start','reg-end','venue','round','notice'];
+      const fields = ['reg-start','reg-end','notice'];
       fields.forEach(k => {
         const el = document.getElementById('sch-' + k);
         if (el && d[k] !== undefined) el.value = d[k];
       });
+      // 회차·장소 복원
+      const restoreTextRows = (containerId, cls, arr) => {
+        const c = document.getElementById(containerId);
+        if (!c) return;
+        c.innerHTML = '';
+        if (!arr || arr.length === 0) return;
+        arr.forEach(val => addTextRow(containerId, cls, '입력', '', val));
+      };
+      restoreTextRows('round-list', 'round', d['rounds'] || (d['round'] ? [d['round']] : []));
+      restoreTextRows('venue-list', 'venue', d['venues'] || (d['venue'] ? [d['venue']] : []));
       // 날짜 배열 복원 헬퍼
       const restoreRows = (containerId, cls, arr, mode='date+time') => {
         const c = document.getElementById(containerId);
@@ -4009,6 +4314,21 @@ body {
   };
 
 
+
+  // ── 텍스트 행 추가 (회차·장소 등)
+  window.addTextRow = function(containerId, cls, label='입력', placeholder='', value='') {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    const row = document.createElement('div');
+    row.className = cls + '-text-row';
+    row.style.cssText = 'display:flex;gap:8px;align-items:center;';
+    row.innerHTML = `
+      <input type="text" class="${cls}-text-input" value="${value}" placeholder="${placeholder}"
+        style="flex:1;border:1.5px solid #D5DFD7;border-radius:var(--radius);padding:9px 12px;font-family:'Noto Sans KR',sans-serif;font-size:13px;outline:none;background:var(--cream)">
+      <button class="save-btn-sm" style="color:var(--danger);flex-shrink:0" onclick="this.closest('.${cls}-text-row').remove()">🗑️</button>`;
+    container.appendChild(row);
+  };
+
   // ── 날짜 행 범용 추가 함수
   // type: 'written'|'wresult'|'doc'|'practical'|'fresult'
   // mode: 'date+time'(기본)|'date'(날짜+라벨)|'range'(시작~종료)
@@ -4047,7 +4367,7 @@ body {
   };
 
   window.saveSchedule = async function() {
-    const fields = ['reg-start','reg-end','venue','round','notice'];
+    const fields = ['reg-start','reg-end','notice'];
     const data = {};
     fields.forEach(k => {
       const el = document.getElementById('sch-' + k);
@@ -4071,6 +4391,17 @@ body {
       });
       return arr;
     };
+    // 텍스트 행 수집
+    const collectTextRows = (containerId, cls) => {
+      const rows = document.querySelectorAll('#' + containerId + ' .' + cls + '-text-row');
+      return Array.from(rows).map(r => r.querySelector('.' + cls + '-text-input')?.value || '').filter(Boolean);
+    };
+    const rounds = collectTextRows('round-list', 'round');
+    const venues = collectTextRows('venue-list', 'venue');
+    data['rounds'] = rounds;
+    data['venues'] = venues;
+    data['round']  = rounds[0] || '';
+    data['venue']  = venues[0] || '';
     const writtenDates   = collectRows('written',   'date+time');
     const wresultDates   = collectRows('wresult',   'date');
     const docDates       = collectRows('doc',       'range');
@@ -4129,8 +4460,8 @@ body {
       ['📂 서류제출',  fmtArr(d['doc-dates'],       'range')],
       ['🌿 서류심사',  fmtArr(d['practical-dates'], 'date+time')],
       ['🏆 최종합격발표',fmtArr(d['fresult-dates'], 'date')],
-      ['📍 시험 장소',  d['venue']||'—'],
-      ['🗓️ 시행 회차',  d['round']||'—'],
+      ['📍 시험 장소',  (d['venues']&&d['venues'].length ? d['venues'].join('<br>') : d['venue']||'—')],
+      ['🗓️ 시행 회차',  (d['rounds']&&d['rounds'].length ? d['rounds'].join(' / ') : d['round']||'—')],
     ];
     const notices = [d['notice1'],d['notice2'],d['notice3']].filter(Boolean);
     el.innerHTML = rows.map(([label, val]) =>

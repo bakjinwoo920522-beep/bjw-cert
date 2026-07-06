@@ -1186,7 +1186,7 @@ body {
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getFirestore, collection, query, where, getDocs, doc, updateDoc, Timestamp, orderBy, limit}
+  import { getFirestore, collection, query, where, getDocs, doc, updateDoc, addDoc, Timestamp, orderBy, limit}
     from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -1259,24 +1259,27 @@ body {
 
   // ── 발급 신청
   window.submitIssueRequest = async function() {
-    const name  = document.getElementById('issue-name').value.trim();
-    const birth = document.getElementById('issue-birth').value;
-    const cert  = document.getElementById('issue-cert').value;
-    const phone = document.getElementById('issue-phone').value.trim();
+    const name     = document.getElementById('issue-name').value.trim();
+    const birth    = document.getElementById('issue-birth').value;
+    const cert     = document.getElementById('issue-cert').value;
+    const phone    = document.getElementById('issue-phone').value.trim();
     const delivery = document.querySelector('input[name="delivery"]:checked')?.value;
+    const address  = document.getElementById('issue-address')?.value.trim() || '';
 
     if (!name || !birth || !cert || !phone) {
       showToast('필수 항목을 모두 입력해 주세요.', 'error'); return;
     }
 
-    // Firestore에서 합격자 확인
+    const fb = document.getElementById('issue-feedback');
+
     try {
+      // 합격자 확인
       const q = query(
-        collection(db,'bjw_applicants'),
-        where('name','==',name),
-        where('birth','==',birth),
-        where('certType','==',cert),
-        where('status','in',['final_pass','issued'])
+        collection(db, 'bjw_applicants'),
+        where('name', '==', name),
+        where('birth', '==', birth),
+        where('certType', '==', cert),
+        where('status', 'in', ['final_pass', 'issued'])
       );
       const snap = await getDocs(q);
 
@@ -1284,69 +1287,61 @@ body {
         showToast('최종합격자 정보를 찾을 수 없습니다.', 'error'); return;
       }
 
-      const docRef = snap.docs[0].ref;
-      const data   = snap.docs[0].data();
+      const data = snap.docs[0].data();
+      const applicantId = snap.docs[0].id;
 
-      if (data.status === 'issued') {
-        showToast('이미 발급이 완료된 자격증입니다.', 'error'); return;
-      }
-
-      // 발급비 납부 확인 여부 체크
-      if (!data.feeConfirmed) {
-        const fb = document.getElementById('issue-feedback');
+      // 이미 발급된 경우 → 다운로드 안내
+      if (data.status === 'issued' && data.certNumber) {
         fb.style.display = 'block';
-        fb.innerHTML = `
-          <div class="alert alert-warning">
-            ⚠️ <strong>발급비 납부 확인이 필요합니다.</strong><br>
-            아래 계좌로 발급비(50,000원)를 입금 후, 센터에 납부 사실을 알려주세요.<br>
-            <strong>토스뱅크 1002-4362-9694 · 박진우원예치료센터</strong><br>
-            <small style="color:var(--muted)">납부 확인 후 관리자가 승인하면 자격증 발급이 가능합니다.</small>
-          </div>`;
-        showToast('발급비 납부 확인이 필요합니다.', 'error');
+        fb.innerHTML = `<div class="alert alert-info">
+          ℹ️ 이미 발급된 자격증입니다.<br>
+          <strong>자격증 번호: ${data.certNumber}</strong><br>
+          아래 <strong>🔍 자격증 조회·확인</strong> 탭에서 다운로드하세요.
+        </div>`;
         return;
       }
 
-      const certNo     = genCertNo(cert);
-      const issueDateStr = document.getElementById('issue-date-input')?.value || new Date().toISOString().slice(0,10);
-      const validDateStr = document.getElementById('issue-valid-input')?.value || (() => {
-        const d = new Date(issueDateStr); d.setFullYear(d.getFullYear()+3); return d.toISOString().slice(0,10);
-      })();
-      const issueDate  = new Date(issueDateStr);
-      const validDate  = new Date(validDateStr);
+      // 발급 신청 중복 체크
+      const dupQ = query(
+        collection(db, 'bjw_cert_requests'),
+        where('applicantId', '==', applicantId)
+      );
+      const dupSnap = await getDocs(dupQ);
+      if (!dupSnap.empty) {
+        const req = dupSnap.docs[0].data();
+        const statusMsg = req.status === 'pending'
+          ? '⏳ 발급 신청이 접수되어 검토 중입니다. 입금 확인 후 관리자가 승인합니다.'
+          : '✅ 발급 승인이 완료되었습니다. 자격증 조회 탭에서 다운로드하세요.';
+        fb.style.display = 'block';
+        fb.innerHTML = `<div class="alert alert-warning">${statusMsg}</div>`;
+        return;
+      }
 
-      await updateDoc(docRef, {
-        status:      'issued',
-        certNumber:  certNo,
-        issuedDate:  issueDateStr,
-        validDate:   validDateStr,
-        deliveryType: delivery,
-        deliveryAddress: document.getElementById('issue-address').value.trim(),
-        issueRequestedAt: Timestamp.now()
+      // 발급 신청 저장 (pending 상태)
+      await addDoc(collection(db, 'bjw_cert_requests'), {
+        applicantId,
+        name, birth, certType: cert,
+        certLabel: data.certLabel || '',
+        phone, delivery, address,
+        status: 'pending',
+        feeConfirmed: false,
+        requestedAt: Timestamp.now()
       });
 
-      // 미리보기 업데이트
-      document.getElementById('preview-cert-no').textContent     = certNo;
-      document.getElementById('preview-issue-date').textContent  = issueDate.toLocaleDateString('ko-KR', {year:'numeric',month:'long',day:'numeric'});
-      document.getElementById('preview-valid-date').textContent  = validDate.toLocaleDateString('ko-KR', {year:'numeric',month:'long',day:'numeric'});
-      document.getElementById('preview-holder-name').textContent = name.split('').join(' ');
-
-      const fb = document.getElementById('issue-feedback');
       fb.style.display = 'block';
-      fb.innerHTML = `
-        <div class="alert alert-success">
-          ✅ <strong>자격증 발급 신청이 완료되었습니다!</strong><br>
-          자격증 번호: <strong>${certNo}</strong><br>
-          발급일: ${issueDate.toLocaleDateString('ko-KR')} · 유효기간: ${validDate.toLocaleDateString('ko-KR')}까지<br>
-          ${delivery === 'mail'
-            ? '📮 등기 우편으로 발송됩니다. (7–10 영업일 이내)'
-            : '🏢 센터에서 수령해 주세요. 일정은 별도 안내드립니다.'}
-        </div>`;
-
-      showToast('✅ 발급 신청이 완료되었습니다!', 'success');
+      fb.innerHTML = `<div class="alert alert-success">
+        ✅ <strong>자격증 발급 신청이 접수되었습니다!</strong><br><br>
+        아래 계좌로 발급비를 입금해 주세요.<br>
+        <strong style="font-size:16px">토스뱅크 1002-4362-9694 · 박진우원예치료센터</strong><br><br>
+        입금 후 <a href="tel:01034910013" style="color:var(--moss);font-weight:600">010-3491-0013</a> 또는
+        <a href="mailto:bakjinwoo92@daum.net" style="color:var(--moss);font-weight:600">bakjinwoo92@daum.net</a>으로 연락주시면
+        관리자 확인 후 자격증이 발급됩니다.
+      </div>`;
+      showToast('✅ 발급 신청이 접수되었습니다.', 'success');
 
     } catch(e) {
+      showToast('오류: ' + e.message, 'error');
       console.error(e);
-      showToast('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.', 'error');
     }
   };
 
@@ -1421,7 +1416,7 @@ body {
                   🖨️ 출력
                 </button>
                 <button class="btn btn-primary" style="font-size:12px;padding:8px 14px"
-                  onclick="downloadCert('${data.certNumber}','${data.certLabel}','${data.name}','${data.issuedDate}','${data.validDate}')">
+                  onclick="checkAndDownload('${snap.docs[0].id}','${data.certNumber}','${data.certLabel}','${data.name}','${data.issuedDate}','${data.validDate}')">
                   ⬇️ 다운로드
                 </button>
               </div>
@@ -1463,6 +1458,38 @@ body {
       }
     } catch(e) {
       showToast('확인 중 오류가 발생했습니다.', 'error');
+    }
+  };
+
+  // ── 발급비 확인 후 다운로드
+  window.checkAndDownload = async function(applicantId, certNo, certLabel, holderName, issueDate, validDate) {
+    try {
+      // bjw_cert_requests에서 승인 여부 확인
+      const q = query(
+        collection(db, 'bjw_cert_requests'),
+        where('applicantId', '==', applicantId)
+      );
+      const snap = await getDocs(q);
+
+      if (snap.empty) {
+        // 신청 기록 없음 → bjw_applicants의 feeConfirmed 확인 (구버전 호환)
+        const docSnap = await getDoc(doc(db, 'bjw_applicants', applicantId));
+        if (docSnap.exists() && docSnap.data().feeConfirmed) {
+          downloadCert(certNo, certLabel, holderName, issueDate, validDate);
+        } else {
+          showToast('발급비 입금 확인 후 다운로드 가능합니다.', 'error');
+        }
+        return;
+      }
+
+      const req = snap.docs[0].data();
+      if (req.status === 'approved') {
+        downloadCert(certNo, certLabel, holderName, issueDate, validDate);
+      } else {
+        showToast('⏳ 입금 확인 중입니다. 승인 후 다운로드 가능합니다.', 'error');
+      }
+    } catch(e) {
+      console.error(e); showToast('오류: ' + e.message, 'error');
     }
   };
 
