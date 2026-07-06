@@ -1070,10 +1070,20 @@ body {
       } catch(e) { return dateStr; }
     };
 
-    // written-dates 배열 우선, 없으면 단일 written-date 사용
-    const dates = (d && d['written-dates'] && d['written-dates'].length > 0)
-      ? d['written-dates']
-      : (d && d['written-date'] ? [{ date: d['written-date'], time: d['written-time'] || '' }] : []);
+    // written-dates 배열과 단일 written-date 모두 수집
+    const dates = [];
+
+    // 배열 방식 (written-dates)
+    if (d && Array.isArray(d['written-dates']) && d['written-dates'].length > 0) {
+      d['written-dates'].forEach(w => {
+        if (w && w.date) dates.push({ date: w.date, time: w.time || '' });
+      });
+    }
+
+    // 단일 방식 (written-date) — 배열에 없으면 추가
+    if (d && d['written-date'] && dates.length === 0) {
+      dates.push({ date: d['written-date'], time: d['written-time'] || '' });
+    }
 
     if (dates.length === 0) {
       sel.innerHTML = '<option value="">일정 미정 (추후 공지)</option>';
