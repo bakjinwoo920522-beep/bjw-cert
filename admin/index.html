@@ -4567,5 +4567,47 @@ body {
     setTimeout(() => t.remove(), 3500);
   }
 </script>
+
+<!-- 응시자 수정 모달 -->
+<div id="edit-applicant-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:16px;padding:32px;width:500px;max-width:90vw;max-height:90vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,0.2)">
+    <h3 style="font-family:'Noto Serif KR',serif;font-size:18px;margin-bottom:20px;color:var(--dark)">✏️ 응시자 정보 수정</h3>
+    <input type="hidden" id="edit-app-id">
+    <div class="form-grid">
+      <div class="form-group">
+        <label>성명</label>
+        <input type="text" id="edit-app-name" placeholder="성명">
+      </div>
+      <div class="form-group">
+        <label>생년월일</label>
+        <input type="date" id="edit-app-birth">
+      </div>
+      <div class="form-group">
+        <label>연락처</label>
+        <input type="text" id="edit-app-phone" placeholder="010-0000-0000">
+      </div>
+      <div class="form-group">
+        <label>이메일</label>
+        <input type="text" id="edit-app-email" placeholder="이메일">
+      </div>
+      <div class="form-group">
+        <label>응시일자</label>
+        <input type="date" id="edit-app-examdate">
+      </div>
+      <div class="form-group">
+        <label>자격증 종류</label>
+        <select id="edit-app-certtype">
+          <option value="hort">원예심리상담사</option>
+          <option value="color">색채원예심리상담사</option>
+          <option value="garden">힐링정원사</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end">
+      <button class="btn btn-secondary" onclick="closeEditApplicant()">취소</button>
+      <button class="btn btn-primary" onclick="saveEditApplicant()">💾 저장</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
