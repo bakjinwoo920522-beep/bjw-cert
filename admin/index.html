@@ -960,6 +960,7 @@ body {
         <div class="sidebar-menu-item" onclick="showPage('forms', this)">📁 양식 파일 관리</div>
         <div class="sidebar-menu-item" onclick="showPage('notices', this)">📢 자격증 공지 관리</div>
         <div class="sidebar-menu-item" onclick="showPage('htcnotices', this)">🏠 홈페이지 공지 관리</div>
+        <div class="sidebar-menu-item" onclick="showPage('gallery', this)">📸 갤러리 관리</div>
         <div class="sidebar-menu-item" onclick="showPage('inquiries', this)">📩 홈페이지 문의 관리</div>
         <div class="sidebar-menu-item" onclick="showPage('relatedsites', this)">🔗 관련 사이트 관리</div>
         <div class="sidebar-menu-item" onclick="showPage('supervisors', this)">👮 감독관 계정 관리</div>
@@ -2358,6 +2359,66 @@ body {
       </div>
     </div><!-- /page-htcnotices -->
 
+    <!-- ═ 갤러리 관리 ═ -->
+    <div class="admin-page" id="page-gallery">
+      <h2 style="font-family:'Noto Serif KR',serif;font-size:20px;margin-bottom:6px;color:var(--dark)">
+        📸 갤러리 관리
+      </h2>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:20px">
+        홈페이지 활동 갤러리에 표시할 사진을 업로드합니다.
+      </p>
+
+      <!-- 사진 업로드 -->
+      <div class="bjw-card" style="margin-bottom:20px">
+        <h2 style="font-size:15px;margin-bottom:16px"><span class="icon">➕</span> 사진 추가</h2>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>사진 선택 <span class="req">*</span></label>
+            <input type="file" id="gallery-file" accept="image/*" multiple
+              style="border:1.5px solid #D5DFD7;border-radius:var(--radius);padding:10px;font-family:'Noto Sans KR',sans-serif;font-size:13px;background:var(--cream)">
+          </div>
+          <div class="form-group">
+            <label>제목 <span class="req">*</span></label>
+            <input type="text" id="gallery-title" placeholder="예: 어르신 원예치료 프로그램">
+          </div>
+          <div class="form-group">
+            <label>카테고리</label>
+            <select id="gallery-category">
+              <option value="program">프로그램</option>
+              <option value="cert">자격증</option>
+              <option value="event">행사</option>
+              <option value="etc">기타</option>
+            </select>
+          </div>
+          <div class="form-group full">
+            <label>설명</label>
+            <textarea id="gallery-desc" rows="3" placeholder="사진 설명을 입력하세요"></textarea>
+          </div>
+        </div>
+        <div id="gallery-upload-progress" style="display:none;margin-top:12px">
+          <div style="background:#EEF5F0;border-radius:4px;height:8px;overflow:hidden">
+            <div id="gallery-upload-bar" style="background:var(--moss);height:100%;width:0%;transition:width .3s"></div>
+          </div>
+          <div id="gallery-upload-msg" style="font-size:12px;color:var(--muted);margin-top:6px">업로드 중...</div>
+        </div>
+        <div id="gallery-add-error" class="alert alert-danger" style="display:none;margin-top:12px"></div>
+        <button class="btn btn-primary" style="margin-top:16px" onclick="uploadGalleryPhoto()">
+          📸 사진 업로드
+        </button>
+      </div>
+
+      <!-- 사진 목록 -->
+      <div class="bjw-card">
+        <h2 style="font-size:15px;margin-bottom:16px">
+          <span class="icon">📋</span> 등록된 사진
+          <button class="btn btn-secondary" style="font-size:11px;padding:5px 10px;margin-left:10px" onclick="loadGalleryList()">🔄</button>
+        </h2>
+        <div id="gallery-list">
+          <div style="text-align:center;padding:20px;color:var(--muted)">로딩 중...</div>
+        </div>
+      </div>
+    </div><!-- /page-gallery -->
+
     <!-- ═ 감독관 계정 관리 ═ -->
     <div class="admin-page" id="page-supervisors">
       <h2 style="font-family:'Noto Serif KR',serif; font-size:20px; margin-bottom:6px; color:var(--dark)">
@@ -2478,7 +2539,7 @@ body {
       } else {
         // 관리자: 전체 기능 (개별 독립 실행)
         const fns = [
-          ['loadDashboard',loadDashboard],['loadApplicants',loadApplicants],['loadNoticeList',loadNoticeList],['loadHtcNoticeList',loadHtcNoticeList],['loadInquiries',loadInquiries],['loadCertRequests',loadCertRequests],['loadRelatedSites',loadRelatedSites],
+          ['loadDashboard',loadDashboard],['loadApplicants',loadApplicants],['loadNoticeList',loadNoticeList],['loadHtcNoticeList',loadHtcNoticeList],['loadGalleryList',loadGalleryList],['loadInquiries',loadInquiries],['loadCertRequests',loadCertRequests],['loadRelatedSites',loadRelatedSites],
           ['loadResults',loadResults],['loadCerts',loadCerts],
           ['loadDocs',loadDocs],['loadSchedule',loadSchedule],
           ['loadPassList',loadPassList],['loadAdmitList',loadAdmitList],
@@ -3584,6 +3645,112 @@ body {
   // ── 공지사항 관리
 
   // ── 홈페이지 공지사항 관리
+
+  // ── 갤러리 관리
+  window.uploadGalleryPhoto = async function() {
+    const fileInput = document.getElementById('gallery-file');
+    const title     = document.getElementById('gallery-title').value.trim();
+    const category  = document.getElementById('gallery-category').value;
+    const desc      = document.getElementById('gallery-desc').value.trim();
+    const errEl     = document.getElementById('gallery-add-error');
+    const progEl    = document.getElementById('gallery-upload-progress');
+    const barEl     = document.getElementById('gallery-upload-bar');
+    const msgEl     = document.getElementById('gallery-upload-msg');
+
+    if (!fileInput.files.length || !title) {
+      errEl.textContent = '사진과 제목은 필수입니다.'; errEl.style.display = 'block'; return;
+    }
+    errEl.style.display = 'none';
+    progEl.style.display = 'block';
+
+    try {
+      const { getStorage, ref: storageRef, uploadBytesResumable, getDownloadURL } =
+        await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js");
+      const storage = getStorage();
+
+      const files = Array.from(fileInput.files);
+      let uploaded = 0;
+
+      for (const file of files) {
+        const path = `htc-gallery/${Date.now()}_${file.name}`;
+        const sRef = storageRef(storage, path);
+        const task = uploadBytesResumable(sRef, file);
+
+        await new Promise((resolve, reject) => {
+          task.on('state_changed',
+            snap => {
+              const pct = Math.round(snap.bytesTransferred / snap.totalBytes * 100);
+              if (barEl) barEl.style.width = pct + '%';
+              if (msgEl) msgEl.textContent = `업로드 중... ${uploaded+1}/${files.length} (${pct}%)`;
+            },
+            reject,
+            async () => {
+              const imgUrl = await getDownloadURL(task.snapshot.ref);
+              await addDoc(collection(db, 'htc_gallery'), {
+                title, category, desc, imgUrl,
+                fileName: file.name,
+                createdAt: Timestamp.now()
+              });
+              uploaded++;
+              resolve();
+            }
+          );
+        });
+      }
+
+      if (msgEl) msgEl.textContent = `✅ ${uploaded}장 업로드 완료!`;
+      if (barEl) barEl.style.width = '100%';
+      showToast(`✅ ${uploaded}장 업로드 완료!`, 'success');
+      document.getElementById('gallery-title').value = '';
+      document.getElementById('gallery-desc').value  = '';
+      fileInput.value = '';
+      setTimeout(() => { progEl.style.display = 'none'; }, 2000);
+      loadGalleryList();
+
+    } catch(e) {
+      if (msgEl) msgEl.textContent = '업로드 실패: ' + e.message;
+      errEl.textContent = '업로드 실패: ' + e.message; errEl.style.display = 'block';
+    }
+  };
+
+  window.loadGalleryList = async function() {
+    const container = document.getElementById('gallery-list');
+    if (!container) return;
+    container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted)">로딩 중...</div>';
+    try {
+      const snap = await getDocs(query(collection(db, 'htc_gallery'), orderBy('createdAt', 'desc')));
+      if (snap.empty) {
+        container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted)">등록된 사진이 없습니다.</div>';
+        return;
+      }
+      const catLabels = { program:'프로그램', cert:'자격증', event:'행사', etc:'기타' };
+      container.innerHTML = `
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px">
+          ${snap.docs.map(d => {
+            const p = d.data();
+            return `<div style="border:1px solid var(--cream-d);border-radius:10px;overflow:hidden">
+              <img src="${p.imgUrl}" style="width:100%;height:120px;object-fit:cover;display:block">
+              <div style="padding:10px">
+                <div style="font-size:12px;font-weight:600;color:var(--dark);margin-bottom:4px">${p.title}</div>
+                <div style="font-size:11px;color:var(--muted);margin-bottom:8px">${catLabels[p.category]||'기타'}</div>
+                <button class="save-btn-sm" style="background:#E53E3E;color:#fff;width:100%"
+                  onclick="deleteGalleryPhoto('${d.id}','${p.imgUrl}')">🗑️ 삭제</button>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>`;
+    } catch(e) { container.innerHTML = '<div class="alert alert-danger">로드 실패: ' + e.message + '</div>'; }
+  };
+
+  window.deleteGalleryPhoto = async function(id, imgUrl) {
+    if (!confirm('이 사진을 삭제하시겠습니까?')) return;
+    try {
+      await deleteDoc(doc(db, 'htc_gallery', id));
+      showToast('삭제 완료', 'success');
+      loadGalleryList();
+    } catch(e) { showToast('삭제 실패: ' + e.message, 'error'); }
+  };
+
   window.saveHtcNotice = async function() {
     const title   = document.getElementById('htc-notice-title').value.trim();
     const content = document.getElementById('htc-notice-content').value.trim();
