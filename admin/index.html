@@ -3183,10 +3183,6 @@ body {
 
   // ── 수험번호 일괄 부여 (9자리: 연도2자리+월2자리+일련번호5자리)
   window.bulkAssignAppNo = async function() {
-    // 수험번호 없는 응시자만 대상
-    const targets = allPassEdit.filter(d => !d.appNo || d.appNo === '—');
-
-    // 전체 응시자에서도 확인
     let allApps = [];
     try {
       const snap = await getDocs(collection(db, 'bjw_applicants'));
@@ -3195,27 +3191,36 @@ body {
       showToast('로드 실패: ' + e.message, 'error'); return;
     }
 
-    const noAppNo = allApps.filter(d => !d.appNo);
-    if (noAppNo.length === 0) {
-      showToast('수험번호가 없는 응시자가 없습니다.', 'success'); return;
-    }
-    if (!confirm(`수험번호가 없는 응시자 ${noAppNo.length}명에게 9자리 수험번호를 일괄 부여하시겠습니까?`)) return;
+    if (allApps.length === 0) { showToast('응시자가 없습니다.', 'error'); return; }
+
+    // 기존 BJW- 형식 포함 전체 교체 여부 확인
+    const oldFormat = allApps.filter(d => d.appNo && d.appNo.startsWith('BJW-')).length;
+    const noAppNo   = allApps.filter(d => !d.appNo).length;
+    const msg = oldFormat > 0
+      ? `전체 ${allApps.length}명의 수험번호를 9자리로 교체하시겠습니까?
+(기존 BJW- 형식 ${oldFormat}명 포함)`
+      : `수험번호 없는 ${noAppNo}명에게 9자리 수험번호를 부여하시겠습니까?`;
+
+    if (!confirm(msg)) return;
 
     const resultEl = document.getElementById('bulk-result');
     if (resultEl) { resultEl.style.display='block'; resultEl.innerHTML='<div class="alert alert-info">처리 중...</div>'; }
 
-    // 현재 최대 일련번호 확인
+    // 접수일 기준으로 정렬해서 순서대로 번호 부여
+    allApps.sort((a, b) => {
+      const ta = a.createdAt?.seconds || 0;
+      const tb = b.createdAt?.seconds || 0;
+      return ta - tb;
+    });
+
     const today = new Date();
     const prefix = String(today.getFullYear()).slice(2) + String(today.getMonth()+1).padStart(2,'0');
-    
-    // 기존 같은 prefix 수험번호 중 최대값 찾기
-    const existing = allApps
-      .filter(d => d.appNo && d.appNo.startsWith(prefix))
-      .map(d => parseInt(d.appNo.slice(4)) || 0);
-    let seq = existing.length > 0 ? Math.max(...existing) + 1 : 1;
-
+    let seq = 1;
     let count = 0;
-    for (const d of noAppNo) {
+
+    for (const d of allApps) {
+      // 기존 9자리 형식이면 건너뜀
+      if (d.appNo && /^\d{9}$/.test(d.appNo)) { seq++; continue; }
       const appNo = prefix + String(seq).padStart(5, '0');
       try {
         await updateDoc(doc(db, 'bjw_applicants', d.id), { appNo });
@@ -3224,8 +3229,8 @@ body {
       } catch(e) { console.error(e); }
     }
 
-    if (resultEl) resultEl.innerHTML = `<div class="alert alert-success">✅ ${count}명에게 수험번호를 부여했습니다.</div>`;
-    showToast(`✅ ${count}명 수험번호 부여 완료!`, 'success');
+    if (resultEl) resultEl.innerHTML = `<div class="alert alert-success">✅ ${count}명 수험번호 교체 완료!</div>`;
+    showToast(`✅ ${count}명 수험번호 9자리로 교체 완료!`, 'success');
     loadPassEditList();
     loadApplicants();
   };
