@@ -302,12 +302,12 @@ pre.k{background:#1f2b23;color:#d8e6dc;border-radius:12px;padding:14px;overflow:
         </div>
       </section>
 
-      <!-- ========== 내담자·회기 (기존 시스템 임베드) ========== -->
+      <!-- ========== 내담자·회기 ========== -->
       <section class="page" id="p-client">
         <div class="frameBox">
-          <div class="fh"><span>내담자 관리 시스템 · parkjinwoohtc.com</span><div style="flex:1"></div>
-            <a class="btn sm" href="https://www.parkjinwoohtc.com/client-management.html" target="_blank" rel="noopener" style="text-decoration:none">새 창에서 열기 ↗</a></div>
-          <iframe data-src="https://www.parkjinwoohtc.com/client-management.html" title="내담자 관리"></iframe>
+          <div class="fh"><span>내담자 관리 시스템</span><div style="flex:1"></div>
+            <a class="btn sm" href="client-management.html" target="_blank" rel="noopener" style="text-decoration:none">새 창에서 열기 ↗</a></div>
+          <iframe data-src="client-management.html" title="내담자 관리"></iframe>
         </div>
       </section>
 
@@ -482,7 +482,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, collection, doc, addDoc, setDoc, updateDoc, deleteDoc,
-         onSnapshot, query, orderBy, limit, getDocs, getCountFromServer, serverTimestamp }
+         onSnapshot, query, where, orderBy, limit, getDoc, getDocs,
+         getCountFromServer, serverTimestamp, writeBatch }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {

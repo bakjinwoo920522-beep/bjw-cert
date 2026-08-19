@@ -1,0 +1,1794 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>내담자 관리 시스템 | 박진우원예치료센터</title>
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+  import { getFirestore, collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+  const firebaseConfig = {
+    apiKey: "AIzaSyA40OooHSHAyCc-kwps50pDJ504f92hxfo",
+    authDomain: "pjw-cert.firebaseapp.com",
+    projectId: "pjw-cert",
+    storageBucket: "pjw-cert.firebasestorage.app",
+    messagingSenderId: "819294382402",
+    appId: "1:819294382402:web:1dd27376446616af09c0db"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+  window.__db = db;
+  window.__auth = auth;
+  window.__firebase = { collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy, serverTimestamp };
+  window.__firebaseReady = true;
+  document.dispatchEvent(new Event('firebaseReady'));
+</script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&family=Noto+Serif+KR:wght@400;600&display=swap');
+  :root {
+    --green-deep: #1C4A2A;
+    --green-mid: #2D6A3F;
+    --green-light: #4A8F5F;
+    --green-pale: #E8F3EB;
+    --gold: #C8A84B;
+    --gold-light: #F5EDD0;
+    --white: #FAFAF8;
+    --gray-1: #F4F4F2;
+    --gray-2: #E8E8E5;
+    --gray-3: #C0C0BC;
+    --gray-4: #888884;
+    --gray-5: #444440;
+    --text: #1A1A18;
+    --shadow-sm: 0 1px 4px rgba(28,74,42,0.08);
+    --shadow-md: 0 4px 16px rgba(28,74,42,0.12);
+    --shadow-lg: 0 8px 32px rgba(28,74,42,0.16);
+    --radius: 10px;
+    --radius-lg: 16px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--gray-1);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+  }
+  /* ═══════════════════════════════
+     LOGIN PAGE
+  ═══════════════════════════════ */
+  #login-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--green-deep) 0%, var(--green-mid) 60%, #3A7A52 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  #login-page::before {
+    content: '';
+    position: absolute;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(200,168,75,0.15) 0%, transparent 70%);
+    top: -100px; right: -100px;
+    border-radius: 50%;
+  }
+  #login-page::after {
+    content: '';
+    position: absolute;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(200,168,75,0.1) 0%, transparent 70%);
+    bottom: -50px; left: -50px;
+    border-radius: 50%;
+  }
+  .login-card {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    padding: 48px 44px;
+    width: 420px;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    z-index: 1;
+  }
+  .login-logo { text-align: center; margin-bottom: 32px; }
+  .login-logo .leaf-icon { font-size: 36px; display: block; margin-bottom: 12px; }
+  .login-logo h1 {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 17px; font-weight: 600;
+    color: var(--green-deep); line-height: 1.5;
+  }
+  .login-logo p { font-size: 12px; color: var(--gray-4); margin-top: 6px; letter-spacing: 0.5px; }
+  .login-divider { border: none; border-top: 1px solid var(--gray-2); margin: 24px 0; }
+  .form-group { margin-bottom: 16px; }
+  .form-group label {
+    display: block; font-size: 12px; font-weight: 600;
+    color: var(--gray-5); margin-bottom: 6px; letter-spacing: 0.3px;
+  }
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%; padding: 11px 14px;
+    border: 1.5px solid var(--gray-2); border-radius: var(--radius);
+    font-size: 14px; font-family: 'Noto Sans KR', sans-serif;
+    color: var(--text); background: var(--white);
+    transition: border-color 0.2s, box-shadow 0.2s; outline: none;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    border-color: var(--green-mid); box-shadow: 0 0 0 3px rgba(45,106,63,0.1);
+  }
+  .form-group textarea { resize: vertical; min-height: 80px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 10px 20px; border: none; border-radius: var(--radius);
+    font-size: 13px; font-weight: 600; font-family: 'Noto Sans KR', sans-serif;
+    cursor: pointer; transition: all 0.2s; text-decoration: none; white-space: nowrap;
+  }
+  .btn-primary {
+    background: var(--green-deep); color: white;
+    width: 100%; justify-content: center; padding: 13px; font-size: 14px;
+  }
+  .btn-primary:hover { background: var(--green-mid); }
+  .btn-gold { background: var(--gold); color: white; }
+  .btn-gold:hover { background: #b8943e; }
+  .btn-outline { background: transparent; border: 1.5px solid var(--green-deep); color: var(--green-deep); }
+  .btn-outline:hover { background: var(--green-pale); }
+  .btn-danger { background: #DC3545; color: white; }
+  .btn-danger:hover { background: #b02a37; }
+  .btn-ghost { background: transparent; color: var(--gray-5); padding: 8px 12px; }
+  .btn-ghost:hover { background: var(--gray-1); }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+  .login-error {
+    background: #FFF0F0; border: 1px solid #FFCDD2; color: #C62828;
+    padding: 10px 14px; border-radius: 8px; font-size: 13px;
+    margin-bottom: 16px; display: none;
+  }
+  /* ═══════════════════════════════
+     MAIN LAYOUT
+  ═══════════════════════════════ */
+  #main-app { display: none; min-height: 100vh; }
+  .app-layout {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    grid-template-rows: 60px 1fr;
+    min-height: 100vh;
+  }
+  .topbar {
+    grid-column: 1 / -1; background: var(--green-deep);
+    display: flex; align-items: center; padding: 0 24px; gap: 16px;
+    position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .topbar-brand { display: flex; align-items: center; gap: 10px; flex: 1; }
+  .topbar-brand .brand-icon { font-size: 22px; }
+  .topbar-brand h1 { font-size: 14px; font-weight: 700; color: white; line-height: 1.2; }
+  .topbar-brand span { font-size: 11px; color: rgba(255,255,255,0.6); font-weight: 400; }
+  .topbar-user { display: flex; align-items: center; gap: 12px; }
+  .user-badge {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.12); padding: 6px 14px; border-radius: 20px;
+  }
+  .user-badge .role-tag { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+  .role-admin { background: var(--gold); color: white; }
+  .role-branch { background: #7B5EA7; color: white; }
+  .role-agency { background: #4A8F5F; color: white; }
+  .role-therapist { background: #5B7FA6; color: white; }
+  .user-badge .user-name { font-size: 13px; color: white; font-weight: 500; }
+  .btn-logout {
+    background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
+    color: white; padding: 6px 14px; border-radius: 8px; font-size: 12px;
+    cursor: pointer; font-family: 'Noto Sans KR', sans-serif; font-weight: 500;
+    transition: background 0.2s;
+  }
+  .btn-logout:hover { background: rgba(255,255,255,0.25); }
+  .sidebar { background: white; border-right: 1px solid var(--gray-2); padding: 20px 0; overflow-y: auto; }
+  .sidebar-section { margin-bottom: 8px; }
+  .sidebar-section-label {
+    font-size: 10px; font-weight: 700; color: var(--gray-4);
+    letter-spacing: 1px; text-transform: uppercase; padding: 8px 20px 4px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px; padding: 10px 20px;
+    cursor: pointer; color: var(--gray-5); font-size: 13px; font-weight: 500;
+    transition: all 0.15s; border-left: 3px solid transparent; position: relative;
+  }
+  .nav-item:hover { background: var(--green-pale); color: var(--green-deep); }
+  .nav-item.active {
+    background: var(--green-pale); color: var(--green-deep);
+    border-left-color: var(--green-deep); font-weight: 600;
+  }
+  .nav-item .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+  .main-content { overflow-y: auto; padding: 28px 32px; background: var(--gray-1); }
+  .page-section { display: none; }
+  .page-section.active { display: block; }
+  .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+  .page-title { font-family: 'Noto Serif KR', serif; font-size: 22px; font-weight: 600; color: var(--green-deep); }
+  .page-subtitle { font-size: 13px; color: var(--gray-4); margin-top: 4px; }
+  .card {
+    background: white; border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm); border: 1px solid var(--gray-2); overflow: hidden;
+  }
+  .card-header {
+    padding: 18px 24px; border-bottom: 1px solid var(--gray-2);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .card-title { font-size: 15px; font-weight: 700; color: var(--green-deep); }
+  .card-body { padding: 24px; }
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+  .stat-card {
+    background: white; border-radius: var(--radius-lg); padding: 20px 24px;
+    box-shadow: var(--shadow-sm); border: 1px solid var(--gray-2);
+    display: flex; align-items: center; gap: 16px;
+  }
+  .stat-icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; flex-shrink: 0;
+  }
+  .stat-icon.green { background: var(--green-pale); }
+  .stat-icon.gold { background: var(--gold-light); }
+  .stat-icon.blue { background: #EBF3FB; }
+  .stat-icon.purple { background: #F3EBFB; }
+  .stat-value { font-size: 26px; font-weight: 700; color: var(--green-deep); line-height: 1; }
+  .stat-label { font-size: 12px; color: var(--gray-4); margin-top: 4px; }
+  .table-container { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th {
+    background: var(--gray-1); padding: 12px 16px; text-align: left;
+    font-size: 11px; font-weight: 700; color: var(--gray-4);
+    letter-spacing: 0.5px; text-transform: uppercase;
+    border-bottom: 1px solid var(--gray-2); white-space: nowrap;
+  }
+  tbody td { padding: 14px 16px; border-bottom: 1px solid var(--gray-2); color: var(--text); vertical-align: middle; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--green-pale); }
+  .badge {
+    display: inline-flex; align-items: center; padding: 3px 10px;
+    border-radius: 20px; font-size: 11px; font-weight: 600; white-space: nowrap;
+  }
+  .badge-green { background: #D4EDDA; color: #1C7A3A; }
+  .badge-gold { background: var(--gold-light); color: #8A6A20; }
+  .badge-blue { background: #D6E8F7; color: #1A5A8A; }
+  .badge-gray { background: var(--gray-2); color: var(--gray-5); }
+  .badge-red { background: #FDDEDE; color: #8A1A1A; }
+  .badge-purple { background: #EAD6F7; color: #5A1A8A; }
+  .toolbar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  .search-input {
+    flex: 1; min-width: 200px; padding: 9px 14px;
+    border: 1.5px solid var(--gray-2); border-radius: var(--radius);
+    font-size: 13px; font-family: 'Noto Sans KR', sans-serif; outline: none;
+  }
+  .search-input:focus { border-color: var(--green-mid); }
+  .filter-select {
+    padding: 9px 14px; border: 1.5px solid var(--gray-2); border-radius: var(--radius);
+    font-size: 13px; font-family: 'Noto Sans KR', sans-serif;
+    background: white; outline: none; cursor: pointer;
+  }
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1000;
+    display: none; align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: white; border-radius: var(--radius-lg);
+    width: 100%; max-width: 600px; max-height: 90vh;
+    overflow-y: auto; box-shadow: var(--shadow-lg);
+  }
+  .modal-lg { max-width: 780px; }
+  .modal-header {
+    padding: 20px 24px; border-bottom: 1px solid var(--gray-2);
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; background: white; z-index: 1;
+  }
+  .modal-title { font-size: 16px; font-weight: 700; color: var(--green-deep); }
+  .modal-close {
+    background: none; border: none; font-size: 20px; cursor: pointer;
+    color: var(--gray-4); padding: 4px 8px; border-radius: 6px;
+  }
+  .modal-close:hover { background: var(--gray-1); color: var(--text); }
+  .modal-body { padding: 24px; }
+  .modal-footer {
+    padding: 16px 24px; border-top: 1px solid var(--gray-2);
+    display: flex; gap: 10px; justify-content: flex-end;
+  }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-grid .full { grid-column: 1 / -1; }
+  .form-section-title {
+    font-size: 13px; font-weight: 700; color: var(--green-deep);
+    margin: 20px 0 12px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--green-pale);
+    grid-column: 1 / -1; display: flex; align-items: center; gap: 8px;
+  }
+  .session-list { display: flex; flex-direction: column; gap: 12px; }
+  .session-item {
+    background: var(--gray-1); border: 1px solid var(--gray-2);
+    border-radius: var(--radius); padding: 16px 20px; cursor: pointer;
+    transition: all 0.15s; border-left: 4px solid var(--green-light);
+  }
+  .session-item:hover { border-color: var(--green-mid); background: var(--green-pale); }
+  .session-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .session-num {
+    font-size: 12px; font-weight: 700; color: var(--green-deep);
+    background: var(--green-pale); padding: 2px 10px; border-radius: 20px;
+  }
+  .session-meta { font-size: 12px; color: var(--gray-4); display: flex; gap: 12px; }
+  .session-preview {
+    font-size: 13px; color: var(--gray-5); line-height: 1.5;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .empty-state { text-align: center; padding: 60px 24px; color: var(--gray-4); }
+  .empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; }
+  .empty-state p { font-size: 14px; }
+  .toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--green-deep); color: white; padding: 12px 20px;
+    border-radius: 10px; font-size: 13px; font-weight: 500;
+    box-shadow: var(--shadow-md); z-index: 9999;
+    transform: translateY(100px); opacity: 0; transition: all 0.3s;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.error { background: #DC3545; }
+  .info-box {
+    background: var(--green-pale); border: 1px solid #B8D4BE;
+    border-radius: var(--radius); padding: 14px 18px; font-size: 13px;
+    color: var(--green-deep); margin-bottom: 16px;
+    display: flex; gap: 8px; align-items: flex-start;
+  }
+  .info-box.warn { background: #FDF5E6; border-color: #E8D5A8; color: #7A5A10; }
+  .detail-grid { display: grid; grid-template-columns: 140px 1fr; gap: 10px 0; font-size: 13px; }
+  .detail-label { font-weight: 600; color: var(--gray-4); padding: 6px 0; border-bottom: 1px solid var(--gray-1); }
+  .detail-value { padding: 6px 0; border-bottom: 1px solid var(--gray-1); color: var(--text); }
+  /* 공개/비공개 표시 */
+  .vis-tag { font-size: 11px; padding: 2px 9px; border-radius: 20px; font-weight: 600; white-space: nowrap; }
+  .vis-open { background: #D6E8F7; color: #1A5A8A; }
+  .vis-closed { background: #F0EFEA; color: #7A7A72; }
+  @media (max-width: 768px) {
+    .app-layout { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .main-content { padding: 16px; }
+    .form-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<!-- ══════════════════════════════════ LOGIN ══════════════════════════════════ -->
+<div id="login-page">
+  <div class="login-card">
+    <div class="login-logo">
+      <span class="leaf-icon">🌿</span>
+      <h1>박진우원예치료센터<br>내담자 관리 시스템</h1>
+      <p>Client Management System</p>
+    </div>
+    <hr class="login-divider">
+    <div class="login-error" id="login-error"></div>
+    <div class="form-group">
+      <label>이메일</label>
+      <input type="email" id="login-email" placeholder="이메일 주소 입력" autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label>비밀번호</label>
+      <input type="password" id="login-password" placeholder="비밀번호 입력" autocomplete="current-password">
+    </div>
+    <button class="btn btn-primary" onclick="doLogin()" id="login-btn">로그인</button>
+    <div style="text-align:center; margin-top:20px; font-size:12px; color:var(--gray-4);">
+      계정이 없으신 경우 관리자에게 문의하세요.<br>
+      <strong style="color:var(--green-deep);">박진우원예치료센터</strong> · Tel. 관리자 문의
+    </div>
+  </div>
+</div>
+<!-- ══════════════════════════════════ MAIN APP ══════════════════════════════════ -->
+<div id="main-app">
+  <div class="app-layout">
+    <div class="topbar">
+      <div class="topbar-brand">
+        <span class="brand-icon">🌿</span>
+        <div>
+          <h1>박진우원예치료센터</h1>
+          <span>내담자 관리 시스템</span>
+        </div>
+      </div>
+      <div class="topbar-user">
+        <div class="user-badge">
+          <span class="role-tag" id="topbar-role-tag">관리자</span>
+          <span class="user-name" id="topbar-username">사용자</span>
+        </div>
+        <button class="btn-logout" onclick="doLogout()">로그아웃</button>
+      </div>
+    </div>
+    <div class="sidebar" id="main-sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">대시보드</div>
+        <div class="nav-item active" onclick="showPage('dashboard')" id="nav-dashboard">
+          <span class="nav-icon">📊</span> 현황 대시보드
+        </div>
+      </div>
+      <div class="sidebar-section" id="nav-section-clients">
+        <div class="sidebar-section-label">내담자 관리</div>
+        <div class="nav-item" onclick="showPage('clients')" id="nav-clients">
+          <span class="nav-icon">👤</span> 내담자 목록
+        </div>
+        <div class="nav-item" onclick="showPage('referrals')" id="nav-referrals">
+          <span class="nav-icon">📋</span> 의뢰 등록
+        </div>
+      </div>
+      <div class="sidebar-section" id="nav-section-sessions">
+        <div class="sidebar-section-label">회기 관리</div>
+        <div class="nav-item" onclick="showPage('sessions')" id="nav-sessions">
+          <span class="nav-icon">📝</span> 회기 기록
+        </div>
+      </div>
+      <div class="sidebar-section" id="nav-section-admin">
+        <div class="sidebar-section-label">시스템 관리</div>
+        <div class="nav-item" onclick="showPage('agencies')" id="nav-agencies">
+          <span class="nav-icon">🏢</span> 기관 관리
+        </div>
+        <div class="nav-item" onclick="showPage('accounts')" id="nav-accounts">
+          <span class="nav-icon">👥</span> 계정 관리
+        </div>
+      </div>
+    </div>
+    <div class="main-content">
+      <!-- ── DASHBOARD ── -->
+      <div class="page-section active" id="page-dashboard">
+        <div class="page-header">
+          <div>
+            <div class="page-title">현황 대시보드</div>
+            <div class="page-subtitle" id="dashboard-greeting">안녕하세요.</div>
+          </div>
+        </div>
+        <div class="stats-grid" id="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon green">🏢</div>
+            <div><div class="stat-value" id="stat-agencies">0</div><div class="stat-label">등록 기관</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon gold">👤</div>
+            <div><div class="stat-value" id="stat-clients">0</div><div class="stat-label">전체 내담자</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon blue">📋</div>
+            <div><div class="stat-value" id="stat-active">0</div><div class="stat-label">진행 중</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon purple">📝</div>
+            <div><div class="stat-value" id="stat-sessions">0</div><div class="stat-label">총 회기 수</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">🌱 최근 의뢰 내담자</div></div>
+          <div class="table-container">
+            <table>
+              <thead><tr><th>이름</th><th>의뢰 기관</th><th>담당 치료사</th><th>의뢰일</th><th>상태</th></tr></thead>
+              <tbody id="dashboard-recent-clients">
+                <tr><td colspan="5" style="text-align:center; color:var(--gray-4); padding:32px;">데이터를 불러오는 중...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <!-- ── CLIENTS ── -->
+      <div class="page-section" id="page-clients">
+        <div class="page-header">
+          <div>
+            <div class="page-title">내담자 목록</div>
+            <div class="page-subtitle" id="clients-subtitle">등록된 내담자를 조회합니다</div>
+          </div>
+        </div>
+        <div class="toolbar">
+          <input class="search-input" type="text" id="client-search" placeholder="🔍  이름, 생년월일, 기관으로 검색..." oninput="renderClientTable()">
+          <select class="filter-select" id="client-filter-status" onchange="renderClientTable()">
+            <option value="">전체 상태</option>
+            <option value="진행중">진행 중</option>
+            <option value="대기">대기</option>
+            <option value="종결">종결</option>
+          </select>
+          <select class="filter-select" id="client-filter-agency" onchange="renderClientTable()">
+            <option value="">전체 기관</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="openReferralModal(null)" id="btn-add-client" style="width:auto">＋ 새 의뢰 등록</button>
+        </div>
+        <div class="card">
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr><th>이름</th><th>생년월일</th><th>의뢰 기관</th><th>담당 치료사</th><th>총 회기</th><th>상태</th><th>공개</th><th>의뢰일</th><th>관리</th></tr>
+              </thead>
+              <tbody id="client-table-body">
+                <tr><td colspan="9" style="text-align:center; color:var(--gray-4); padding:32px;">불러오는 중...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <!-- ── REFERRALS ── -->
+      <div class="page-section" id="page-referrals">
+        <div class="page-header">
+          <div>
+            <div class="page-title">의뢰 등록</div>
+            <div class="page-subtitle">기관에서 센터로 내담자를 의뢰합니다</div>
+          </div>
+          <button class="btn btn-primary" onclick="openReferralModal(null)" style="width:auto">＋ 새 의뢰 등록</button>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">📋 의뢰 현황</div></div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr><th>의뢰일</th><th>내담자명</th><th>생년월일</th><th>의뢰 기관</th><th>주 호소문제</th><th>담당 치료사</th><th>상태</th><th>관리</th></tr>
+              </thead>
+              <tbody id="referral-table-body">
+                <tr><td colspan="8" style="text-align:center; color:var(--gray-4); padding:32px;">불러오는 중...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <!-- ── SESSIONS ── -->
+      <div class="page-section" id="page-sessions">
+        <div class="page-header">
+          <div>
+            <div class="page-title">회기 기록</div>
+            <div class="page-subtitle">치료 회기 내용을 기록합니다</div>
+          </div>
+          <button class="btn btn-primary" onclick="openSessionModal(null)" style="width:auto">＋ 회기 기록 등록</button>
+        </div>
+        <div class="toolbar">
+          <select class="filter-select" id="session-filter-client" onchange="renderSessionTable()">
+            <option value="">전체 내담자</option>
+          </select>
+          <select class="filter-select" id="session-filter-therapist" onchange="renderSessionTable()">
+            <option value="">전체 치료사</option>
+          </select>
+          <input class="search-input" type="month" id="session-filter-month" onchange="renderSessionTable()" style="flex:none; width:auto;">
+        </div>
+        <div class="card">
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr><th>회기일</th><th>내담자</th><th>회기 차수</th><th>담당 치료사</th><th>주요 활동</th><th>참여도</th><th>공개</th><th>관리</th></tr>
+              </thead>
+              <tbody id="session-table-body">
+                <tr><td colspan="8" style="text-align:center; color:var(--gray-4); padding:32px;">불러오는 중...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <!-- ── AGENCIES ── -->
+      <div class="page-section" id="page-agencies">
+        <div class="page-header">
+          <div>
+            <div class="page-title">기관 관리</div>
+            <div class="page-subtitle">의뢰 기관을 등록하고 관리합니다</div>
+          </div>
+          <button class="btn btn-primary" onclick="openAgencyModal(null)" style="width:auto">＋ 기관 등록</button>
+        </div>
+        <div class="card">
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr><th>기관명</th><th>담당자명</th><th>연락처</th><th>이메일</th><th>주소</th><th>내담자 수</th><th>공개</th><th>관리</th></tr>
+              </thead>
+              <tbody id="agency-table-body">
+                <tr><td colspan="8" style="text-align:center; color:var(--gray-4); padding:32px;">불러오는 중...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <!-- ── ACCOUNTS ── -->
+      <div class="page-section" id="page-accounts">
+        <div class="page-header">
+          <div>
+            <div class="page-title">계정 관리</div>
+            <div class="page-subtitle">지부장·치료사·기관담당자 계정을 발급합니다</div>
+          </div>
+          <button class="btn btn-primary" onclick="openAccountModal()" style="width:auto">＋ 계정 발급</button>
+        </div>
+        <div class="info-box">
+          <span>ℹ️</span>
+          <span>계정을 발급하면 로그인 계정이 자동으로 생성됩니다. 발급 후 이메일과 임시 비밀번호를 본인에게 전달해 주세요.</span>
+        </div>
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-header"><div class="card-title">🔒 기존 자료 정리</div></div>
+          <div class="card-body">
+            <p style="font-size:13px;color:var(--gray-5);line-height:1.7;margin-bottom:14px">
+              예전에 등록된 기관·내담자·회기 자료에는 <strong>작성자와 공개여부</strong> 정보가 없습니다.
+              아래 버튼을 누르면 그 자료들을 <strong>센터장 작성분 · 비공개</strong>로 정리합니다.
+              보안 규칙을 적용하기 전에 한 번만 실행하시면 됩니다.
+            </p>
+            <button class="btn btn-outline" onclick="runBackfill()" id="backfill-btn" style="width:auto">기존 자료에 작성자·공개여부 채우기</button>
+            <span id="backfill-result" style="margin-left:12px;font-size:13px;color:var(--gray-4)"></span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr><th>이름</th><th>이메일</th><th>역할</th><th>소속 기관</th><th>상태</th><th>등록일</th><th>관리</th></tr>
+              </thead>
+              <tbody id="account-table-body">
+                <tr><td colspan="7" style="text-align:center; color:var(--gray-4); padding:32px;">불러오는 중...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div><!-- /main-content -->
+  </div><!-- /app-layout -->
+</div><!-- /main-app -->
+<!-- ══════════════════════════════════ MODALS ══════════════════════════════════ -->
+<!-- 의뢰 등록/수정 -->
+<div class="modal-overlay" id="modal-referral">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div class="modal-title" id="referral-modal-title">📋 새 의뢰 등록</div>
+      <button class="modal-close" onclick="closeModal('modal-referral')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-section-title">🌱 내담자 기본 정보</div>
+        <div class="form-group"><label>내담자 이름 *</label><input type="text" id="ref-name" placeholder="이름 입력"></div>
+        <div class="form-group"><label>생년월일 *</label><input type="date" id="ref-birth"></div>
+        <div class="form-group"><label>성별</label>
+          <select id="ref-gender"><option value="">선택</option><option value="남">남</option><option value="여">여</option></select>
+        </div>
+        <div class="form-group"><label>연락처</label><input type="tel" id="ref-phone" placeholder="010-0000-0000"></div>
+        <div class="form-group full"><label>주소</label><input type="text" id="ref-address" placeholder="주소 입력"></div>
+        <div class="form-group full"><label>보호자 / 법정대리인</label><input type="text" id="ref-guardian" placeholder="보호자 이름 및 관계 (예: 홍길동 / 부)"></div>
+        <div class="form-section-title">🏢 의뢰 정보</div>
+        <div class="form-group"><label>의뢰 기관 *</label><select id="ref-agency"><option value="">기관 선택</option></select></div>
+        <div class="form-group"><label>의뢰일 *</label><input type="date" id="ref-date"></div>
+        <div class="form-group"><label>담당 치료사</label><select id="ref-therapist"><option value="">치료사 선택</option></select></div>
+        <div class="form-group"><label>진행 상태</label>
+          <select id="ref-status"><option value="대기">대기</option><option value="진행중">진행 중</option><option value="종결">종결</option></select>
+        </div>
+        <div class="form-group full" id="ref-visibility-group" style="display:none">
+          <label>공개 범위 *</label>
+          <select id="ref-visibility">
+            <option value="비공개">비공개 — 센터장만 볼 수 있습니다</option>
+            <option value="공개">공개 — 지부장·치료사도 볼 수 있습니다</option>
+          </select>
+        </div>
+        <div class="form-group full"><label>주 호소문제 *</label><textarea id="ref-complaint" placeholder="내담자의 주된 어려움, 증상, 문제 행동 등을 기술..."></textarea></div>
+        <div class="form-group full"><label>진단명 / 장애 유형</label><input type="text" id="ref-diagnosis" placeholder="예: ADHD, 지적장애 3급, 자폐스펙트럼 등"></div>
+        <div class="form-group full"><label>의뢰 목적 및 특이사항</label><textarea id="ref-note" placeholder="기관 담당자가 전달하는 특이사항, 목표, 요청사항..."></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-referral')">취소</button>
+      <button class="btn btn-primary" onclick="saveReferral()" style="width:auto">저장</button>
+    </div>
+  </div>
+</div>
+<!-- 회기 기록 -->
+<div class="modal-overlay" id="modal-session">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div class="modal-title" id="session-modal-title">📝 회기 기록 등록</div>
+      <button class="modal-close" onclick="closeModal('modal-session')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-section-title">📋 기본 정보</div>
+        <div class="form-group"><label>내담자 *</label><select id="sess-client"><option value="">내담자 선택</option></select></div>
+        <div class="form-group"><label>담당 치료사 *</label><select id="sess-therapist"><option value="">치료사 선택</option></select></div>
+        <div class="form-group"><label>회기 일자 *</label><input type="date" id="sess-date"></div>
+        <div class="form-group"><label>회기 차수</label><input type="number" id="sess-num" placeholder="예: 3" min="1"></div>
+        <div class="form-group"><label>회기 시간 (분)</label><input type="number" id="sess-duration" placeholder="예: 50" min="1"></div>
+        <div class="form-group"><label>참여도</label>
+          <select id="sess-engagement">
+            <option value="">선택</option>
+            <option value="매우 적극적">매우 적극적</option>
+            <option value="적극적">적극적</option>
+            <option value="보통">보통</option>
+            <option value="소극적">소극적</option>
+            <option value="참여 거부">참여 거부</option>
+          </select>
+        </div>
+        <div class="form-group full" id="sess-visibility-group" style="display:none">
+          <label>공개 범위 *</label>
+          <select id="sess-visibility">
+            <option value="비공개">비공개 — 센터장만 볼 수 있습니다</option>
+            <option value="공개">공개 — 지부장·치료사도 볼 수 있습니다</option>
+          </select>
+        </div>
+        <div class="form-section-title">🌿 회기 내용</div>
+        <div class="form-group full"><label>주요 활동 *</label><input type="text" id="sess-activity" placeholder="예: 모종 심기, 압화 만들기, 허브 화분 꾸미기..."></div>
+        <div class="form-group full"><label>회기 목표</label><input type="text" id="sess-goal" placeholder="이번 회기의 목표"></div>
+        <div class="form-group full"><label>관찰 내용</label><textarea id="sess-observation" placeholder="내담자의 반응, 행동, 언어 표현, 정서 상태 등 관찰한 내용..."></textarea></div>
+        <div class="form-group full"><label>치료적 개입</label><textarea id="sess-intervention" placeholder="치료사가 사용한 개입 기법, 전략, 반응 등..."></textarea></div>
+        <div class="form-group full"><label>평가 및 소견</label><textarea id="sess-evaluation" placeholder="진전 상황, 과제, 다음 회기 계획..."></textarea></div>
+        <div class="form-group full"><label>특이사항</label><textarea id="sess-note" placeholder="위기 상황, 보호자 연락, 기관 공유 사항 등..."></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-session')">취소</button>
+      <button class="btn btn-primary" onclick="saveSession()" style="width:auto">저장</button>
+    </div>
+  </div>
+</div>
+<!-- 기관 등록 -->
+<div class="modal-overlay" id="modal-agency">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="agency-modal-title">🏢 기관 등록</div>
+      <button class="modal-close" onclick="closeModal('modal-agency')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full"><label>기관명 *</label><input type="text" id="ag-name" placeholder="기관명 입력"></div>
+        <div class="form-group"><label>담당자 이름 *</label><input type="text" id="ag-contact-name" placeholder="담당자 이름"></div>
+        <div class="form-group"><label>담당자 연락처 *</label><input type="tel" id="ag-phone" placeholder="010-0000-0000"></div>
+        <div class="form-group full"><label>이메일</label><input type="email" id="ag-email" placeholder="이메일 주소"></div>
+        <div class="form-group full"><label>주소</label><input type="text" id="ag-address" placeholder="기관 주소"></div>
+        <div class="form-group full" id="ag-visibility-group" style="display:none">
+          <label>공개 범위 *</label>
+          <select id="ag-visibility">
+            <option value="비공개">비공개 — 센터장만 볼 수 있습니다</option>
+            <option value="공개">공개 — 지부장·치료사도 볼 수 있습니다</option>
+          </select>
+        </div>
+        <div class="form-group full"><label>메모</label><textarea id="ag-note" placeholder="기관 관련 특이사항..."></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-agency')">취소</button>
+      <button class="btn btn-primary" onclick="saveAgency()" style="width:auto">저장</button>
+    </div>
+  </div>
+</div>
+<!-- 계정 발급 -->
+<div class="modal-overlay" id="modal-account">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">👤 계정 발급</div>
+      <button class="modal-close" onclick="closeModal('modal-account')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="info-box warn">
+        <span>⚠️</span>
+        <span>계정을 만들면 <strong>현재 로그인이 새 계정으로 바뀝니다.</strong> 발급이 끝나면 다시 센터장 계정으로 로그인해 주세요.</span>
+      </div>
+      <div class="form-grid">
+        <div class="form-group"><label>이름 *</label><input type="text" id="acc-name" placeholder="실명 입력"></div>
+        <div class="form-group"><label>이메일 *</label><input type="email" id="acc-email" placeholder="이메일 주소"></div>
+        <div class="form-group"><label>역할 *</label>
+          <select id="acc-role" onchange="toggleAgencyField()">
+            <option value="">선택</option>
+            <option value="branch">지부장</option>
+            <option value="therapist">치료사</option>
+            <option value="agency">기관담당자</option>
+          </select>
+        </div>
+        <div class="form-group" id="acc-agency-group" style="display:none">
+          <label>소속 기관 *</label>
+          <select id="acc-agency"><option value="">기관 선택</option></select>
+        </div>
+        <div class="form-group full">
+          <label>임시 비밀번호 * <small style="font-weight:400;color:var(--gray-4)">(영문+숫자 8자 이상)</small></label>
+          <input type="text" id="acc-pw" placeholder="예: htc12345">
+        </div>
+        <div class="form-group full"><label>메모</label><input type="text" id="acc-note" placeholder="자격증, 전공, 특기사항 등"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-account')">취소</button>
+      <button class="btn btn-primary" onclick="saveAccount()" style="width:auto">저장</button>
+    </div>
+  </div>
+</div>
+<!-- 상세보기 -->
+<div class="modal-overlay" id="modal-detail">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div class="modal-title" id="detail-modal-title">내담자 상세</div>
+      <button class="modal-close" onclick="closeModal('modal-detail')">✕</button>
+    </div>
+    <div class="modal-body" id="detail-modal-body"></div>
+    <div class="modal-footer" id="detail-modal-footer"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+// ─── STATE ───────────────────────────────────
+let currentUser = null;
+let currentUserProfile = null;
+let agencies = [];
+let accounts = [];
+let clients = [];
+let sessions = [];
+let editingId = { referral: null, session: null, agency: null };
+
+// ─── 역할 · 열람 권한 ─────────────────────────
+// 센터장(admin) : 전부
+// 지부장(branch): 본인 것 + 치료사·기관담당자가 쓴 것 + 센터장이 '공개'한 것
+// 치료사        : 본인 것 + 본인 담당 + 센터장이 '공개'한 것
+// 기관담당자    : 본인 것 + 소속 기관 건 + 센터장이 '공개'한 것
+const ROLE_LABEL = { admin:'센터장', branch:'지부장', therapist:'치료사', agency:'기관담당자' };
+const ROLE_CLASS = { admin:'role-admin', branch:'role-branch', therapist:'role-therapist', agency:'role-agency' };
+const ROLE_BADGE = { admin:'badge-gold', branch:'badge-purple', therapist:'badge-blue', agency:'badge-green' };
+
+function ROLE() { return currentUserProfile?.role || 'therapist'; }
+function isAdmin() { return ROLE() === 'admin'; }
+function myUid() { return currentUser?.uid || ''; }
+// 작성자 역할이 없는 예전 자료는 센터장 작성분으로 본다
+function authorRoleOf(d) { return d.authorRole || 'admin'; }
+function isMine(d) { return !!d.registeredBy && d.registeredBy === myUid(); }
+
+function canSee(d) {
+  if (isAdmin()) return true;
+  if (isMine(d)) return true;
+  const ar = authorRoleOf(d);
+  if (ar === 'admin') return d.visibility === '공개';   // 센터장 작성분은 공개일 때만
+  const role = ROLE();
+  if (role === 'branch') return true;                   // 지부장은 치료사·기관담당자 작성분 전부
+  if (role === 'therapist') return d.therapistId === myUid();
+  if (role === 'agency') return !!d.agencyId && d.agencyId === currentUserProfile?.agencyId;
+  return false;
+}
+function canEdit(d) { return isAdmin() || isMine(d); }
+
+// 저장할 때 작성자·공개여부를 찍는다
+function stampAuthor(data, isNew, visibilityElId) {
+  if (isNew) {
+    data.registeredBy = myUid();
+    data.authorRole = ROLE();
+  }
+  const el = document.getElementById(visibilityElId);
+  data.visibility = isAdmin() ? (el?.value || '비공개') : '비공개';
+  return data;
+}
+function visTag(d) {
+  return d.visibility === '공개'
+    ? '<span class="vis-tag vis-open">공개</span>'
+    : '<span class="vis-tag vis-closed">비공개</span>';
+}
+
+// ─── INIT ────────────────────────────────────
+document.addEventListener('firebaseReady', () => {
+  import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js').then(m => {
+    m.onAuthStateChanged(window.__auth, handleAuthChange);
+  });
+});
+async function handleAuthChange(user) {
+  if (user) {
+    currentUser = user;
+    await loadUserProfile(user.uid);
+    showApp();
+    loadAllData();
+  } else {
+    currentUser = null;
+    currentUserProfile = null;
+    showLoginPage();
+  }
+}
+async function loadUserProfile(uid) {
+  const { doc, getDoc, setDoc } = window.__firebase;
+  // 1) bjw_roles 에 admin 으로 등록돼 있으면 센터장
+  try {
+    const r = await getDoc(doc(window.__db, 'bjw_roles', uid));
+    if (r.exists() && r.data().role === 'admin') {
+      currentUserProfile = { id: uid, role: 'admin', name: '박진우', email: currentUser.email };
+      return;
+    }
+  } catch(e) {}
+  // 2) 기존 하드코딩 계정도 계속 센터장으로 인정
+  if (currentUser.email === 'bakjinwoo92@daum.net') {
+    currentUserProfile = { id: uid, role: 'admin', name: '박진우', email: currentUser.email };
+    return;
+  }
+  // 3) cms_accounts 의 역할
+  try {
+    const snap = await getDoc(doc(window.__db, 'cms_accounts', uid));
+    if (snap.exists()) {
+      currentUserProfile = { id: snap.id, ...snap.data() };
+    } else {
+      currentUserProfile = { role: 'therapist', name: currentUser.email, email: currentUser.email };
+    }
+  } catch(e) {
+    currentUserProfile = { role: 'therapist', name: currentUser?.email, email: currentUser?.email };
+  }
+}
+// ─── AUTH ─────────────────────────────────────
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pw = document.getElementById('login-password').value;
+  document.getElementById('login-error').style.display = 'none';
+  if (!email || !pw) { showLoginError('이메일과 비밀번호를 입력해 주세요.'); return; }
+  document.getElementById('login-btn').textContent = '로그인 중...';
+  try {
+    const { signInWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
+    await signInWithEmailAndPassword(window.__auth, email, pw);
+  } catch(e) {
+    let msg = '로그인에 실패했습니다.';
+    if (['auth/user-not-found','auth/wrong-password','auth/invalid-credential'].includes(e.code))
+      msg = '이메일 또는 비밀번호가 올바르지 않습니다.';
+    if (e.code === 'auth/unauthorized-domain')
+      msg = '이 주소는 Firebase 승인 도메인에 등록돼 있지 않습니다.';
+    showLoginError(msg);
+  }
+}
+function showLoginError(msg) {
+  const el = document.getElementById('login-error');
+  el.textContent = msg; el.style.display = 'block';
+  document.getElementById('login-btn').textContent = '로그인';
+}
+async function doLogout() {
+  const { signOut } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
+  await signOut(window.__auth);
+}
+document.getElementById('login-password').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+// ─── 화면 전환 ────────────────────────────────
+function showApp() {
+  document.getElementById('login-page').style.display = 'none';
+  document.getElementById('main-app').style.display = 'block';
+  const role = ROLE();
+  const name = currentUserProfile?.name || '사용자';
+  document.getElementById('topbar-role-tag').textContent = ROLE_LABEL[role] || role;
+  document.getElementById('topbar-role-tag').className = 'role-tag ' + (ROLE_CLASS[role] || '');
+  document.getElementById('topbar-username').textContent = name;
+  // 계정 관리는 센터장만 / 기관 관리는 전원 사용
+  document.getElementById('nav-accounts').style.display = isAdmin() ? '' : 'none';
+  document.getElementById('nav-section-admin').style.display = '';
+  // 의뢰 등록은 전원 가능 (치료사 포함)
+  document.getElementById('nav-referrals').style.display = '';
+  document.getElementById('btn-add-client').style.display = '';
+  const sub = { admin:'모든 내담자를 조회합니다',
+                branch:'내가 등록한 내담자와 치료사·기관이 등록한 내담자를 조회합니다',
+                therapist:'내가 등록했거나 내가 담당하는 내담자만 조회됩니다',
+                agency:'우리 기관 내담자만 조회됩니다' };
+  document.getElementById('clients-subtitle').textContent = sub[role] || '';
+  document.getElementById('dashboard-greeting').textContent = `안녕하세요, ${name}님. 오늘도 좋은 하루 되세요. 🌿`;
+}
+function showLoginPage() {
+  document.getElementById('login-page').style.display = 'flex';
+  document.getElementById('main-app').style.display = 'none';
+}
+function showPage(page) {
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  const navEl = document.getElementById('nav-' + page);
+  if (navEl) navEl.classList.add('active');
+  if (page === 'dashboard') loadDashboard();
+  if (page === 'clients') renderClientTable();
+  if (page === 'referrals') renderReferralTable();
+  if (page === 'sessions') renderSessionTable();
+  if (page === 'agencies') renderAgencyTable();
+  if (page === 'accounts') renderAccountTable();
+}
+// ─── 데이터 ───────────────────────────────────
+async function loadAllData() {
+  await loadAgencies();
+  await loadAccounts();
+  await loadClients();
+  await loadSessions();
+  loadDashboard();
+  populateFilters();
+}
+async function loadAgencies() {
+  try {
+    const { collection, getDocs } = window.__firebase;
+    const snap = await getDocs(collection(window.__db, 'cms_agencies'));
+    agencies = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(canSee);
+  } catch(e) { agencies = []; }
+}
+async function loadAccounts() {
+  try {
+    const { collection, getDocs } = window.__firebase;
+    const snap = await getDocs(collection(window.__db, 'cms_accounts'));
+    accounts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch(e) { accounts = []; }
+}
+async function loadClients() {
+  try {
+    const { collection, getDocs } = window.__firebase;
+    const snap = await getDocs(collection(window.__db, 'cms_clients'));
+    clients = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      .filter(canSee)
+      .sort((a,b) => (b.referralDate||'') > (a.referralDate||'') ? 1 : -1);
+  } catch(e) { clients = []; }
+}
+async function loadSessions() {
+  try {
+    const { collection, getDocs } = window.__firebase;
+    const snap = await getDocs(collection(window.__db, 'cms_sessions'));
+    sessions = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      .filter(canSee)
+      .sort((a,b) => (b.sessionDate||'') > (a.sessionDate||'') ? 1 : -1);
+  } catch(e) { sessions = []; }
+}
+// ─── 대시보드 ─────────────────────────────────
+function loadDashboard() {
+  document.getElementById('stat-agencies').textContent = agencies.length;
+  document.getElementById('stat-clients').textContent = clients.length;
+  document.getElementById('stat-active').textContent = clients.filter(c => c.status === '진행중').length;
+  document.getElementById('stat-sessions').textContent = sessions.length;
+  const recent = clients.slice(0, 8);
+  const tbody = document.getElementById('dashboard-recent-clients');
+  if (!recent.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--gray-4); padding:40px;">조회 가능한 내담자가 없습니다</td></tr>';
+    return;
+  }
+  tbody.innerHTML = recent.map(c => {
+    const ag = agencies.find(a => a.id === c.agencyId);
+    const th = accounts.find(a => a.id === c.therapistId);
+    return `<tr>
+      <td><strong>${c.name}</strong></td>
+      <td>${ag ? ag.name : (c.agencyName||'-')}</td>
+      <td>${th ? th.name : (c.therapistName||'-')}</td>
+      <td>${c.referralDate||'-'}</td>
+      <td>${statusBadge(c.status)}</td>
+    </tr>`;
+  }).join('');
+}
+function populateFilters() {
+  document.getElementById('client-filter-agency').innerHTML = '<option value="">전체 기관</option>' +
+    agencies.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+  document.getElementById('session-filter-client').innerHTML = '<option value="">전체 내담자</option>' +
+    clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  const staff = accounts.filter(a => a.role === 'therapist' || a.role === 'branch');
+  document.getElementById('session-filter-therapist').innerHTML = '<option value="">전체 치료사</option>' +
+    staff.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+}
+// ─── 표 ───────────────────────────────────────
+function renderClientTable() {
+  const search = document.getElementById('client-search').value.toLowerCase();
+  const statusF = document.getElementById('client-filter-status').value;
+  const agencyF = document.getElementById('client-filter-agency').value;
+  const filtered = clients.filter(c => {
+    const ag = agencies.find(a => a.id === c.agencyId);
+    const matchSearch = !search || (c.name||'').toLowerCase().includes(search)
+      || (c.birth||'').includes(search) || (ag?.name||'').toLowerCase().includes(search);
+    return matchSearch && (!statusF || c.status === statusF) && (!agencyF || c.agencyId === agencyF);
+  });
+  const tbody = document.getElementById('client-table-body');
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:var(--gray-4); padding:40px;">조회 결과가 없습니다</td></tr>';
+    return;
+  }
+  tbody.innerHTML = filtered.map(c => {
+    const ag = agencies.find(a => a.id === c.agencyId);
+    const th = accounts.find(a => a.id === c.therapistId);
+    const cnt = sessions.filter(s => s.clientId === c.id).length;
+    return `<tr>
+      <td><strong style="cursor:pointer;color:var(--green-deep)" onclick="viewClientDetail('${c.id}')">${c.name}</strong></td>
+      <td>${c.birth||'-'}</td>
+      <td>${ag ? ag.name : (c.agencyName||'-')}</td>
+      <td>${th ? th.name : (c.therapistName||'-')}</td>
+      <td><span class="badge badge-blue">${cnt}회</span></td>
+      <td>${statusBadge(c.status)}</td>
+      <td>${visTag(c)}</td>
+      <td>${c.referralDate||'-'}</td>
+      <td><div style="display:flex;gap:6px;">
+        ${canEdit(c) ? `<button class="btn btn-outline btn-sm" onclick="openReferralModal('${c.id}')">수정</button>` : ''}
+        <button class="btn btn-ghost btn-sm" onclick="viewClientDetail('${c.id}')">상세</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+function renderReferralTable() {
+  const tbody = document.getElementById('referral-table-body');
+  if (!clients.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:var(--gray-4); padding:40px;">등록된 의뢰가 없습니다</td></tr>';
+    return;
+  }
+  tbody.innerHTML = clients.map(c => {
+    const ag = agencies.find(a => a.id === c.agencyId);
+    const th = accounts.find(a => a.id === c.therapistId);
+    return `<tr>
+      <td>${c.referralDate||'-'}</td>
+      <td><strong style="cursor:pointer;color:var(--green-deep)" onclick="viewClientDetail('${c.id}')">${c.name}</strong></td>
+      <td>${c.birth||'-'}</td>
+      <td>${ag ? ag.name : (c.agencyName||'-')}</td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${c.complaint||''}">${c.complaint||'-'}</td>
+      <td>${th ? th.name : (c.therapistName||'-')}</td>
+      <td>${statusBadge(c.status)}</td>
+      <td><div style="display:flex;gap:6px;">
+        ${canEdit(c) ? `<button class="btn btn-outline btn-sm" onclick="openReferralModal('${c.id}')">수정</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteClient('${c.id}')">삭제</button>` : '<span style="color:var(--gray-4);font-size:12px">열람만</span>'}
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+function renderSessionTable() {
+  const clientF = document.getElementById('session-filter-client').value;
+  const therapistF = document.getElementById('session-filter-therapist').value;
+  const monthF = document.getElementById('session-filter-month').value;
+  const filtered = sessions.filter(s =>
+    (!clientF || s.clientId === clientF) &&
+    (!therapistF || s.therapistId === therapistF) &&
+    (!monthF || (s.sessionDate||'').startsWith(monthF)));
+  const tbody = document.getElementById('session-table-body');
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:var(--gray-4); padding:40px;">회기 기록이 없습니다</td></tr>';
+    return;
+  }
+  const engMap = {'매우 적극적':'badge-green','적극적':'badge-blue','보통':'badge-gray','소극적':'badge-gold','참여 거부':'badge-red'};
+  tbody.innerHTML = filtered.map(s => {
+    const cl = clients.find(c => c.id === s.clientId);
+    const th = accounts.find(a => a.id === s.therapistId);
+    return `<tr>
+      <td>${s.sessionDate||'-'}</td>
+      <td><strong style="cursor:pointer;color:var(--green-deep)" onclick="viewSessionDetail('${s.id}')">${cl ? cl.name : (s.clientName||'-')}</strong></td>
+      <td>${s.sessionNum ? s.sessionNum + '회차' : '-'}</td>
+      <td>${th ? th.name : (s.therapistName||'-')}</td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.activity||'-'}</td>
+      <td>${s.engagement ? `<span class="badge ${engMap[s.engagement]||'badge-gray'}">${s.engagement}</span>` : '-'}</td>
+      <td>${visTag(s)}</td>
+      <td><div style="display:flex;gap:6px;">
+        ${canEdit(s) ? `<button class="btn btn-outline btn-sm" onclick="openSessionModal('${s.id}')">수정</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteSession('${s.id}')">삭제</button>` : '<span style="color:var(--gray-4);font-size:12px">열람만</span>'}
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+function renderAgencyTable() {
+  const tbody = document.getElementById('agency-table-body');
+  if (!agencies.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:var(--gray-4); padding:40px;">조회 가능한 기관이 없습니다. 직접 등록하시거나 센터장께 공개를 요청하세요.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = agencies.map(a => {
+    const cnt = clients.filter(c => c.agencyId === a.id).length;
+    return `<tr>
+      <td><strong>${a.name}</strong></td>
+      <td>${a.contactName||'-'}</td>
+      <td>${a.phone||'-'}</td>
+      <td>${a.email||'-'}</td>
+      <td>${a.address||'-'}</td>
+      <td><span class="badge badge-blue">${cnt}명</span></td>
+      <td>${visTag(a)}</td>
+      <td><div style="display:flex;gap:6px;">
+        ${canEdit(a) ? `<button class="btn btn-outline btn-sm" onclick="openAgencyModal('${a.id}')">수정</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteAgency('${a.id}')">삭제</button>` : '<span style="color:var(--gray-4);font-size:12px">열람만</span>'}
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+function renderAccountTable() {
+  const tbody = document.getElementById('account-table-body');
+  if (!accounts.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--gray-4); padding:40px;">등록된 계정이 없습니다</td></tr>';
+    return;
+  }
+  tbody.innerHTML = accounts.map(a => {
+    const ag = agencies.find(g => g.id === a.agencyId);
+    return `<tr>
+      <td><strong>${a.name||'-'}</strong></td>
+      <td>${a.email||'-'}</td>
+      <td><span class="badge ${ROLE_BADGE[a.role]||'badge-gray'}">${ROLE_LABEL[a.role]||a.role}</span></td>
+      <td>${ag ? ag.name : (a.agencyName||'-')}</td>
+      <td><span class="badge ${a.status==='비활성'?'badge-gray':'badge-green'}">${a.status||'활성'}</span></td>
+      <td>${a.createdAt ? new Date(a.createdAt.seconds*1000).toLocaleDateString('ko-KR') : '-'}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteAccount('${a.id}')">삭제</button></td>
+    </tr>`;
+  }).join('');
+}
+// ─── 의뢰 등록 ────────────────────────────────
+function openReferralModal(clientId) {
+  editingId.referral = clientId;
+  document.getElementById('referral-modal-title').textContent = clientId ? '📋 의뢰 정보 수정' : '📋 새 의뢰 등록';
+  document.getElementById('ref-visibility-group').style.display = isAdmin() ? '' : 'none';
+  document.getElementById('ref-agency').innerHTML = '<option value="">기관 선택</option>' +
+    agencies.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+  const staff = accounts.filter(a => a.role === 'therapist' || a.role === 'branch');
+  const meOpt = (!isAdmin() && !staff.find(t => t.id === myUid()))
+    ? `<option value="${myUid()}">${currentUserProfile?.name||'본인'} (본인)</option>` : '';
+  document.getElementById('ref-therapist').innerHTML = '<option value="">치료사 선택</option>' + meOpt +
+    staff.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+  if (clientId) {
+    const c = clients.find(x => x.id === clientId);
+    if (c) {
+      document.getElementById('ref-name').value = c.name||'';
+      document.getElementById('ref-birth').value = c.birth||'';
+      document.getElementById('ref-gender').value = c.gender||'';
+      document.getElementById('ref-phone').value = c.phone||'';
+      document.getElementById('ref-address').value = c.address||'';
+      document.getElementById('ref-guardian').value = c.guardian||'';
+      document.getElementById('ref-agency').value = c.agencyId||'';
+      document.getElementById('ref-date').value = c.referralDate||'';
+      document.getElementById('ref-therapist').value = c.therapistId||'';
+      document.getElementById('ref-status').value = c.status||'대기';
+      document.getElementById('ref-visibility').value = c.visibility||'비공개';
+      document.getElementById('ref-complaint').value = c.complaint||'';
+      document.getElementById('ref-diagnosis').value = c.diagnosis||'';
+      document.getElementById('ref-note').value = c.note||'';
+    }
+  } else {
+    ['ref-name','ref-birth','ref-gender','ref-phone','ref-address','ref-guardian',
+     'ref-agency','ref-therapist','ref-complaint','ref-diagnosis','ref-note'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el.tagName === 'SELECT') el.selectedIndex = 0; else el.value = '';
+    });
+    document.getElementById('ref-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('ref-status').value = '대기';
+    document.getElementById('ref-visibility').value = '비공개';
+    if (ROLE() === 'agency' && currentUserProfile?.agencyId)
+      document.getElementById('ref-agency').value = currentUserProfile.agencyId;
+    if (ROLE() === 'therapist' || ROLE() === 'branch')
+      document.getElementById('ref-therapist').value = myUid();
+  }
+  openModal('modal-referral');
+}
+async function saveReferral() {
+  const name = document.getElementById('ref-name').value.trim();
+  const agencyId = document.getElementById('ref-agency').value;
+  const referralDate = document.getElementById('ref-date').value;
+  const complaint = document.getElementById('ref-complaint').value.trim();
+  if (!name || !agencyId || !referralDate || !complaint) {
+    showToast('필수 항목(이름·기관·의뢰일·주 호소문제)을 모두 입력해 주세요.', true); return;
+  }
+  const ag = agencies.find(a => a.id === agencyId);
+  const therapistId = document.getElementById('ref-therapist').value;
+  const th = accounts.find(a => a.id === therapistId);
+  const data = {
+    name,
+    birth: document.getElementById('ref-birth').value,
+    gender: document.getElementById('ref-gender').value,
+    phone: document.getElementById('ref-phone').value,
+    address: document.getElementById('ref-address').value,
+    guardian: document.getElementById('ref-guardian').value,
+    agencyId, agencyName: ag?.name || '',
+    referralDate,
+    therapistId: therapistId || '',
+    therapistName: th?.name || (therapistId === myUid() ? (currentUserProfile?.name||'') : ''),
+    status: document.getElementById('ref-status').value,
+    complaint,
+    diagnosis: document.getElementById('ref-diagnosis').value,
+    note: document.getElementById('ref-note').value,
+    updatedAt: window.__firebase.serverTimestamp(),
+  };
+  stampAuthor(data, !editingId.referral, 'ref-visibility');
+  try {
+    const { collection, doc, addDoc, updateDoc, serverTimestamp } = window.__firebase;
+    if (editingId.referral) {
+      await updateDoc(doc(window.__db, 'cms_clients', editingId.referral), data);
+      showToast('내담자 정보가 수정되었습니다.');
+    } else {
+      data.createdAt = serverTimestamp();
+      await addDoc(collection(window.__db, 'cms_clients'), data);
+      showToast('의뢰가 등록되었습니다.');
+    }
+    closeModal('modal-referral');
+    await loadClients();
+    renderClientTable(); renderReferralTable(); loadDashboard(); populateFilters();
+  } catch(e) { showToast('저장 중 오류가 발생했습니다: ' + e.message, true); }
+}
+// ─── 회기 ─────────────────────────────────────
+function openSessionModal(sessionId) {
+  editingId.session = sessionId;
+  document.getElementById('session-modal-title').textContent = sessionId ? '📝 회기 기록 수정' : '📝 회기 기록 등록';
+  document.getElementById('sess-visibility-group').style.display = isAdmin() ? '' : 'none';
+  document.getElementById('sess-client').innerHTML = '<option value="">내담자 선택</option>' +
+    clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  const staff = accounts.filter(a => a.role === 'therapist' || a.role === 'branch');
+  const meOpt = !staff.find(t => t.id === myUid())
+    ? `<option value="${myUid()}">${currentUserProfile?.name||'본인'} (${ROLE_LABEL[ROLE()]||''})</option>` : '';
+  document.getElementById('sess-therapist').innerHTML = '<option value="">치료사 선택</option>' + meOpt +
+    staff.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+  if (sessionId) {
+    const s = sessions.find(x => x.id === sessionId);
+    if (s) {
+      document.getElementById('sess-client').value = s.clientId||'';
+      document.getElementById('sess-therapist').value = s.therapistId||'';
+      document.getElementById('sess-date').value = s.sessionDate||'';
+      document.getElementById('sess-num').value = s.sessionNum||'';
+      document.getElementById('sess-duration').value = s.duration||'';
+      document.getElementById('sess-engagement').value = s.engagement||'';
+      document.getElementById('sess-visibility').value = s.visibility||'비공개';
+      document.getElementById('sess-activity').value = s.activity||'';
+      document.getElementById('sess-goal').value = s.goal||'';
+      document.getElementById('sess-observation').value = s.observation||'';
+      document.getElementById('sess-intervention').value = s.intervention||'';
+      document.getElementById('sess-evaluation').value = s.evaluation||'';
+      document.getElementById('sess-note').value = s.note||'';
+    }
+  } else {
+    ['sess-client','sess-therapist','sess-engagement','sess-num','sess-duration','sess-activity',
+     'sess-goal','sess-observation','sess-intervention','sess-evaluation','sess-note'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el.tagName === 'SELECT') el.selectedIndex = 0; else el.value = '';
+    });
+    document.getElementById('sess-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('sess-visibility').value = '비공개';
+    if (!isAdmin()) document.getElementById('sess-therapist').value = myUid();
+  }
+  openModal('modal-session');
+}
+async function saveSession() {
+  const clientId = document.getElementById('sess-client').value;
+  const therapistId = document.getElementById('sess-therapist').value;
+  const sessionDate = document.getElementById('sess-date').value;
+  const activity = document.getElementById('sess-activity').value.trim();
+  if (!clientId || !therapistId || !sessionDate || !activity) {
+    showToast('필수 항목(내담자·치료사·일자·주요 활동)을 모두 입력해 주세요.', true); return;
+  }
+  const cl = clients.find(c => c.id === clientId);
+  const th = accounts.find(a => a.id === therapistId);
+  const data = {
+    clientId, clientName: cl?.name||'',
+    therapistId,
+    therapistName: th?.name || (therapistId === myUid() ? (currentUserProfile?.name||'') : ''),
+    sessionDate,
+    sessionNum: parseInt(document.getElementById('sess-num').value)||null,
+    duration: parseInt(document.getElementById('sess-duration').value)||null,
+    engagement: document.getElementById('sess-engagement').value,
+    activity,
+    goal: document.getElementById('sess-goal').value,
+    observation: document.getElementById('sess-observation').value,
+    intervention: document.getElementById('sess-intervention').value,
+    evaluation: document.getElementById('sess-evaluation').value,
+    note: document.getElementById('sess-note').value,
+    updatedAt: window.__firebase.serverTimestamp(),
+  };
+  stampAuthor(data, !editingId.session, 'sess-visibility');
+  try {
+    const { collection, doc, addDoc, updateDoc, serverTimestamp } = window.__firebase;
+    if (editingId.session) {
+      await updateDoc(doc(window.__db, 'cms_sessions', editingId.session), data);
+      showToast('회기 기록이 수정되었습니다.');
+    } else {
+      data.createdAt = serverTimestamp();
+      await addDoc(collection(window.__db, 'cms_sessions'), data);
+      showToast('회기 기록이 등록되었습니다.');
+    }
+    closeModal('modal-session');
+    await loadSessions();
+    renderSessionTable(); loadDashboard();
+  } catch(e) { showToast('저장 중 오류가 발생했습니다: ' + e.message, true); }
+}
+// ─── 기관 ─────────────────────────────────────
+function openAgencyModal(agencyId) {
+  editingId.agency = agencyId;
+  document.getElementById('agency-modal-title').textContent = agencyId ? '🏢 기관 정보 수정' : '🏢 기관 등록';
+  document.getElementById('ag-visibility-group').style.display = isAdmin() ? '' : 'none';
+  if (agencyId) {
+    const a = agencies.find(x => x.id === agencyId);
+    if (a) {
+      document.getElementById('ag-name').value = a.name||'';
+      document.getElementById('ag-contact-name').value = a.contactName||'';
+      document.getElementById('ag-phone').value = a.phone||'';
+      document.getElementById('ag-email').value = a.email||'';
+      document.getElementById('ag-address').value = a.address||'';
+      document.getElementById('ag-visibility').value = a.visibility||'비공개';
+      document.getElementById('ag-note').value = a.note||'';
+    }
+  } else {
+    ['ag-name','ag-contact-name','ag-phone','ag-email','ag-address','ag-note'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('ag-visibility').value = '비공개';
+  }
+  openModal('modal-agency');
+}
+async function saveAgency() {
+  const name = document.getElementById('ag-name').value.trim();
+  const contactName = document.getElementById('ag-contact-name').value.trim();
+  const phone = document.getElementById('ag-phone').value.trim();
+  if (!name || !contactName || !phone) { showToast('기관명, 담당자명, 연락처는 필수입니다.', true); return; }
+  const data = {
+    name, contactName, phone,
+    email: document.getElementById('ag-email').value,
+    address: document.getElementById('ag-address').value,
+    note: document.getElementById('ag-note').value,
+    updatedAt: window.__firebase.serverTimestamp(),
+  };
+  stampAuthor(data, !editingId.agency, 'ag-visibility');
+  try {
+    const { collection, doc, addDoc, updateDoc, serverTimestamp } = window.__firebase;
+    if (editingId.agency) {
+      await updateDoc(doc(window.__db, 'cms_agencies', editingId.agency), data);
+      showToast('기관 정보가 수정되었습니다.');
+    } else {
+      data.createdAt = serverTimestamp();
+      await addDoc(collection(window.__db, 'cms_agencies'), data);
+      showToast('기관이 등록되었습니다.');
+    }
+    closeModal('modal-agency');
+    await loadAgencies();
+    renderAgencyTable(); populateFilters(); loadDashboard();
+  } catch(e) { showToast('저장 중 오류가 발생했습니다: ' + e.message, true); }
+}
+// ─── 계정 ─────────────────────────────────────
+function openAccountModal() {
+  document.getElementById('acc-agency').innerHTML = '<option value="">기관 선택</option>' +
+    agencies.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+  ['acc-name','acc-email','acc-pw','acc-note'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('acc-role').selectedIndex = 0;
+  document.getElementById('acc-agency-group').style.display = 'none';
+  openModal('modal-account');
+}
+function toggleAgencyField() {
+  const role = document.getElementById('acc-role').value;
+  document.getElementById('acc-agency-group').style.display = (role === 'agency') ? '' : 'none';
+}
+async function saveAccount() {
+  const name  = document.getElementById('acc-name').value.trim();
+  const email = document.getElementById('acc-email').value.trim();
+  const role  = document.getElementById('acc-role').value;
+  const pw    = document.getElementById('acc-pw').value.trim();
+  if (!name || !email || !role || !pw) { showToast('모든 필수 항목을 입력해 주세요.', true); return; }
+  if (pw.length < 8) { showToast('비밀번호는 8자 이상이어야 합니다.', true); return; }
+  const agencyId = document.getElementById('acc-agency').value;
+  const ag = agencies.find(a => a.id === agencyId);
+  try {
+    const { createUserWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
+    const cred = await createUserWithEmailAndPassword(window.__auth, email, pw);
+    const uid  = cred.user.uid;
+    const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    await setDoc(doc(window.__db, 'cms_accounts', uid), {
+      name, email, role,
+      agencyId: agencyId||'', agencyName: ag?.name||'',
+      note: document.getElementById('acc-note').value,
+      status: '활성',
+      createdAt: window.__firebase.serverTimestamp(),
+      createdBy: currentUser?.uid,
+    });
+    showToast(`✅ ${name}님(${ROLE_LABEL[role]}) 계정이 생성됐습니다. 이메일: ${email} / 임시PW: ${pw}`);
+    closeModal('modal-account');
+    await loadAccounts(); renderAccountTable();
+  } catch(e) {
+    const msg = e.code === 'auth/email-already-in-use' ? '이미 사용 중인 이메일입니다.' :
+                e.code === 'auth/invalid-email'        ? '이메일 형식이 올바르지 않습니다.' :
+                e.code === 'auth/weak-password'        ? '비밀번호가 너무 약합니다.' :
+                '오류: ' + e.message;
+    showToast(msg, true);
+  }
+}
+// ─── 기존 자료 정리 ───────────────────────────
+async function runBackfill() {
+  if (!isAdmin()) { showToast('센터장만 실행할 수 있습니다.', true); return; }
+  if (!confirm('작성자 정보가 없는 기존 자료를 모두 "센터장 작성 · 비공개"로 정리합니다.\n계속할까요?')) return;
+  const btn = document.getElementById('backfill-btn');
+  btn.disabled = true; btn.textContent = '정리 중...';
+  const out = document.getElementById('backfill-result');
+  let done = 0;
+  try {
+    const { collection, getDocs, doc, updateDoc } = window.__firebase;
+    for (const col of ['cms_agencies','cms_clients','cms_sessions']) {
+      const snap = await getDocs(collection(window.__db, col));
+      for (const d of snap.docs) {
+        const v = d.data();
+        if (v.authorRole && v.visibility) continue;
+        await updateDoc(doc(window.__db, col, d.id), {
+          authorRole: v.authorRole || 'admin',
+          visibility: v.visibility || '비공개',
+          registeredBy: v.registeredBy || myUid(),
+        });
+        done++;
+        out.textContent = `${done}건 정리 중...`;
+      }
+    }
+    out.textContent = `완료 — ${done}건을 정리했습니다.`;
+    showToast(`기존 자료 ${done}건을 정리했습니다.`);
+    await loadAllData();
+  } catch(e) {
+    out.textContent = '오류: ' + e.message;
+    showToast('정리 중 오류: ' + e.message, true);
+  } finally {
+    btn.disabled = false; btn.textContent = '기존 자료에 작성자·공개여부 채우기';
+  }
+}
+// ─── 상세 보기 ────────────────────────────────
+function viewClientDetail(clientId) {
+  const c = clients.find(x => x.id === clientId);
+  if (!c) return;
+  const ag = agencies.find(a => a.id === c.agencyId);
+  const th = accounts.find(a => a.id === c.therapistId);
+  const cs = sessions.filter(s => s.clientId === clientId).sort((a,b) => (a.sessionDate||'') > (b.sessionDate||'') ? 1 : -1);
+  document.getElementById('detail-modal-title').textContent = `👤 ${c.name} 내담자 상세`;
+  const engMap = {'매우 적극적':'badge-green','적극적':'badge-blue','보통':'badge-gray','소극적':'badge-gold','참여 거부':'badge-red'};
+  document.getElementById('detail-modal-body').innerHTML = `
+    <div style="margin-bottom:20px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <strong style="font-size:16px; color:var(--green-deep)">${c.name}</strong>
+        <span style="display:flex;gap:6px;align-items:center">${visTag(c)}${statusBadge(c.status)}</span>
+      </div>
+      <div class="detail-grid">
+        <div class="detail-label">의뢰 기관</div><div class="detail-value">${ag ? ag.name : (c.agencyName||'-')}</div>
+        <div class="detail-label">담당 치료사</div><div class="detail-value">${th ? th.name : (c.therapistName||'-')}</div>
+        <div class="detail-label">의뢰일</div><div class="detail-value">${c.referralDate||'-'}</div>
+        <div class="detail-label">진단명</div><div class="detail-value">${c.diagnosis||'-'}</div>
+        <div class="detail-label">주 호소문제</div><div class="detail-value" style="white-space:pre-wrap">${c.complaint||'-'}</div>
+        <div class="detail-label">특이사항</div><div class="detail-value" style="white-space:pre-wrap">${c.note||'-'}</div>
+      </div>
+    </div>
+    <div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <strong style="color:var(--green-deep);">📝 회기 기록 (${cs.length}회)</strong>
+        <button class="btn btn-primary btn-sm" style="width:auto" onclick="closeModal('modal-detail'); openSessionModal(null); document.getElementById('sess-client').value='${clientId}';">회기 추가</button>
+      </div>
+      ${cs.length ? `<div class="session-list">${cs.map(s => `
+        <div class="session-item" onclick="viewSessionDetail('${s.id}')">
+          <div class="session-header">
+            <span class="session-num">${s.sessionNum ? s.sessionNum+'회차' : '회기'}</span>
+            <div class="session-meta">
+              <span>${s.sessionDate||''}</span>
+              ${s.engagement ? `<span class="badge ${engMap[s.engagement]||'badge-gray'}">${s.engagement}</span>` : ''}
+            </div>
+          </div>
+          <div class="session-preview"><strong>활동:</strong> ${s.activity||''} ${s.observation ? '· ' + s.observation : ''}</div>
+        </div>`).join('')}</div>`
+      : '<div style="text-align:center;padding:24px;color:var(--gray-4);">등록된 회기 기록이 없습니다</div>'}
+    </div>`;
+  document.getElementById('detail-modal-footer').innerHTML = `
+    <button class="btn btn-ghost" onclick="closeModal('modal-detail')">닫기</button>
+    <button class="btn btn-gold" style="width:auto" onclick="downloadClientDoc('${clientId}')">📄 문서 저장</button>
+    ${canEdit(c) ? `<button class="btn btn-outline" style="width:auto" onclick="closeModal('modal-detail'); openReferralModal('${clientId}')">정보 수정</button>` : ''}`;
+  openModal('modal-detail');
+}
+function downloadClientDoc(clientId) {
+  const c = clients.find(x => x.id === clientId);
+  if (!c) return;
+  const ag = agencies.find(a => a.id === c.agencyId);
+  const th = accounts.find(a => a.id === c.therapistId);
+  const cs = sessions.filter(s => s.clientId === clientId).sort((a,b) => (a.sessionDate||'') > (b.sessionDate||'') ? 1 : -1);
+  const today = new Date().toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric' });
+  const engColor = { '매우 적극적':'#1C7A3A','적극적':'#1A5A8A','보통':'#444440','소극적':'#8A6A20','참여 거부':'#8A1A1A' };
+  const engBg = { '매우 적극적':'#D4EDDA','적극적':'#D6E8F7','보통':'#E8E8E5','소극적':'#F5EDD0','참여 거부':'#FDDEDE' };
+  const sessionRows = cs.length ? cs.map((s, i) => `
+    <div class="session-block">
+      <div class="session-header">
+        <span class="session-badge">${s.sessionNum ? s.sessionNum + '회차' : (i+1) + '회차'}</span>
+        <span class="session-date">${s.sessionDate||''}</span>
+        ${s.engagement ? `<span class="eng-tag" style="background:${engBg[s.engagement]||'#eee'};color:${engColor[s.engagement]||'#444'}">${s.engagement}</span>` : ''}
+        <span class="therapist-tag">담당: ${s.therapistName||'-'}</span>
+      </div>
+      <table class="session-table">
+        <tr><td class="sl">주요 활동</td><td class="sv">${s.activity||'-'}</td></tr>
+        <tr><td class="sl">회기 목표</td><td class="sv">${s.goal||'-'}</td></tr>
+        ${s.duration ? `<tr><td class="sl">진행 시간</td><td class="sv">${s.duration}분</td></tr>` : ''}
+        <tr><td class="sl">관찰 내용</td><td class="sv">${s.observation||'-'}</td></tr>
+        <tr><td class="sl">치료적 개입</td><td class="sv">${s.intervention||'-'}</td></tr>
+        <tr><td class="sl">평가 및 소견</td><td class="sv">${s.evaluation||'-'}</td></tr>
+        ${s.note ? `<tr><td class="sl">특이사항</td><td class="sv">${s.note}</td></tr>` : ''}
+      </table>
+    </div>`).join('') : '<p style="color:#888;text-align:center;padding:20px">등록된 회기 기록이 없습니다</p>';
+  const html = `<!DOCTYPE html>
+<html lang="ko"><head><meta charset="UTF-8">
+<title>${c.name} 회기 기록지 - 박진우원예치료센터</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans KR',sans-serif;color:#1A1A18;background:#F4F4F2;font-size:13px}
+.print-bar{position:fixed;top:0;left:0;right:0;background:#1C4A2A;padding:12px 24px;display:flex;gap:12px;justify-content:space-between;align-items:center;z-index:999}
+.print-bar-title{color:rgba(255,255,255,.8);font-size:13px}.print-bar-title strong{color:white}
+.print-btn{padding:8px 18px;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;background:#C8A84B;color:white}
+.doc-outer{padding:72px 16px 40px}
+.doc-wrap{max-width:740px;margin:0 auto;background:white;padding:48px 52px;box-shadow:0 4px 24px rgba(0,0,0,.12);border-radius:4px}
+.doc-header{border-bottom:3px solid #1C4A2A;padding-bottom:20px;margin-bottom:28px}
+.center-name{font-size:12px;color:#1C4A2A;font-weight:700;margin-bottom:6px}
+.doc-title{font-family:'Noto Serif KR',serif;font-size:24px;font-weight:600;color:#1C4A2A}
+.doc-meta{font-size:12px;color:#888;margin-top:6px}
+.section-title{font-size:13px;font-weight:700;color:#1C4A2A;border-left:4px solid #1C4A2A;padding-left:10px;margin:28px 0 12px}
+.info-table{width:100%;border-collapse:collapse}
+.info-table td{padding:9px 13px;border:1px solid #E0E0DC;font-size:13px;vertical-align:top}
+.info-table td.lbl{background:#F4F7F4;color:#1C4A2A;font-weight:700;width:100px;white-space:nowrap}
+.status-tag{display:inline-block;padding:3px 12px;border-radius:20px;font-size:11px;font-weight:700}
+.s-on{background:#D4EDDA;color:#1C7A3A}.s-wait{background:#F5EDD0;color:#8A6A20}.s-end{background:#E8E8E5;color:#444}
+.session-block{margin-bottom:16px;border:1px solid #E0E0DC;border-radius:8px;overflow:hidden;page-break-inside:avoid}
+.session-header{background:#F4F7F4;padding:10px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:1px solid #E0E0DC}
+.session-badge{background:#1C4A2A;color:white;font-size:11px;font-weight:700;padding:3px 12px;border-radius:20px}
+.session-date{font-size:12px;color:#555;font-weight:500}
+.eng-tag{font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px}
+.therapist-tag{font-size:12px;color:#888;margin-left:auto}
+.session-table{width:100%;border-collapse:collapse}
+.session-table .sl{width:90px;padding:9px 13px;background:#FAFAF8;color:#888;font-weight:600;font-size:12px;border-bottom:1px solid #F0F0EC;vertical-align:top;white-space:nowrap}
+.session-table .sv{padding:9px 14px;border-bottom:1px solid #F0F0EC;font-size:13px;line-height:1.7}
+.session-table tr:last-child td{border-bottom:none}
+.sign-section{margin-top:40px;border-top:2px solid #E0E0DC;padding-top:24px}
+.sign-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.sign-box{border:1px solid #E0E0DC;border-radius:8px;padding:16px;text-align:center}
+.sign-label{font-size:11px;color:#888;margin-bottom:32px;font-weight:600}
+.sign-line{border-top:1px solid #888;padding-top:8px;font-size:11px;color:#555}
+.doc-footer{margin-top:32px;text-align:center;font-size:11px;color:#aaa;border-top:1px solid #eee;padding-top:16px;line-height:1.8}
+@media print{.print-bar{display:none!important}.doc-outer{padding:0}.doc-wrap{box-shadow:none;padding:32px 40px}body{background:white}}
+</style></head><body>
+<div class="print-bar">
+  <div class="print-bar-title">📄 <strong>${c.name}</strong> 내담자 회기 기록지</div>
+  <button class="print-btn" onclick="window.print()">🖨️ 인쇄 / PDF 저장</button>
+</div>
+<div class="doc-outer"><div class="doc-wrap">
+  <div class="doc-header">
+    <div class="center-name">🌿 박진우원예치료센터 · 원예치료 회기 기록지</div>
+    <div class="doc-title">원예치료 회기 기록지</div>
+    <div class="doc-meta">출력일: ${today} &nbsp;|&nbsp; 의뢰 기관: ${ag?.name || c.agencyName || '-'}</div>
+  </div>
+  <div class="section-title">📋 내담자 기본 정보</div>
+  <table class="info-table">
+    <tr>
+      <td class="lbl">이름</td><td><strong>${c.name}</strong></td>
+      <td class="lbl">진행 상태</td><td><span class="status-tag ${c.status==='진행중'?'s-on':c.status==='대기'?'s-wait':'s-end'}">${c.status||'-'}</span></td>
+    </tr>
+    <tr><td class="lbl">진단명</td><td colspan="3">${c.diagnosis||'-'}</td></tr>
+    <tr>
+      <td class="lbl">의뢰 기관</td><td>${ag?.name || c.agencyName || '-'}</td>
+      <td class="lbl">의뢰일</td><td>${c.referralDate||'-'}</td>
+    </tr>
+    <tr>
+      <td class="lbl">담당 치료사</td><td>${th?.name || c.therapistName || '-'}</td>
+      <td class="lbl">총 회기</td><td>${cs.length}회</td>
+    </tr>
+    <tr><td class="lbl">주 호소문제</td><td colspan="3">${c.complaint||'-'}</td></tr>
+    ${c.note ? `<tr><td class="lbl">특이사항</td><td colspan="3">${c.note}</td></tr>` : ''}
+  </table>
+  <div class="section-title">📝 회기 기록 (총 ${cs.length}회)</div>
+  ${sessionRows}
+  <div class="sign-section">
+    <div class="sign-grid">
+      <div class="sign-box"><div class="sign-label">담당 치료사</div><div class="sign-line">${th?.name || c.therapistName || '　　　　'} (서명)</div></div>
+      <div class="sign-box"><div class="sign-label">센터장</div><div class="sign-line">박진우 (서명)</div></div>
+      <div class="sign-box"><div class="sign-label">기관 담당자 확인</div><div class="sign-line">　　　　　　 (서명)</div></div>
+    </div>
+  </div>
+  <div class="doc-footer">박진우원예치료센터 · www.parkjinwoohtc.com<br>본 문서는 내부 관리용이며 외부 유출을 금합니다.</div>
+</div></div></body></html>`;
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const win = window.open(url, '_blank');
+  if (!win) showToast('팝업이 차단되었습니다. 팝업 허용 후 다시 시도해 주세요.', true);
+  else showToast('문서가 열렸습니다. 인쇄 또는 PDF로 저장하세요.');
+}
+async function viewSessionDetail(sessionId) {
+  const s = sessions.find(x => x.id === sessionId);
+  if (!s) return;
+  const cl = clients.find(c => c.id === s.clientId);
+  const th = accounts.find(a => a.id === s.therapistId);
+  let feedbacks = [];
+  try {
+    const { collection, getDocs, query, orderBy } = window.__firebase;
+    const snap = await getDocs(query(
+      collection(window.__db, 'cms_sessions', sessionId, 'feedbacks'), orderBy('createdAt', 'asc')));
+    feedbacks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch(e) { feedbacks = []; }
+  const roleColor = { admin:'#C8A84B', branch:'#7B5EA7', agency:'#2D6A3F', therapist:'#1A5A8A' };
+  const feedbackHTML = feedbacks.length ? feedbacks.map(f => `
+    <div style="display:flex;gap:10px;margin-bottom:14px;align-items:flex-start;">
+      <div style="width:34px;height:34px;border-radius:50%;background:${roleColor[f.role]||'#888'};
+        display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;
+        color:white;flex-shrink:0;">${(f.authorName||'?')[0]}</div>
+      <div style="flex:1;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+          <strong style="font-size:13px;color:var(--text)">${f.authorName||'알 수 없음'}</strong>
+          <span style="font-size:10px;padding:1px 7px;border-radius:10px;font-weight:600;
+            background:${roleColor[f.role]||'#888'}22;color:${roleColor[f.role]||'#888'}">${ROLE_LABEL[f.role]||f.role}</span>
+          <span style="font-size:11px;color:var(--gray-4)">${f.createdAt ? new Date(f.createdAt.seconds*1000).toLocaleDateString('ko-KR',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : ''}</span>
+          ${f.authorId === myUid() ? `<button onclick="deleteFeedback('${sessionId}','${f.id}')"
+            style="margin-left:auto;background:none;border:none;cursor:pointer;font-size:11px;color:var(--gray-4)">삭제</button>` : ''}
+        </div>
+        <div style="background:var(--gray-1);border-radius:0 10px 10px 10px;padding:10px 14px;
+          font-size:13px;line-height:1.6;color:var(--text);white-space:pre-wrap;">${f.content}</div>
+      </div>
+    </div>`).join('')
+  : '<div style="text-align:center;color:var(--gray-4);padding:16px;font-size:13px">아직 피드백이 없습니다</div>';
+  document.getElementById('detail-modal-title').textContent = '📝 회기 기록 상세';
+  document.getElementById('detail-modal-body').innerHTML = `
+    <div class="detail-grid">
+      <div class="detail-label">내담자</div><div class="detail-value">${cl ? cl.name : (s.clientName||'-')}</div>
+      <div class="detail-label">담당 치료사</div><div class="detail-value">${th ? th.name : (s.therapistName||'-')}</div>
+      <div class="detail-label">회기 일자</div><div class="detail-value">${s.sessionDate||'-'}</div>
+      <div class="detail-label">회기 차수</div><div class="detail-value">${s.sessionNum ? s.sessionNum + '회차' : '-'}</div>
+      <div class="detail-label">진행 시간</div><div class="detail-value">${s.duration ? s.duration + '분' : '-'}</div>
+      <div class="detail-label">참여도</div><div class="detail-value">${s.engagement||'-'}</div>
+      <div class="detail-label">공개 범위</div><div class="detail-value">${visTag(s)}</div>
+      <div class="detail-label">주요 활동</div><div class="detail-value">${s.activity||'-'}</div>
+      <div class="detail-label">회기 목표</div><div class="detail-value" style="white-space:pre-wrap">${s.goal||'-'}</div>
+      <div class="detail-label">관찰 내용</div><div class="detail-value" style="white-space:pre-wrap">${s.observation||'-'}</div>
+      <div class="detail-label">치료적 개입</div><div class="detail-value" style="white-space:pre-wrap">${s.intervention||'-'}</div>
+      <div class="detail-label">평가 및 소견</div><div class="detail-value" style="white-space:pre-wrap">${s.evaluation||'-'}</div>
+      <div class="detail-label">특이사항</div><div class="detail-value" style="white-space:pre-wrap">${s.note||'-'}</div>
+    </div>
+    <div style="margin-top:24px;border-top:2px solid var(--green-pale);padding-top:20px;">
+      <div style="font-size:14px;font-weight:700;color:var(--green-deep);margin-bottom:16px;display:flex;align-items:center;gap:6px;">
+        💬 피드백 <span style="font-size:12px;font-weight:400;color:var(--gray-4)">(${feedbacks.length}개)</span>
+      </div>
+      <div id="feedback-list-${sessionId}" style="margin-bottom:16px;">${feedbackHTML}</div>
+      <div style="background:var(--green-pale);border-radius:10px;padding:14px;">
+        <textarea id="feedback-input-${sessionId}" placeholder="피드백을 입력하세요..."
+          style="width:100%;border:1.5px solid var(--gray-2);border-radius:8px;padding:10px 12px;
+          font-size:13px;font-family:'Noto Sans KR',sans-serif;resize:none;min-height:70px;outline:none;background:white;"></textarea>
+        <div style="display:flex;justify-content:flex-end;margin-top:8px;">
+          <button onclick="saveFeedback('${sessionId}')"
+            style="background:var(--green-deep);color:white;border:none;border-radius:8px;
+            padding:8px 20px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">
+            💬 피드백 등록</button>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('detail-modal-footer').innerHTML = `
+    <button class="btn btn-ghost" onclick="closeModal('modal-detail')">닫기</button>
+    ${canEdit(s) ? `<button class="btn btn-outline" style="width:auto" onclick="closeModal('modal-detail'); openSessionModal('${sessionId}')">수정</button>
+    <button class="btn btn-danger" style="width:auto" onclick="closeModal('modal-detail'); deleteSession('${sessionId}')">삭제</button>` : ''}`;
+  openModal('modal-detail');
+}
+async function saveFeedback(sessionId) {
+  const input = document.getElementById('feedback-input-' + sessionId);
+  const content = input?.value.trim();
+  if (!content) { showToast('피드백 내용을 입력해 주세요.', true); return; }
+  try {
+    const { collection, addDoc, serverTimestamp } = window.__firebase;
+    await addDoc(collection(window.__db, 'cms_sessions', sessionId, 'feedbacks'), {
+      content, authorId: myUid(),
+      authorName: currentUserProfile?.name || '알 수 없음',
+      role: ROLE(), createdAt: serverTimestamp(),
+    });
+    showToast('피드백이 등록됐습니다. 🌿');
+    await viewSessionDetail(sessionId);
+  } catch(e) { showToast('등록 실패: ' + e.message, true); }
+}
+async function deleteFeedback(sessionId, feedbackId) {
+  if (!confirm('이 피드백을 삭제하시겠습니까?')) return;
+  try {
+    const { doc, deleteDoc } = window.__firebase;
+    await deleteDoc(doc(window.__db, 'cms_sessions', sessionId, 'feedbacks', feedbackId));
+    showToast('피드백이 삭제됐습니다.');
+    await viewSessionDetail(sessionId);
+  } catch(e) { showToast('삭제 실패: ' + e.message, true); }
+}
+// ─── 삭제 ─────────────────────────────────────
+async function deleteClient(clientId) {
+  const c = clients.find(x => x.id === clientId);
+  if (c && !canEdit(c)) { showToast('삭제 권한이 없습니다.', true); return; }
+  if (!confirm('이 내담자를 삭제하시겠습니까? 관련 회기 기록은 삭제되지 않습니다.')) return;
+  try {
+    const { doc, deleteDoc } = window.__firebase;
+    await deleteDoc(doc(window.__db, 'cms_clients', clientId));
+    showToast('내담자가 삭제되었습니다.');
+    await loadClients(); renderClientTable(); renderReferralTable(); loadDashboard();
+  } catch(e) { showToast('삭제 실패: ' + e.message, true); }
+}
+async function deleteSession(sessionId) {
+  const s = sessions.find(x => x.id === sessionId);
+  if (s && !canEdit(s)) { showToast('삭제 권한이 없습니다.', true); return; }
+  if (!confirm('이 회기 기록을 삭제하시겠습니까?')) return;
+  try {
+    const { doc, deleteDoc } = window.__firebase;
+    await deleteDoc(doc(window.__db, 'cms_sessions', sessionId));
+    showToast('회기 기록이 삭제되었습니다.');
+    await loadSessions(); renderSessionTable(); loadDashboard();
+  } catch(e) { showToast('삭제 실패: ' + e.message, true); }
+}
+async function deleteAgency(agencyId) {
+  const a = agencies.find(x => x.id === agencyId);
+  if (a && !canEdit(a)) { showToast('삭제 권한이 없습니다.', true); return; }
+  const linked = clients.filter(c => c.agencyId === agencyId).length;
+  if (linked > 0 && !confirm(`이 기관에 연결된 내담자가 ${linked}명 있습니다.\n기관을 삭제해도 내담자 자료는 남습니다. 계속할까요?`)) return;
+  if (linked === 0 && !confirm('이 기관을 삭제하시겠습니까?')) return;
+  try {
+    const { doc, deleteDoc } = window.__firebase;
+    await deleteDoc(doc(window.__db, 'cms_agencies', agencyId));
+    showToast('기관이 삭제되었습니다.');
+    await loadAgencies(); renderAgencyTable(); populateFilters(); loadDashboard();
+  } catch(e) { showToast('삭제 실패: ' + e.message, true); }
+}
+async function deleteAccount(uid) {
+  if (!isAdmin()) { showToast('센터장만 삭제할 수 있습니다.', true); return; }
+  if (!confirm('이 계정의 권한 정보를 삭제하시겠습니까?\n(로그인 계정 자체는 Firebase 콘솔에서 삭제해야 합니다)')) return;
+  try {
+    const { doc, deleteDoc } = window.__firebase;
+    await deleteDoc(doc(window.__db, 'cms_accounts', uid));
+    showToast('계정이 삭제되었습니다.');
+    await loadAccounts(); renderAccountTable();
+  } catch(e) { showToast('삭제 실패: ' + e.message, true); }
+}
+// ─── 유틸 ─────────────────────────────────────
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function statusBadge(status) {
+  const map = { '진행중': 'badge-green', '대기': 'badge-gold', '종결': 'badge-gray' };
+  return `<span class="badge ${map[status]||'badge-gray'}">${status||'-'}</span>`;
+}
+let toastTimer;
+function showToast(msg, isError = false) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (isError ? ' error' : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = 'toast'; }, 3500);
+}
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
+});
+</script>
+</body>
+</html>
