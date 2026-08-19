@@ -203,6 +203,7 @@ pre.k{background:#1f2b23;color:#d8e6dc;border-radius:12px;padding:14px;overflow:
       <button data-p="client"><span class="ico">👤</span>내담자·회기</button>
       <button data-p="stock"><span class="ico">🪴</span>자재·정산</button>
       <div class="grp">자격검정</div>
+      <button data-p="certstatus"><span class="ico">🎖</span>자격증 상태 관리</button>
       <button data-p="cert"><span class="ico">📜</span>자격검정 관리</button>
       <button data-p="certpub"><span class="ico">🏷</span>발급 창구(공개)</button>
       <div class="grp">홈페이지</div>
@@ -339,6 +340,33 @@ pre.k{background:#1f2b23;color:#d8e6dc;border-radius:12px;padding:14px;overflow:
           <div class="bd" style="padding:0"><table>
             <thead><tr><th>발급일</th><th>견적 번호</th><th>거래처·건명</th><th class="num">견적 금액</th><th>수입 등록</th><th></th></tr></thead>
             <tbody id="tQuote"></tbody></table></div>
+        </div>
+      </section>
+
+      <!-- ========== 자격증 상태 관리 ========== -->
+      <section class="page" id="p-certstatus">
+        <div class="hint" style="margin-bottom:12px">
+          여기 등록된 내용이 <b>자격증 발급 페이지의 조회 결과</b>에 그대로 나옵니다.
+          상태를 <b>정지예정 / 정지</b>로 바꾸면 조회한 사람에게 해당 안내문이 표시됩니다.
+          개인정보 보호를 위해 이 자료함에는 생년월일·연락처를 담지 않습니다.
+        </div>
+        <div class="grid g4" style="margin-bottom:13px">
+          <div class="stat"><div class="lab">전체 발급</div><div class="val" id="cs-all">·<small>건</small></div></div>
+          <div class="stat"><div class="lab">정상</div><div class="val" id="cs-ok">·<small>건</small></div></div>
+          <div class="stat"><div class="lab">정지예정</div><div class="val" id="cs-soon" style="color:var(--amber)">·<small>건</small></div></div>
+          <div class="stat"><div class="lab">정지·만료</div><div class="val" id="cs-stop" style="color:var(--danger)">·<small>건</small></div></div>
+        </div>
+        <div class="card">
+          <div class="hd"><h2>발급 자격증</h2><div class="sp"></div>
+            <input class="in" id="certSearch" placeholder="번호·이름 검색" style="width:160px">
+            <select class="in" id="certFilter" style="width:120px">
+              <option value="">전체 상태</option><option>정상</option><option>정지예정</option><option>정지</option><option>만료</option>
+            </select>
+            <button class="btn sm" id="certImport">⬇ 합격자에서 가져오기</button>
+            <button class="btn pri sm" id="certAdd">+ 자격증 등록</button></div>
+          <div class="bd" style="padding:0"><table>
+            <thead><tr><th>자격번호</th><th>자격명</th><th>성명</th><th>발급일</th><th>유효기간</th><th>상태</th><th></th></tr></thead>
+            <tbody id="tCert"></tbody></table></div>
         </div>
       </section>
 
@@ -569,7 +597,9 @@ onAuthStateChanged(auth, user => {
 /* ---------------- 네비게이션 ---------------- */
 const TITLES = { dash:['대시보드','오늘 해야 할 일과 전체 현황'], talk:['업무톡','직원 간 실시간 업무 대화·인수인계'],
   sched:['프로그램·일정','운영 프로그램과 회기 일정 관리'], client:['내담자·회기','기존 내담자 관리 시스템'],
-  stock:['자재·정산','식물·자재 재고와 수입·지출'], cert:['자격검정 관리','응시자·성적·자격증 발급'],
+  stock:['자재·정산','식물·자재 재고와 수입·지출'],
+  certstatus:['자격증 상태 관리','발급·정지·만료 상태와 공개 조회 안내문'],
+  cert:['자격검정 관리','응시자·성적·자격증 발급'],
   certpub:['발급 창구','응시자에게 보이는 공개 페이지'], cms:['홈페이지 관리','공지·갤러리·문의 관리'],
   setting:['설정·연결','계정, 채널, 보안 규칙'] };
 function go(p){
@@ -616,6 +646,7 @@ function boot(){
   live('hubLedger',   v => { LED  = v.sort((a,b)=>String(b.date).localeCompare(String(a.date)));
                              ledLoaded = true; renderLedger(); renderDash(); autoRegister(); });
   live('hubChannels', v => { CH = v.sort((a,b)=>(a.order??99)-(b.order??99)); if(!CH.length) seedChannels(); paintChannels(); renderChTable(); });
+  live('bjw_certs',   v => { CERTS = v; renderCerts(); });
 
   sub(onSnapshot(query(collection(db,'hubTalk'), orderBy('ts','desc'), limit(400)),
     snap => {
@@ -842,6 +873,93 @@ $('#tLed').addEventListener('click', async e => {
   const dl = e.target.dataset.del, paid = e.target.dataset.paid;
   if(dl && confirm('삭제할까요?')) deleteDoc(doc(db,'hubLedger',dl));
   if(paid){ try{ await markPaid(paid); }catch(ex){ toast('실패: '+ex.code); } }
+});
+
+/* =================== 자격증 상태 관리 =================== */
+/* 공개 조회(certificate.html)가 읽는 bjw_certs 를 여기서 관리한다.
+   개인정보 최소화: 이 자료함에는 생년월일·연락처·이메일을 넣지 않는다. */
+let CERTS = [];
+const CERT_STATUS = ['정상','정지예정','정지','만료'];
+
+/* 유효기간이 지났으면 화면상 '만료'로 본다 */
+function effStatus(c){
+  const s = c.certStatus || '정상';
+  if(s === '정상' && c.validDate && c.validDate < todayISO()) return '만료';
+  return s;
+}
+const STATUS_TAG = { '정상':'t-g', '정지예정':'t-a', '정지':'t-r', '만료':'t-m' };
+
+const CERT_FIELDS = [
+  {k:'certNo', l:'자격번호', ph:'예: HORT-2026-0031'},
+  {k:'certLabel', l:'자격명', t:'select', o:['원예심리상담사','원예치료사','원예심리상담사 1급','원예심리상담사 2급']},
+  {k:'name', l:'성명'},
+  {k:'issuedDate', l:'발급일', t:'date'},
+  {k:'validDate', l:'유효기간 만료일', t:'date'},
+  {k:'certStatus', l:'상태', t:'select', o:CERT_STATUS},
+  {k:'statusFrom', l:'정지(예정) 시작일', t:'date'},
+  {k:'statusReason', l:'사유', ph:'예: 보수교육 미이수', w:'full'},
+  {k:'statusNote', l:'추가 안내문 (조회 화면에 그대로 표시)', t:'textarea', w:'full'}
+];
+
+$('#certAdd').onclick = () => openForm('자격증 등록', CERT_FIELDS,
+  {issuedDate: todayISO(), certStatus:'정상'},
+  d => addDoc(collection(db,'bjw_certs'), {...d, updatedAt: serverTimestamp()}));
+
+$('#certImport').onclick = async () => {
+  if(!confirm('응시자 명단에서 자격번호가 부여된 합격자를 가져옵니다.\n이미 등록된 번호는 건너뜁니다. 계속할까요?')) return;
+  try{
+    const snap = await getDocs(collection(db,'bjw_applicants'));
+    const have = new Set(CERTS.map(c => c.certNo));
+    let n = 0;
+    for(const d of snap.docs){
+      const a = d.data();
+      if(!a.certNumber || have.has(a.certNumber)) continue;
+      await addDoc(collection(db,'bjw_certs'), {
+        certNo: a.certNumber, certLabel: a.certLabel || '', name: a.name || '',
+        issuedDate: (a.issuedDate || '').toString().slice(0,10),
+        validDate: '', certStatus: '정상', statusReason:'', statusFrom:'', statusNote:'',
+        applicantId: d.id, updatedAt: serverTimestamp() });
+      n++;
+    }
+    toast(n ? `${n}건을 가져왔습니다` : '가져올 새 자격증이 없습니다');
+  }catch(e){ toast('가져오기 실패: ' + e.code); }
+};
+
+$('#certSearch').oninput = renderCerts;
+$('#certFilter').onchange = renderCerts;
+
+function renderCerts(){
+  const kw = ($('#certSearch')?.value || '').trim();
+  const f  = $('#certFilter')?.value || '';
+  let rows = [...CERTS].sort((a,b) => String(b.issuedDate).localeCompare(String(a.issuedDate)));
+  if(kw) rows = rows.filter(c => (c.certNo||'').includes(kw) || (c.name||'').includes(kw));
+  if(f)  rows = rows.filter(c => effStatus(c) === f);
+
+  $('#tCert').innerHTML = rows.length ? rows.map(c => {
+    const st = effStatus(c);
+    return `<tr>
+      <td style="font-family:ui-monospace,monospace">${esc(c.certNo||'—')}</td>
+      <td>${esc(c.certLabel||'')}</td><td>${esc(c.name||'')}</td>
+      <td>${c.issuedDate ? esc(c.issuedDate.replace(/-/g,'.')) : '—'}</td>
+      <td>${c.validDate ? esc(c.validDate.replace(/-/g,'.')) : '—'}</td>
+      <td><span class="tag ${STATUS_TAG[st]}">${esc(st)}</span>
+        ${c.statusReason ? `<div style="font-size:11px;color:var(--muted)">${esc(c.statusReason)}</div>` : ''}</td>
+      <td class="num" style="white-space:nowrap">
+        <button class="btn sm" data-ed="${c.id}">수정</button>
+        <button class="btn sm dg" data-del="${c.id}">삭제</button></td></tr>`;
+  }).join('') : `<tr><td colspan="7" class="empty">등록된 자격증이 없습니다. "합격자에서 가져오기"를 눌러보세요.</td></tr>`;
+
+  const all = CERTS.map(effStatus);
+  $('#cs-all').innerHTML  = won(all.length) + '<small>건</small>';
+  $('#cs-ok').innerHTML   = won(all.filter(s=>s==='정상').length) + '<small>건</small>';
+  $('#cs-soon').innerHTML = won(all.filter(s=>s==='정지예정').length) + '<small>건</small>';
+  $('#cs-stop').innerHTML = won(all.filter(s=>s==='정지'||s==='만료').length) + '<small>건</small>';
+}
+$('#tCert').addEventListener('click', e => {
+  const ed = e.target.dataset.ed, dl = e.target.dataset.del;
+  if(ed){ const c = CERTS.find(x=>x.id===ed);
+    openForm('자격증 수정', CERT_FIELDS, c, d => updateDoc(doc(db,'bjw_certs',ed), {...d, updatedAt: serverTimestamp()})); }
+  if(dl && confirm('이 자격증 기록을 삭제할까요? 조회 화면에서도 사라집니다.')) deleteDoc(doc(db,'bjw_certs',dl));
 });
 
 /* =================== 견적서 → 수입 자동 등록 =================== */
