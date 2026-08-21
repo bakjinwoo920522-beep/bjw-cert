@@ -823,16 +823,27 @@ function myBranch() { return (currentUserProfile?.branch || '').trim(); }
 function authorRoleOf(d) { return d.authorRole || 'admin'; }
 function isMine(d) { return !!d.registeredBy && d.registeredBy === myUid(); }
 
+function myAgencyId() { return currentUserProfile?.agencyId || ''; }
+// 우리 기관 자료인가 — 기관 자체 / 내담자(agencyId) / 회기(clientId 로 연결)
+function inMyAgency(d) {
+  const a = myAgencyId();
+  if (!a) return false;
+  if (d.agencyId && d.agencyId === a) return true;
+  if (d.id === a) return true;
+  if (d.clientId) return clients.some(c => c.id === d.clientId);
+  return false;
+}
 function canSee(d) {
   if (isAdmin()) return true;
   if (isMine(d)) return true;
+  const role = ROLE();
+  // 기관담당자는 우리 기관 건이면 누가 등록했든 회기까지 전부
+  if (role === 'agency' && inMyAgency(d)) return true;
   const ar = authorRoleOf(d);
   if (ar === 'admin') return d.visibility === '공개';   // 센터장 작성분은 공개일 때만
-  const role = ROLE();
   // 지부장은 '같은 지부' 치료사·기관담당자가 쓴 것만
   if (role === 'branch') return !!myBranch() && d.authorBranch === myBranch();
   if (role === 'therapist') return d.therapistId === myUid();
-  if (role === 'agency') return !!d.agencyId && d.agencyId === currentUserProfile?.agencyId;
   return false;
 }
 function canEdit(d) { return isAdmin() || isMine(d); }
@@ -946,7 +957,7 @@ function showApp() {
   const sub = { admin:'모든 내담자를 조회합니다',
                 branch:'내가 등록한 내담자와 같은 지부 치료사·기관이 등록한 내담자를 조회합니다',
                 therapist:'내가 등록했거나 내가 담당하는 내담자만 조회됩니다',
-                agency:'우리 기관 내담자만 조회됩니다' };
+                agency:'우리 기관 내담자와 그 회기 기록을 조회합니다' };
   document.getElementById('clients-subtitle').textContent = sub[role] || '';
   document.getElementById('dashboard-greeting').textContent = `안녕하세요, ${name}님. 오늘도 좋은 하루 되세요. 🌿`;
 }
