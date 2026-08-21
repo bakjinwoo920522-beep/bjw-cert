@@ -69,7 +69,8 @@ function statusBlock(c){
     <div style="margin-top:10px;font-size:12.5px;line-height:1.9">
       자격증명: <strong>${label}</strong><br>
       소지인: <strong>${holder}</strong>님<br>
-      자격번호: <strong>${esc(c.certNo || '—')}</strong>
+      자격번호: <strong>${esc(c.certNo || '—')}</strong><br>
+      발급일: ${ymd(c.issuedDate)} · 유효기간: ~${ymd(c.validDate)}
     </div>`;
 
   if(st === '정지예정'){

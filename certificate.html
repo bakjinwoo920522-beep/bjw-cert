@@ -1433,7 +1433,8 @@ body {
           <div class="alert alert-success">
             ✅ <strong>유효한 자격증</strong>입니다.<br>
             자격증명: <strong>${data.certLabel}</strong><br>
-            소지인: <strong>${masked}</strong>님
+            소지인: <strong>${masked}</strong>님<br>
+            발급일: ${data.issuedDate || '—'} · 유효기간: ~${data.validDate || '—'}
           </div>`;
       }
     } catch(e) {
