@@ -22,6 +22,7 @@
   const auth = getAuth(app);
   window.__db = db;
   window.__auth = auth;
+  window.__firebaseConfig = firebaseConfig;
   window.__firebase = { collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy, serverTimestamp };
   window.__firebaseReady = true;
   document.dispatchEvent(new Event('firebaseReady'));
@@ -587,7 +588,7 @@
         </div>
         <div class="info-box">
           <span>ℹ️</span>
-          <span>계정을 발급하면 로그인 계정이 자동으로 생성됩니다. 발급 후 이메일과 임시 비밀번호를 본인에게 전달해 주세요.</span>
+          <span>계정을 발급하면 로그인 계정이 자동으로 생성됩니다. <strong>센터장 로그인은 그대로 유지</strong>되니 이어서 여러 명을 발급하실 수 있습니다. 발급 후 이메일과 임시 비밀번호를 본인에게 전달해 주세요.</span>
         </div>
         <div class="card" style="margin-bottom:20px">
           <div class="card-header"><div class="card-title">🔒 기존 자료 정리</div></div>
@@ -605,7 +606,7 @@
           <div class="table-container">
             <table>
               <thead>
-                <tr><th>이름</th><th>이메일</th><th>역할</th><th>소속 기관</th><th>상태</th><th>등록일</th><th>관리</th></tr>
+                <tr><th>이름</th><th>이메일</th><th>역할</th><th>소속 지부·기관</th><th>상태</th><th>등록일</th><th>관리</th></tr>
               </thead>
               <tbody id="account-table-body">
                 <tr><td colspan="7" style="text-align:center; color:var(--gray-4); padding:32px;">불러오는 중...</td></tr>
@@ -746,9 +747,9 @@
       <button class="modal-close" onclick="closeModal('modal-account')">✕</button>
     </div>
     <div class="modal-body">
-      <div class="info-box warn">
-        <span>⚠️</span>
-        <span>계정을 만들면 <strong>현재 로그인이 새 계정으로 바뀝니다.</strong> 발급이 끝나면 다시 센터장 계정으로 로그인해 주세요.</span>
+      <div class="info-box">
+        <span>ℹ️</span>
+        <span>지부장·치료사는 <strong>소속 지부</strong>를 반드시 지정해 주세요. 지부장은 <strong>같은 지부</strong> 치료사의 자료만 볼 수 있습니다.</span>
       </div>
       <div class="form-grid">
         <div class="form-group"><label>이름 *</label><input type="text" id="acc-name" placeholder="실명 입력"></div>
@@ -764,6 +765,11 @@
         <div class="form-group" id="acc-agency-group" style="display:none">
           <label>소속 기관 *</label>
           <select id="acc-agency"><option value="">기관 선택</option></select>
+        </div>
+        <div class="form-group" id="acc-branch-group" style="display:none">
+          <label>소속 지부 *</label>
+          <input type="text" id="acc-branch" list="branch-list" placeholder="예: 부산지부">
+          <datalist id="branch-list"></datalist>
         </div>
         <div class="form-group full">
           <label>임시 비밀번호 * <small style="font-weight:400;color:var(--gray-4)">(영문+숫자 8자 이상)</small></label>
@@ -812,6 +818,7 @@ const ROLE_BADGE = { admin:'badge-gold', branch:'badge-purple', therapist:'badge
 function ROLE() { return currentUserProfile?.role || 'therapist'; }
 function isAdmin() { return ROLE() === 'admin'; }
 function myUid() { return currentUser?.uid || ''; }
+function myBranch() { return (currentUserProfile?.branch || '').trim(); }
 // 작성자 역할이 없는 예전 자료는 센터장 작성분으로 본다
 function authorRoleOf(d) { return d.authorRole || 'admin'; }
 function isMine(d) { return !!d.registeredBy && d.registeredBy === myUid(); }
@@ -822,18 +829,20 @@ function canSee(d) {
   const ar = authorRoleOf(d);
   if (ar === 'admin') return d.visibility === '공개';   // 센터장 작성분은 공개일 때만
   const role = ROLE();
-  if (role === 'branch') return true;                   // 지부장은 치료사·기관담당자 작성분 전부
+  // 지부장은 '같은 지부' 치료사·기관담당자가 쓴 것만
+  if (role === 'branch') return !!myBranch() && d.authorBranch === myBranch();
   if (role === 'therapist') return d.therapistId === myUid();
   if (role === 'agency') return !!d.agencyId && d.agencyId === currentUserProfile?.agencyId;
   return false;
 }
 function canEdit(d) { return isAdmin() || isMine(d); }
 
-// 저장할 때 작성자·공개여부를 찍는다
+// 저장할 때 작성자·소속지부·공개여부를 찍는다
 function stampAuthor(data, isNew, visibilityElId) {
   if (isNew) {
     data.registeredBy = myUid();
     data.authorRole = ROLE();
+    data.authorBranch = myBranch();
   }
   const el = document.getElementById(visibilityElId);
   data.visibility = isAdmin() ? (el?.value || '비공개') : '비공개';
@@ -935,7 +944,7 @@ function showApp() {
   document.getElementById('nav-referrals').style.display = '';
   document.getElementById('btn-add-client').style.display = '';
   const sub = { admin:'모든 내담자를 조회합니다',
-                branch:'내가 등록한 내담자와 치료사·기관이 등록한 내담자를 조회합니다',
+                branch:'내가 등록한 내담자와 같은 지부 치료사·기관이 등록한 내담자를 조회합니다',
                 therapist:'내가 등록했거나 내가 담당하는 내담자만 조회됩니다',
                 agency:'우리 기관 내담자만 조회됩니다' };
   document.getElementById('clients-subtitle').textContent = sub[role] || '';
@@ -1159,7 +1168,7 @@ function renderAccountTable() {
       <td><strong>${a.name||'-'}</strong></td>
       <td>${a.email||'-'}</td>
       <td><span class="badge ${ROLE_BADGE[a.role]||'badge-gray'}">${ROLE_LABEL[a.role]||a.role}</span></td>
-      <td>${ag ? ag.name : (a.agencyName||'-')}</td>
+      <td>${a.branch ? `<strong>${a.branch}</strong>` : (ag ? ag.name : (a.agencyName||'-'))}</td>
       <td><span class="badge ${a.status==='비활성'?'badge-gray':'badge-green'}">${a.status||'활성'}</span></td>
       <td>${a.createdAt ? new Date(a.createdAt.seconds*1000).toLocaleDateString('ko-KR') : '-'}</td>
       <td><button class="btn btn-danger btn-sm" onclick="deleteAccount('${a.id}')">삭제</button></td>
@@ -1393,38 +1402,53 @@ async function saveAgency() {
 function openAccountModal() {
   document.getElementById('acc-agency').innerHTML = '<option value="">기관 선택</option>' +
     agencies.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
-  ['acc-name','acc-email','acc-pw','acc-note'].forEach(id => document.getElementById(id).value = '');
+  // 이미 쓰이고 있는 지부 이름을 추천 목록으로
+  const branches = [...new Set(accounts.map(a => (a.branch||'').trim()).filter(Boolean))];
+  document.getElementById('branch-list').innerHTML = branches.map(b => `<option value="${b}">`).join('');
+  ['acc-name','acc-email','acc-pw','acc-note','acc-branch'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('acc-role').selectedIndex = 0;
   document.getElementById('acc-agency-group').style.display = 'none';
+  document.getElementById('acc-branch-group').style.display = 'none';
   openModal('modal-account');
 }
 function toggleAgencyField() {
   const role = document.getElementById('acc-role').value;
   document.getElementById('acc-agency-group').style.display = (role === 'agency') ? '' : 'none';
+  document.getElementById('acc-branch-group').style.display = (role === 'branch' || role === 'therapist') ? '' : 'none';
 }
 async function saveAccount() {
   const name  = document.getElementById('acc-name').value.trim();
   const email = document.getElementById('acc-email').value.trim();
   const role  = document.getElementById('acc-role').value;
   const pw    = document.getElementById('acc-pw').value.trim();
+  const branch = document.getElementById('acc-branch').value.trim();
   if (!name || !email || !role || !pw) { showToast('모든 필수 항목을 입력해 주세요.', true); return; }
   if (pw.length < 8) { showToast('비밀번호는 8자 이상이어야 합니다.', true); return; }
+  if ((role === 'branch' || role === 'therapist') && !branch) {
+    showToast('소속 지부를 입력해 주세요. (예: 부산지부)', true); return;
+  }
   const agencyId = document.getElementById('acc-agency').value;
   const ag = agencies.find(a => a.id === agencyId);
   try {
-    const { createUserWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
-    const cred = await createUserWithEmailAndPassword(window.__auth, email, pw);
+    // 별도 연결로 계정을 만든다 → 지금 로그인한 센터장 세션이 그대로 유지됨
+    const { initializeApp, getApps } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
+    const { getAuth, createUserWithEmailAndPassword, signOut } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
+    const secApp = getApps().find(a => a.name === 'acctMaker')
+                || initializeApp(window.__firebaseConfig, 'acctMaker');
+    const secAuth = getAuth(secApp);
+    const cred = await createUserWithEmailAndPassword(secAuth, email, pw);
     const uid  = cred.user.uid;
     const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
     await setDoc(doc(window.__db, 'cms_accounts', uid), {
-      name, email, role,
+      name, email, role, branch,
       agencyId: agencyId||'', agencyName: ag?.name||'',
       note: document.getElementById('acc-note').value,
       status: '활성',
       createdAt: window.__firebase.serverTimestamp(),
       createdBy: currentUser?.uid,
     });
-    showToast(`✅ ${name}님(${ROLE_LABEL[role]}) 계정이 생성됐습니다. 이메일: ${email} / 임시PW: ${pw}`);
+    try { await signOut(secAuth); } catch(_) {}
+    showToast(`✅ ${name}님(${ROLE_LABEL[role]}${branch ? ' · ' + branch : ''}) 계정 생성 완료 — ${email} / 임시PW: ${pw}`);
     closeModal('modal-account');
     await loadAccounts(); renderAccountTable();
   } catch(e) {
