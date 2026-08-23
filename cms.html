@@ -10,7 +10,7 @@ window.__cmsReady = new Promise(function(r){ window.__cmsReadyGo = r; });
 </script>
 <script type="module">
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, serverTimestamp }
+import { getFirestore, doc, getDoc, setDoc, collection, getDocs, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -55,11 +55,58 @@ async function writeKey(key, value){
   });
 }
 
+/* ───────── 내담자·기관은 '내담자·회기' 자료를 그대로 쓴다 ───────── */
+const MASTER_KEYS = { 'htc-clients': 1, 'htc-insts': 1 };
+let masterCache = null;
+async function loadMaster(){
+  if (masterCache) return masterCache;
+  const [cs, ags, accs] = await Promise.all([
+    getDocs(collection(db, 'cms_clients')),
+    getDocs(collection(db, 'cms_agencies')),
+    getDocs(collection(db, 'cms_accounts'))
+  ]);
+  const agName = {}; ags.forEach(d => { agName[d.id] = d.data().name || ''; });
+  const person = {}; accs.forEach(d => { person[d.id] = d.data().name || ''; });
+  const insts = ags.docs.map(d => {
+    const v = d.data();
+    return Object.assign({}, v, {
+      id: d.id, name: v.name || '', type: v.type || '기타',
+      manager: v.contactName || v.manager || '', phone: v.phone || ''
+    });
+  });
+  const thisYear = new Date().getFullYear();
+  const clients = cs.docs.map(d => {
+    const v = d.data();
+    const y = String(v.birth || '').slice(0, 4);
+    return Object.assign({}, v, {
+      id: d.id, name: v.name || '',
+      age: /^[0-9]{4}$/.test(y) ? (thisYear - parseInt(y, 10) + 1) : 0,
+      inst: agName[v.agencyId] || v.agencyName || '',
+      program: v.program || '',
+      therapist: person[v.therapistId] || v.therapistName || '',
+      done: v.done || 0, total: v.total || 0,
+      status: v.status || '진행중',
+      goal: v.mainIssue || v.goal || '',
+      note: v.note || '',
+      sessions: Array.isArray(v.sessions) ? v.sessions : []
+    });
+  });
+  masterCache = {
+    'htc-clients': JSON.stringify(clients),
+    'htc-insts': JSON.stringify(insts)
+  };
+  return masterCache;
+}
+
 const cache = {};             // key → 문자열
 const timers = {};            // key → 디바운스 타이머
 
 window.__cmsStore = {
   async get(key){
+    if (MASTER_KEYS[key]) {
+      try { return (await loadMaster())[key]; }
+      catch(e){ console.warn('[cms] 내담자·기관 읽기 실패', e.code || e.message); return null; }
+    }
     if (key in cache) return cache[key];
     let v = null;
     try { v = await readKey(key); } catch(e){ console.warn('[cms] 읽기 실패', key, e.code || e.message); }
@@ -76,6 +123,7 @@ window.__cmsStore = {
     return v;
   },
   set(key, value){
+    if (MASTER_KEYS[key]) return true;      // 내담자·기관은 여기서 고치지 않는다
     cache[key] = value;
     try { localStorage.setItem(key, value); } catch(_){}    // 로컬 백업본도 유지
     clearTimeout(timers[key]);
@@ -906,11 +954,6 @@ function App() {
     label: "대시보드",
     roles: ["staff", "branch", "director"]
   }, {
-    id: "clients",
-    icon: "👤",
-    label: "내담자 관리",
-    roles: ["staff", "branch", "director"]
-  }, {
     id: "docs_out",
     icon: "📄",
     label: "발송 공문",
@@ -950,11 +993,6 @@ function App() {
     icon: "📁",
     label: "서류 관리",
     roles: ["staff", "branch", "director"]
-  }, {
-    id: "insts",
-    icon: "🏢",
-    label: "기관 관리",
-    roles: ["branch", "director"]
   }, {
     id: "users",
     icon: "👥",
@@ -2548,7 +2586,7 @@ function App() {
       style: inputStyle
     }, /*#__PURE__*/React.createElement("option", {
       value: ""
-    }, "\uAE30\uAD00 \uC120\uD0DD (\uAE30\uAD00 \uAD00\uB9AC\uC5D0\uC11C \uBA3C\uC800 \uB4F1\uB85D)"), instNames.map(function (x) {
+    }, "\uAE30\uAD00 \uC120\uD0DD \u2014 \uB4F1\uB85D\uC740 \uB0B4\uB2F4\uC790\u00B7\uD68C\uAE30 \uBA54\uB274\uC5D0\uC11C"), instNames.map(function (x) {
       return /*#__PURE__*/React.createElement("option", {
         key: x
       }, x);
@@ -3530,7 +3568,7 @@ function App() {
       style: inputStyle
     }, /*#__PURE__*/React.createElement("option", {
       value: ""
-    }, "\uAE30\uAD00 \uC120\uD0DD (\uAE30\uAD00 \uAD00\uB9AC\uC5D0\uC11C \uBA3C\uC800 \uB4F1\uB85D)"), instNames.map(function (x) {
+    }, "\uAE30\uAD00 \uC120\uD0DD \u2014 \uB4F1\uB85D\uC740 \uB0B4\uB2F4\uC790\u00B7\uD68C\uAE30 \uBA54\uB274\uC5D0\uC11C"), instNames.map(function (x) {
       return /*#__PURE__*/React.createElement("option", {
         key: x
       }, x);

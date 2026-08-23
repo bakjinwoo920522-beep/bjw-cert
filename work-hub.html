@@ -37,7 +37,7 @@ window.__cmsReady = new Promise(function(r){ window.__cmsReadyGo = r; });
 </script>
 <script type="module">
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, serverTimestamp }
+import { getFirestore, doc, getDoc, setDoc, collection, getDocs, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -82,11 +82,58 @@ async function writeKey(key, value){
   });
 }
 
+/* ───────── 내담자·기관은 '내담자·회기' 자료를 그대로 쓴다 ───────── */
+const MASTER_KEYS = { 'htc-clients': 1, 'htc-insts': 1 };
+let masterCache = null;
+async function loadMaster(){
+  if (masterCache) return masterCache;
+  const [cs, ags, accs] = await Promise.all([
+    getDocs(collection(db, 'cms_clients')),
+    getDocs(collection(db, 'cms_agencies')),
+    getDocs(collection(db, 'cms_accounts'))
+  ]);
+  const agName = {}; ags.forEach(d => { agName[d.id] = d.data().name || ''; });
+  const person = {}; accs.forEach(d => { person[d.id] = d.data().name || ''; });
+  const insts = ags.docs.map(d => {
+    const v = d.data();
+    return Object.assign({}, v, {
+      id: d.id, name: v.name || '', type: v.type || '기타',
+      manager: v.contactName || v.manager || '', phone: v.phone || ''
+    });
+  });
+  const thisYear = new Date().getFullYear();
+  const clients = cs.docs.map(d => {
+    const v = d.data();
+    const y = String(v.birth || '').slice(0, 4);
+    return Object.assign({}, v, {
+      id: d.id, name: v.name || '',
+      age: /^[0-9]{4}$/.test(y) ? (thisYear - parseInt(y, 10) + 1) : 0,
+      inst: agName[v.agencyId] || v.agencyName || '',
+      program: v.program || '',
+      therapist: person[v.therapistId] || v.therapistName || '',
+      done: v.done || 0, total: v.total || 0,
+      status: v.status || '진행중',
+      goal: v.mainIssue || v.goal || '',
+      note: v.note || '',
+      sessions: Array.isArray(v.sessions) ? v.sessions : []
+    });
+  });
+  masterCache = {
+    'htc-clients': JSON.stringify(clients),
+    'htc-insts': JSON.stringify(insts)
+  };
+  return masterCache;
+}
+
 const cache = {};             // key → 문자열
 const timers = {};            // key → 디바운스 타이머
 
 window.__cmsStore = {
   async get(key){
+    if (MASTER_KEYS[key]) {
+      try { return (await loadMaster())[key]; }
+      catch(e){ console.warn('[cms] 내담자·기관 읽기 실패', e.code || e.message); return null; }
+    }
     if (key in cache) return cache[key];
     let v = null;
     try { v = await readKey(key); } catch(e){ console.warn('[cms] 읽기 실패', key, e.code || e.message); }
@@ -103,6 +150,7 @@ window.__cmsStore = {
     return v;
   },
   set(key, value){
+    if (MASTER_KEYS[key]) return true;      // 내담자·기관은 여기서 고치지 않는다
     cache[key] = value;
     try { localStorage.setItem(key, value); } catch(_){}    // 로컬 백업본도 유지
     clearTimeout(timers[key]);
@@ -2184,6 +2232,7 @@ pre.k{background:#1f2b23;color:#d8e6dc;border-radius:12px;padding:14px;overflow:
             <select class="in" id="certFilter" style="width:120px">
               <option value="">전체 상태</option><option>정상</option><option>정지예정</option><option>정지</option><option>만료</option>
             </select>
+            <button class="btn sm" id="certBulk">📅 유효기간 일괄 등록</button>
             <button class="btn sm" id="certImport">⬇ 합격자에서 가져오기</button>
             <button class="btn pri sm" id="certAdd">+ 자격증 등록</button></div>
           <div class="bd" style="padding:0"><table>
@@ -4358,12 +4407,60 @@ $('#certImport').onclick = async () => {
 $('#certSearch').oninput = renderCerts;
 $('#certFilter').onchange = renderCerts;
 
-function renderCerts(){
+function certRows(){
   const kw = ($('#certSearch')?.value || '').trim();
   const f  = $('#certFilter')?.value || '';
   let rows = [...CERTS].sort((a,b) => String(b.issuedDate).localeCompare(String(a.issuedDate)));
   if(kw) rows = rows.filter(c => (c.certNo||'').includes(kw) || (c.name||'').includes(kw));
   if(f)  rows = rows.filter(c => effStatus(c) === f);
+  return rows;
+}
+
+/* ── 유효기간 일괄 등록 ── */
+function addYears(iso, n){
+  const d = new Date(iso + 'T00:00:00');
+  if(isNaN(d)) return '';
+  d.setFullYear(d.getFullYear() + n);
+  d.setDate(d.getDate() - 1);                     // 발급일 기준 만 N년째 되는 전날
+  return d.toISOString().slice(0,10);
+}
+const BULK_FIELDS = [
+  {k:'mode',   l:'기준',      t:'select', o:['발급일 + N년','같은 날짜로 지정']},
+  {k:'years',  l:'N년 (발급일 기준일 때)', t:'number', ph:'예: 5'},
+  {k:'fixed',  l:'만료일 (같은 날짜로 지정할 때)', t:'date'},
+  {k:'target', l:'대상',      t:'select', o:['유효기간이 비어 있는 것만','지금 목록 전체 (덮어쓰기)'], w:'full'}
+];
+$('#certBulk').onclick = () => {
+  const rows = certRows();
+  if(!rows.length){ toast('대상이 없습니다. 먼저 자격증을 등록하거나 검색 조건을 지워주세요.'); return; }
+  openForm(`유효기간 일괄 등록 · 현재 목록 ${rows.length}건`, BULK_FIELDS,
+    {mode:'발급일 + N년', years:5, target:'유효기간이 비어 있는 것만'},
+    async d => {
+      const byIssue = d.mode === '발급일 + N년';
+      const n = Number(d.years) || 0;
+      if(byIssue && n <= 0) throw new Error('N년을 1 이상으로 입력해 주세요.');
+      if(!byIssue && !d.fixed) throw new Error('만료일을 선택해 주세요.');
+      const onlyEmpty = d.target !== '지금 목록 전체 (덮어쓰기)';
+      const targets = certRows().filter(c => onlyEmpty ? !c.validDate : true);
+      if(!targets.length) throw new Error('바꿀 대상이 없습니다.');
+
+      let batch = writeBatch(db), cnt = 0, skipped = 0, done = 0;
+      for(const c of targets){
+        const v = byIssue
+          ? (c.issuedDate ? addYears(String(c.issuedDate).slice(0,10), n) : '')
+          : d.fixed;
+        if(!v){ skipped++; continue; }              // 발급일이 없으면 건너뜀
+        batch.update(doc(db,'bjw_certs', c.id), { validDate: v, updatedAt: serverTimestamp() });
+        cnt++; done++;
+        if(cnt === 400){ await batch.commit(); batch = writeBatch(db); cnt = 0; }
+      }
+      if(cnt) await batch.commit();
+      toast(`${done}건에 유효기간을 넣었습니다.` + (skipped ? ` (발급일이 없어 ${skipped}건 건너뜀)` : ''));
+    });
+};
+
+function renderCerts(){
+  const rows = certRows();
 
   $('#tCert').innerHTML = rows.length ? rows.map(c => {
     const st = effStatus(c);
@@ -5503,11 +5600,6 @@ function App() {
     label: "대시보드",
     roles: ["staff", "branch", "director"]
   }, {
-    id: "clients",
-    icon: "👤",
-    label: "내담자 관리",
-    roles: ["staff", "branch", "director"]
-  }, {
     id: "docs_out",
     icon: "📄",
     label: "발송 공문",
@@ -5547,11 +5639,6 @@ function App() {
     icon: "📁",
     label: "서류 관리",
     roles: ["staff", "branch", "director"]
-  }, {
-    id: "insts",
-    icon: "🏢",
-    label: "기관 관리",
-    roles: ["branch", "director"]
   }, {
     id: "users",
     icon: "👥",
@@ -7145,7 +7232,7 @@ function App() {
       style: inputStyle
     }, /*#__PURE__*/React.createElement("option", {
       value: ""
-    }, "\uAE30\uAD00 \uC120\uD0DD (\uAE30\uAD00 \uAD00\uB9AC\uC5D0\uC11C \uBA3C\uC800 \uB4F1\uB85D)"), instNames.map(function (x) {
+    }, "\uAE30\uAD00 \uC120\uD0DD \u2014 \uB4F1\uB85D\uC740 \uB0B4\uB2F4\uC790\u00B7\uD68C\uAE30 \uBA54\uB274\uC5D0\uC11C"), instNames.map(function (x) {
       return /*#__PURE__*/React.createElement("option", {
         key: x
       }, x);
@@ -8127,7 +8214,7 @@ function App() {
       style: inputStyle
     }, /*#__PURE__*/React.createElement("option", {
       value: ""
-    }, "\uAE30\uAD00 \uC120\uD0DD (\uAE30\uAD00 \uAD00\uB9AC\uC5D0\uC11C \uBA3C\uC800 \uB4F1\uB85D)"), instNames.map(function (x) {
+    }, "\uAE30\uAD00 \uC120\uD0DD \u2014 \uB4F1\uB85D\uC740 \uB0B4\uB2F4\uC790\u00B7\uD68C\uAE30 \uBA54\uB274\uC5D0\uC11C"), instNames.map(function (x) {
       return /*#__PURE__*/React.createElement("option", {
         key: x
       }, x);
