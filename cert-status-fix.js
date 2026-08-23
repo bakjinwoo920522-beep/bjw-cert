@@ -57,16 +57,6 @@ function effectiveStatus(c){
   return s;
 }
 
-/* ---------- 유효기간 공통 안내 ---------- */
-const VALID_GUIDE = `
-  <div style="margin-top:12px;padding:11px 13px;background:#FAF7EC;border:1px solid #E6DCBF;
-              border-radius:9px;font-size:12px;color:#6B5518;line-height:1.85;text-align:left">
-    <strong>자격증 유효기간 안내</strong><br>
-    · 자격증 유효기간은 <strong>발급일로부터 3년</strong>입니다.<br>
-    · 유효기간 내 <strong>보수교육(8시간 이상)</strong>을 이수하지 않으면 자격이 정지됩니다.<br>
-    · 보수교육 이수 후 재발급 처리하면 유효기간이 <strong>3년 연장</strong>됩니다.
-  </div>`;
-
 /* ---------- 상태별 안내문 ---------- */
 function statusBlock(c){
   const st     = effectiveStatus(c);
@@ -91,7 +81,7 @@ function statusBlock(c){
       ⚠️ <strong>자격정지 예정</strong><br>
       ${from}<br>${reason}
       기한 내에 필요한 조치(보수교육 이수 등)를 완료하시면 정지되지 않습니다.
-      ${note}${info}${VALID_GUIDE}
+      ${note}${info}
     </div>`;
   }
 
@@ -102,7 +92,7 @@ function statusBlock(c){
       정지 기간 중에는 해당 자격을 사용하실 수 없습니다.<br>
       ${from}${reason}
       정지 해제 절차는 센터로 문의해 주세요.
-      ${note}${info}${VALID_GUIDE}
+      ${note}${info}
     </div>`;
   }
 
@@ -111,14 +101,14 @@ function statusBlock(c){
       🕓 <strong>유효기간이 만료된 자격증입니다.</strong><br>
       만료일: <strong>${ymd(c.validDate)}</strong><br>
       보수교육 이수 후 갱신·재발급을 받으셔야 자격이 다시 유효해집니다.
-      ${note}${info}${VALID_GUIDE}
+      ${note}${info}
     </div>`;
   }
 
   /* 정상 */
   return `<div class="alert alert-success" style="display:block">
     ✅ <strong>유효한 자격증입니다.</strong>
-    ${note}${info}${VALID_GUIDE}
+    ${note}${info}
   </div>`;
 }
 

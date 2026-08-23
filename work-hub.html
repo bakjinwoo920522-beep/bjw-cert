@@ -1675,8 +1675,8 @@ pre.k{background:#1f2b23;color:#d8e6dc;border-radius:12px;padding:14px;overflow:
       <button data-p="certstatus"><span class="ico">🎖</span>자격증 상태 관리</button>
       <button data-p="cert"><span class="ico">📜</span>자격검정 관리</button>
       <button data-p="certpub"><span class="ico">🏷</span>발급 창구(공개)</button>
-      <div class="grp">홈페이지</div>
-      <button data-p="cms"><span class="ico">🖥</span>홈페이지 관리</button>
+      <div class="grp">행정</div>
+      <button data-p="cms"><span class="ico">🗂</span>업무 관리</button>
       <div class="grp">기타</div>
       <button data-p="mail"><span class="ico">✉️</span>메일</button>
       <button data-p="setting"><span class="ico">⚙</span>설정·연결</button>
@@ -2260,12 +2260,6 @@ pre.k{background:#1f2b23;color:#d8e6dc;border-radius:12px;padding:14px;overflow:
           여기 등록된 내용이 <b>자격증 발급 페이지의 조회 결과</b>에 그대로 나옵니다.
           상태를 <b>정지예정 / 정지</b>로 바꾸면 조회한 사람에게 해당 안내문이 표시됩니다.
           개인정보 보호를 위해 이 자료함에는 생년월일·연락처를 담지 않습니다.
-        </div>
-        <div class="hint amber" style="margin-bottom:12px">
-          <b>자격증 유효기간 기준</b><br>
-          · 유효기간은 <b>발급일로부터 3년</b>입니다.<br>
-          · 유효기간 내 <b>보수교육(8시간 이상)</b>을 이수하지 않으면 자격이 정지됩니다.<br>
-          · 보수교육 이수 후 재발급 처리하면 유효기간이 <b>3년 연장</b>됩니다.
         </div>
         <div class="grid g4" style="margin-bottom:13px">
           <div class="stat"><div class="lab">전체 발급</div><div class="val" id="cs-all">·<small>건</small></div></div>
@@ -4141,7 +4135,7 @@ const TITLES = { dash:['대시보드','오늘 해야 할 일과 전체 현황'],
   stock:['자재·정산','식물·자재 재고와 수입·지출'],
   certstatus:['자격증 상태 관리','발급·정지·만료 상태와 공개 조회 안내문'],
   cert:['자격검정 관리','응시자·성적·자격증 발급'],
-  certpub:['발급 창구','응시자에게 보이는 공개 페이지'], cms:['홈페이지 관리','공지·갤러리·문의 관리'],
+  certpub:['발급 창구','응시자에게 보이는 공개 페이지'], cms:['업무 관리','공문·결재·견적서·서류'],
   mail:['메일','센터 메일함 · info@parkjinwoohtc.com'],
   setting:['설정·연결','계정, 채널, 보안 규칙'] };
 function go(p){
@@ -4483,10 +4477,10 @@ function certRows(){
 
 /* ── 유효기간 일괄 등록 ── */
 function addYears(iso, n){
-  const d = new Date(iso + 'T00:00:00');
-  if(isNaN(d)) return '';
-  d.setFullYear(d.getFullYear() + n);
-  d.setDate(d.getDate() - 1);                     // 발급일 기준 만 N년째 되는 전날
+  const m = String(iso || '').slice(0,10).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(!m) return '';
+  const d = new Date(Date.UTC(+m[1], +m[2]-1, +m[3]));   // 시간대 영향 없이 계산
+  d.setUTCFullYear(d.getUTCFullYear() + n);              // 발급일 + N년 (자격검정 시스템과 동일)
   return d.toISOString().slice(0,10);
 }
 const BULK_FIELDS = [
