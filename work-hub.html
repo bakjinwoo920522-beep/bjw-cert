@@ -311,6 +311,26 @@ textarea.in{min-height:72px;resize:vertical}
 .talk .chs button.on{background:var(--sage-lt);color:var(--dark);font-weight:700}
 .talk .chs button .n{margin-left:auto;background:var(--amber);color:#fff;font-size:10px;border-radius:999px;padding:0 6px;font-weight:700}
 .talk .stream{display:flex;flex-direction:column;min-width:0}
+.mailbox{display:grid;grid-template-columns:330px 1fr;height:calc(100vh - 168px);min-height:520px;
+  border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:#fff;box-shadow:var(--shadow)}
+.mailbox .mlist{border-right:1px solid var(--line);display:flex;flex-direction:column;min-width:0;background:#faf9f5}
+.mailbox .mh{padding:10px 12px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;font-size:13px}
+.mailbox .mitems{overflow:auto;flex:1}
+.mailbox .mi{padding:10px 13px;border-bottom:1px solid #efeee7;cursor:pointer}
+.mailbox .mi:hover{background:#f2f5ef}
+.mailbox .mi.on{background:var(--sage-lt)}
+.mailbox .mi .s{font-size:12.5px;font-weight:700;color:var(--dark);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mailbox .mi.read .s{font-weight:400;color:#5f5e55}
+.mailbox .mi .f{font-size:11.5px;color:var(--muted);display:flex;gap:6px;margin-top:3px}
+.mailbox .mi .f b{font-weight:500;color:#6a6960;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mailbox .mi .f span{margin-left:auto;white-space:nowrap}
+.mailbox .mbody{display:flex;flex-direction:column;min-width:0;overflow:auto}
+.mailbox .mbh{padding:14px 18px;border-bottom:1px solid var(--line)}
+.mailbox .mbh h3{font-size:15px;margin-bottom:5px}
+.mailbox .mbh .meta{font-size:12px;color:var(--muted)}
+.mailbox iframe.mframe{width:100%;flex:1;border:0;min-height:420px;background:#fff}
+.mailbox pre.mtext{margin:0;padding:18px;white-space:pre-wrap;word-break:break-word;font-size:13px;font-family:inherit;line-height:1.75}
+.mailbox .files{padding:10px 18px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
 .talk .who{border-left:1px solid var(--line);background:#faf9f5;padding:11px 12px;overflow:auto}
 .talk .who .t{font-size:10.5px;color:var(--muted);font-weight:700;padding:4px 2px 8px;display:flex;align-items:center;gap:6px}
 .talk .who .t em{font-style:normal;background:var(--sage-lt);color:var(--dark);border-radius:999px;padding:1px 7px;font-size:10px;font-weight:700}
@@ -447,6 +467,26 @@ textarea.in{min-height:72px;resize:vertical}
 .talk .chs button.on{background:var(--sage-lt);color:var(--dark);font-weight:700}
 .talk .chs button .n{margin-left:auto;background:var(--amber);color:#fff;font-size:10px;border-radius:999px;padding:0 6px;font-weight:700}
 .talk .stream{display:flex;flex-direction:column;min-width:0}
+.mailbox{display:grid;grid-template-columns:330px 1fr;height:calc(100vh - 168px);min-height:520px;
+  border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:#fff;box-shadow:var(--shadow)}
+.mailbox .mlist{border-right:1px solid var(--line);display:flex;flex-direction:column;min-width:0;background:#faf9f5}
+.mailbox .mh{padding:10px 12px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;font-size:13px}
+.mailbox .mitems{overflow:auto;flex:1}
+.mailbox .mi{padding:10px 13px;border-bottom:1px solid #efeee7;cursor:pointer}
+.mailbox .mi:hover{background:#f2f5ef}
+.mailbox .mi.on{background:var(--sage-lt)}
+.mailbox .mi .s{font-size:12.5px;font-weight:700;color:var(--dark);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mailbox .mi.read .s{font-weight:400;color:#5f5e55}
+.mailbox .mi .f{font-size:11.5px;color:var(--muted);display:flex;gap:6px;margin-top:3px}
+.mailbox .mi .f b{font-weight:500;color:#6a6960;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mailbox .mi .f span{margin-left:auto;white-space:nowrap}
+.mailbox .mbody{display:flex;flex-direction:column;min-width:0;overflow:auto}
+.mailbox .mbh{padding:14px 18px;border-bottom:1px solid var(--line)}
+.mailbox .mbh h3{font-size:15px;margin-bottom:5px}
+.mailbox .mbh .meta{font-size:12px;color:var(--muted)}
+.mailbox iframe.mframe{width:100%;flex:1;border:0;min-height:420px;background:#fff}
+.mailbox pre.mtext{margin:0;padding:18px;white-space:pre-wrap;word-break:break-word;font-size:13px;font-family:inherit;line-height:1.75}
+.mailbox .files{padding:10px 18px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
 .talk .who{border-left:1px solid var(--line);background:#faf9f5;padding:11px 12px;overflow:auto}
 .talk .who .t{font-size:10.5px;color:var(--muted);font-weight:700;padding:4px 2px 8px;display:flex;align-items:center;gap:6px}
 .talk .who .t em{font-style:normal;background:var(--sage-lt);color:var(--dark);border-radius:999px;padding:1px 7px;font-size:10px;font-weight:700}
@@ -1638,6 +1678,7 @@ pre.k{background:#1f2b23;color:#d8e6dc;border-radius:12px;padding:14px;overflow:
       <div class="grp">홈페이지</div>
       <button data-p="cms"><span class="ico">🖥</span>홈페이지 관리</button>
       <div class="grp">기타</div>
+      <button data-p="mail"><span class="ico">✉️</span>메일</button>
       <button data-p="setting"><span class="ico">⚙</span>설정·연결</button>
     </nav>
     <div class="me">
@@ -2219,6 +2260,12 @@ pre.k{background:#1f2b23;color:#d8e6dc;border-radius:12px;padding:14px;overflow:
           여기 등록된 내용이 <b>자격증 발급 페이지의 조회 결과</b>에 그대로 나옵니다.
           상태를 <b>정지예정 / 정지</b>로 바꾸면 조회한 사람에게 해당 안내문이 표시됩니다.
           개인정보 보호를 위해 이 자료함에는 생년월일·연락처를 담지 않습니다.
+        </div>
+        <div class="hint amber" style="margin-bottom:12px">
+          <b>자격증 유효기간 기준</b><br>
+          · 유효기간은 <b>발급일로부터 3년</b>입니다.<br>
+          · 유효기간 내 <b>보수교육(8시간 이상)</b>을 이수하지 않으면 자격이 정지됩니다.<br>
+          · 보수교육 이수 후 재발급 처리하면 유효기간이 <b>3년 연장</b>됩니다.
         </div>
         <div class="grid g4" style="margin-bottom:13px">
           <div class="stat"><div class="lab">전체 발급</div><div class="val" id="cs-all">·<small>건</small></div></div>
@@ -3874,6 +3921,22 @@ pre.k{background:#1f2b23;color:#d8e6dc;border-radius:12px;padding:14px;overflow:
 </div>
 </section>
 
+      <!-- ========== 메일 ========== -->
+      <section class="page" id="p-mail">
+        <div class="hint amber" id="mailSetup" style="margin-bottom:12px;display:none"></div>
+        <div class="mailbox">
+          <div class="mlist">
+            <div class="mh"><b>받은 메일함</b><span class="d" id="mailCount" style="font-size:11px;color:var(--muted)"></span>
+              <div style="flex:1"></div>
+              <button class="btn sm" id="mailReload">↻ 새로고침</button></div>
+            <div class="mitems" id="mailItems"><div class="empty" style="padding:24px">메일 탭을 열면 불러옵니다.</div></div>
+          </div>
+          <div class="mbody" id="mailBody">
+            <div class="empty" style="padding:40px">왼쪽에서 메일을 선택하세요.</div>
+          </div>
+        </div>
+      </section>
+
       <!-- ========== 설정 ========== -->
       <section class="page" id="p-setting">
         <div class="card" style="margin-bottom:13px">
@@ -4079,6 +4142,7 @@ const TITLES = { dash:['대시보드','오늘 해야 할 일과 전체 현황'],
   certstatus:['자격증 상태 관리','발급·정지·만료 상태와 공개 조회 안내문'],
   cert:['자격검정 관리','응시자·성적·자격증 발급'],
   certpub:['발급 창구','응시자에게 보이는 공개 페이지'], cms:['홈페이지 관리','공지·갤러리·문의 관리'],
+  mail:['메일','센터 메일함 · info@parkjinwoohtc.com'],
   setting:['설정·연결','계정, 채널, 보안 규칙'] };
 function go(p){
   $$('#nav button').forEach(b => b.classList.toggle('on', b.dataset.p === p));
@@ -4089,6 +4153,7 @@ function go(p){
   const fr = sec && sec.querySelector('iframe[data-src]');
   if(fr && !fr.src){ fr.src = fr.dataset.src; }        // 지연 로딩
   if(p === 'talk'){ unread = {}; paintChannels(); paintBadge(); scrollTalk(); }
+  if(p === 'mail'){ loadMail(); }
 }
 $('#nav').addEventListener('click', e => { const b = e.target.closest('button[data-p]'); if(b) go(b.dataset.p); });
 document.addEventListener('click', e => { const b = e.target.closest('[data-go]'); if(b) go(b.dataset.go); });
@@ -4426,7 +4491,7 @@ function addYears(iso, n){
 }
 const BULK_FIELDS = [
   {k:'mode',   l:'기준',      t:'select', o:['발급일 + N년','같은 날짜로 지정']},
-  {k:'years',  l:'N년 (발급일 기준일 때)', t:'number', ph:'예: 5'},
+  {k:'years',  l:'N년 (발급일 기준일 때)', t:'number', ph:'기본 3년'},
   {k:'fixed',  l:'만료일 (같은 날짜로 지정할 때)', t:'date'},
   {k:'target', l:'대상',      t:'select', o:['유효기간이 비어 있는 것만','지금 목록 전체 (덮어쓰기)'], w:'full'}
 ];
@@ -4434,7 +4499,7 @@ $('#certBulk').onclick = () => {
   const rows = certRows();
   if(!rows.length){ toast('대상이 없습니다. 먼저 자격증을 등록하거나 검색 조건을 지워주세요.'); return; }
   openForm(`유효기간 일괄 등록 · 현재 목록 ${rows.length}건`, BULK_FIELDS,
-    {mode:'발급일 + N년', years:5, target:'유효기간이 비어 있는 것만'},
+    {mode:'발급일 + N년', years:3, target:'유효기간이 비어 있는 것만'},
     async d => {
       const byIssue = d.mode === '발급일 + N년';
       const n = Number(d.years) || 0;
@@ -4815,6 +4880,98 @@ function startPresence(){
   sub(onSnapshot(collection(db, 'hubPresence'), s => { PRES = s.docs.map(d => d.data()); paintWho(); }));
   setInterval(paintWho, 30000);
 }
+
+/* ==================== 메일함 ==================== */
+const MAIL_API = 'https://jinwoo92.cafe24.com/mail_api.php';
+let MAILS = [], mailLoaded = false, mailCur = null;
+
+async function mailCall(payload){
+  const idToken = (ME && typeof ME.getIdToken === 'function') ? await ME.getIdToken() : '';
+  const r = await fetch(MAIL_API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(Object.assign({ idToken }, payload))
+  });
+  let j = null;
+  try { j = await r.json(); } catch(_){ throw new Error('서버가 이상한 답을 보냈습니다. (' + r.status + ')'); }
+  if (!r.ok || j.ok === false) throw new Error(j && j.error ? j.error : ('오류 ' + r.status));
+  return j;
+}
+
+function mailSetupNotice(msg, detail){
+  const el = $('#mailSetup');
+  el.style.display = '';
+  el.innerHTML = `<b>메일함이 아직 연결되지 않았습니다.</b> ${esc(msg)}
+    <div style="margin-top:8px;font-size:12px;line-height:1.85">
+      1. <code class="k">mail_api.php</code> · <code class="k">mail_config.php</code> 두 파일을 cafe24 <code class="k">/www</code> 에 올립니다<br>
+      2. <code class="k">mail_config.php</code> 를 열어 <b>pass</b> 에 메일 비밀번호를 넣습니다<br>
+      3. 아래 <b>연결 확인</b> 을 눌러 상태를 봅니다
+    </div>
+    <div style="margin-top:9px;display:flex;gap:7px">
+      <button class="btn sm" id="mailPing">연결 확인</button>
+      <button class="btn sm" id="mailRetry">다시 시도</button>
+    </div>
+    ${detail ? `<pre class="k" style="margin-top:9px;max-height:220px">${esc(detail)}</pre>` : ''}`;
+  $('#mailPing').onclick = async () => {
+    try {
+      const r = await fetch(MAIL_API, { method:'POST', headers:{'Content-Type':'application/json'},
+                                        body: JSON.stringify({ action:'ping' }) });
+      const j = await r.json();
+      mailSetupNotice(j['판정'] || '확인했습니다.', JSON.stringify(j, null, 1));
+    } catch(e){ mailSetupNotice('파일이 아직 서버에 없는 것 같습니다. (' + e.message + ')'); }
+  };
+  $('#mailRetry').onclick = () => { mailLoaded = false; loadMail(); };
+}
+
+async function loadMail(force){
+  if (mailLoaded && !force) return;
+  $('#mailItems').innerHTML = '<div class="empty" style="padding:24px">불러오는 중…</div>';
+  try {
+    const j = await mailCall({ action:'list', folder:'INBOX', limit:40 });
+    mailLoaded = true;
+    $('#mailSetup').style.display = 'none';
+    MAILS = j.items || [];
+    $('#mailCount').textContent = j.total ? `전체 ${j.total}통` : '';
+    paintMailList();
+  } catch(e){
+    mailLoaded = false;
+    $('#mailItems').innerHTML = '<div class="empty" style="padding:24px">불러오지 못했습니다.</div>';
+    mailSetupNotice(e.message);
+  }
+}
+
+function paintMailList(){
+  $('#mailItems').innerHTML = MAILS.length ? MAILS.map(m => `
+    <div class="mi ${m.seen ? 'read' : ''} ${mailCur === m.uid ? 'on' : ''}" data-uid="${m.uid}">
+      <span class="s">${m.seen ? '' : '<b style="color:var(--success)">●</b> '}${esc(m.subject || '(제목 없음)')}</span>
+      <div class="f"><b>${esc(m.fromName || m.from || '')}</b><span>${esc(m.date || '')}</span></div>
+    </div>`).join('') : '<div class="empty" style="padding:24px">받은 메일이 없습니다.</div>';
+}
+
+$('#mailReload').onclick = () => loadMail(true);
+$('#mailItems').addEventListener('click', async e => {
+  const row = e.target.closest('.mi'); if(!row) return;
+  const uid = Number(row.dataset.uid);
+  mailCur = uid; paintMailList();
+  $('#mailBody').innerHTML = '<div class="empty" style="padding:40px">여는 중…</div>';
+  try {
+    const m = await mailCall({ action:'read', uid, markSeen:true });
+    const body = m.html
+      ? `<iframe class="mframe" sandbox="" srcdoc="${esc(m.html)}"></iframe>`
+      : `<pre class="mtext">${esc(m.text || '(내용 없음)')}</pre>`;
+    $('#mailBody').innerHTML = `
+      <div class="mbh">
+        <h3>${esc(m.subject || '(제목 없음)')}</h3>
+        <div class="meta">${esc(m.fromName || '')} &lt;${esc(m.from || '')}&gt; · ${esc(m.date || '')}</div>
+      </div>
+      ${body}
+      ${(m.files && m.files.length) ? `<div class="files">📎 첨부 ${m.files.length}개 · ${m.files.map(f=>esc(f.name)).join(', ')}
+        <br><span style="font-size:11px">첨부파일 내려받기는 아직 웹메일에서 해주세요.</span></div>` : ''}`;
+    const hit = MAILS.find(x => x.uid === uid); if(hit){ hit.seen = true; paintMailList(); }
+  } catch(err){
+    $('#mailBody').innerHTML = `<div class="empty" style="padding:40px">열지 못했습니다. ${esc(err.message)}</div>`;
+  }
+});
 
 /* iframe 차단 감지 */
 window.addEventListener('message', () => {}, false);
