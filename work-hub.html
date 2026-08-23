@@ -135,7 +135,7 @@ textarea.in{min-height:72px;resize:vertical}
 .frameBox{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:#fff;box-shadow:var(--shadow)}
 .frameBox .fh{display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid var(--line);background:#faf9f5;font-size:12px;color:var(--muted)}
 .frameBox iframe{width:100%;height:calc(100vh - 210px);min-height:520px;border:0;display:block;background:#fff}
-.talk{display:grid;grid-template-columns:190px 1fr;height:calc(100vh - 168px);min-height:520px;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:#fff;box-shadow:var(--shadow)}
+.talk{display:grid;grid-template-columns:190px 1fr 212px;height:calc(100vh - 168px);min-height:520px;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:#fff;box-shadow:var(--shadow)}
 .talk .chs{border-right:1px solid var(--line);background:#faf9f5;padding:11px;overflow:auto}
 .talk .chs .t{font-size:10.5px;color:var(--muted);font-weight:700;padding:4px 8px 6px}
 .talk .chs button{display:flex;align-items:center;gap:6px;width:100%;border:0;background:none;padding:8px 10px;border-radius:9px;font-size:12.5px;text-align:left}
@@ -143,6 +143,16 @@ textarea.in{min-height:72px;resize:vertical}
 .talk .chs button.on{background:var(--sage-lt);color:var(--dark);font-weight:700}
 .talk .chs button .n{margin-left:auto;background:var(--amber);color:#fff;font-size:10px;border-radius:999px;padding:0 6px;font-weight:700}
 .talk .stream{display:flex;flex-direction:column;min-width:0}
+.talk .who{border-left:1px solid var(--line);background:#faf9f5;padding:11px 12px;overflow:auto}
+.talk .who .t{font-size:10.5px;color:var(--muted);font-weight:700;padding:4px 2px 8px;display:flex;align-items:center;gap:6px}
+.talk .who .t em{font-style:normal;background:var(--sage-lt);color:var(--dark);border-radius:999px;padding:1px 7px;font-size:10px;font-weight:700}
+.talk .who .w{display:flex;align-items:center;gap:8px;padding:6px 2px}
+.talk .who .w .d{width:7px;height:7px;border-radius:50%;background:#cfcdc2;flex:none}
+.talk .who .w.on .d{background:var(--success);box-shadow:0 0 0 3px rgba(45,122,79,.16)}
+.talk .who .w b{display:block;font-size:12.5px;font-weight:500;line-height:1.35}
+.talk .who .w.on b{font-weight:700}
+.talk .who .w span{display:block;font-size:10.5px;color:var(--muted);line-height:1.3}
+.talk .who .none{font-size:11.5px;color:var(--muted);padding:6px 2px}
 .talk .sh{padding:10px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
 .talk .sh b{font-size:13.5px}
 .talk .sh .d{font-size:11.5px;color:var(--muted)}
@@ -261,7 +271,7 @@ textarea.in{min-height:72px;resize:vertical}
 .frameBox{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:#fff;box-shadow:var(--shadow)}
 .frameBox .fh{display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid var(--line);background:#faf9f5;font-size:12px;color:var(--muted)}
 .frameBox iframe{width:100%;height:calc(100vh - 210px);min-height:520px;border:0;display:block;background:#fff}
-.talk{display:grid;grid-template-columns:190px 1fr;height:calc(100vh - 168px);min-height:520px;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:#fff;box-shadow:var(--shadow)}
+.talk{display:grid;grid-template-columns:190px 1fr 212px;height:calc(100vh - 168px);min-height:520px;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:#fff;box-shadow:var(--shadow)}
 .talk .chs{border-right:1px solid var(--line);background:#faf9f5;padding:11px;overflow:auto}
 .talk .chs .t{font-size:10.5px;color:var(--muted);font-weight:700;padding:4px 8px 6px}
 .talk .chs button{display:flex;align-items:center;gap:6px;width:100%;border:0;background:none;padding:8px 10px;border-radius:9px;font-size:12.5px;text-align:left}
@@ -269,6 +279,16 @@ textarea.in{min-height:72px;resize:vertical}
 .talk .chs button.on{background:var(--sage-lt);color:var(--dark);font-weight:700}
 .talk .chs button .n{margin-left:auto;background:var(--amber);color:#fff;font-size:10px;border-radius:999px;padding:0 6px;font-weight:700}
 .talk .stream{display:flex;flex-direction:column;min-width:0}
+.talk .who{border-left:1px solid var(--line);background:#faf9f5;padding:11px 12px;overflow:auto}
+.talk .who .t{font-size:10.5px;color:var(--muted);font-weight:700;padding:4px 2px 8px;display:flex;align-items:center;gap:6px}
+.talk .who .t em{font-style:normal;background:var(--sage-lt);color:var(--dark);border-radius:999px;padding:1px 7px;font-size:10px;font-weight:700}
+.talk .who .w{display:flex;align-items:center;gap:8px;padding:6px 2px}
+.talk .who .w .d{width:7px;height:7px;border-radius:50%;background:#cfcdc2;flex:none}
+.talk .who .w.on .d{background:var(--success);box-shadow:0 0 0 3px rgba(45,122,79,.16)}
+.talk .who .w b{display:block;font-size:12.5px;font-weight:500;line-height:1.35}
+.talk .who .w.on b{font-weight:700}
+.talk .who .w span{display:block;font-size:10.5px;color:var(--muted);line-height:1.3}
+.talk .who .none{font-size:11.5px;color:var(--muted);padding:6px 2px}
 .talk .sh{padding:10px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
 .talk .sh b{font-size:13.5px}
 .talk .sh .d{font-size:11.5px;color:var(--muted)}
@@ -1507,13 +1527,14 @@ pre.k{background:#1f2b23;color:#d8e6dc;border-radius:12px;padding:14px;overflow:
           <div class="chs" id="talkChs"><div class="t">채널</div></div>
           <div class="stream">
             <div class="sh"><b id="talkTitle">#공지</b><span class="d" id="talkDesc"></span><div class="sp" style="flex:1"></div>
-              <button class="btn sm" id="talkPinBtn">📌 고정글</button></div>
+              <span class="pill" id="talkOn" style="margin-right:8px">—</span><button class="btn sm" id="talkPinBtn">📌 고정글</button></div>
             <div class="msgs" id="talkMsgs"></div>
             <div class="compose">
               <textarea class="in" id="talkIn" placeholder="메시지 입력 · Enter 전송, Shift+Enter 줄바꿈"></textarea>
               <button class="btn pri" id="talkSend">전송</button>
             </div>
           </div>
+          <div class="who" id="talkWho"></div>
         </div>
       </section>
 
@@ -3917,6 +3938,7 @@ function setNet(ok, txt){
 let booted = false;
 function boot(){
   if(booted) return; booted = true;
+  startPresence();
   $('#schedMonth').value = thisMonth();
   $('#ledMonth').value  = thisMonth();
 
@@ -4520,6 +4542,57 @@ function renderNext(){
   <div class="hint" style="margin-bottom:10px"><b>지금 상태</b> · 내담자 관리와 자격검정 관리자가 이 화면 안으로 완전히 들어왔습니다. <b>로그인은 한 번</b>이면 되고, 창을 옮겨 다닐 필요가 없습니다.</div>
   <div class="hint amber" style="margin-bottom:10px"><b>남은 하나</b> · 홈페이지 관리(CMS)는 아직 cafe24에 있고 로그인 방식도 달라 따로 로그인해야 합니다. Firebase로 바꿔 이 안으로 옮기면 완전히 하나가 됩니다.</div>
   <div class="hint"><b>그 다음</b> · 프로그램 일정 ↔ 내담자 ↔ 회기일지 ↔ 결과보고서를 한 줄로 이어 회기를 기록하면 보고서 초안까지 자동으로 만들어지도록 할 수 있습니다.</div>`;
+}
+
+/* ==================== 접속 상태 (업무톡) ==================== */
+const ROLE_KO = { admin:'센터장', branch:'지부장', therapist:'치료사', agency:'기관담당자', supervisor:'감독관' };
+let PRES = [], presTimer = null;
+
+function agoTxt(t){
+  if(!t) return '기록 없음';
+  const m = Math.floor((Date.now() - t) / 60000);
+  if(m < 1)  return '방금 전';
+  if(m < 60) return m + '분 전';
+  const h = Math.floor(m / 60);
+  if(h < 24) return h + '시간 전';
+  return Math.floor(h / 24) + '일 전';
+}
+
+function paintWho(){
+  const el = $('#talkWho'); if(!el) return;
+  const now = Date.now(), on = [], off = [];
+  PRES.forEach(p => ((now - (p.at || 0) < 70000) ? on : off).push(p));
+  on.sort((a,b) => String(a.name||'').localeCompare(String(b.name||'')));
+  off.sort((a,b) => (b.at||0) - (a.at||0));
+  const row = (p, live) => `<div class="w${live ? ' on' : ''}"><span class="d"></span>
+    <div><b>${esc(p.name || '—')}</b><span>${live ? (ROLE_KO[p.role] || p.role || '접속 중') : agoTxt(p.at)}</span></div></div>`;
+  el.innerHTML = `<div class="t">지금 접속 중 <em>${on.length}</em></div>`
+    + (on.length ? on.map(p => row(p, true)).join('') : '<div class="none">지금은 아무도 없습니다</div>')
+    + (off.length ? '<div class="t" style="margin-top:14px">최근 접속</div>' + off.slice(0,8).map(p => row(p, false)).join('') : '');
+  const badge = $('#talkOn');
+  if(badge) badge.textContent = on.length ? `🟢 ${on.length}명 접속 중` : '접속자 없음';
+}
+
+async function presenceBeat(){
+  if(!ME) return;
+  try {
+    await setDoc(doc(db, 'hubPresence', ME.uid), {
+      uid: ME.uid,
+      name: ME.displayName || (ME.email || '').split('@')[0] || '사용자',
+      email: ME.email || '',
+      role: window.__ROLE || '',
+      at: Date.now()
+    }, { merge: true });
+  } catch(_){}
+}
+
+function startPresence(){
+  if(presTimer) return;
+  presenceBeat();
+  presTimer = setInterval(presenceBeat, 25000);
+  document.addEventListener('visibilitychange', () => { if(!document.hidden) presenceBeat(); });
+  sub(onSnapshot(collection(db, 'hubPresence'), s => { PRES = s.docs.map(d => d.data()); paintWho(); }));
+  setInterval(paintWho, 30000);
 }
 
 /* iframe 차단 감지 */
