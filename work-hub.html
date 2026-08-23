@@ -125,6 +125,11 @@ async function loadMaster(){
     return { id: d.id, name: v.name || v.email || '이름 없음',
              role: R2C[v.role] || 'staff', email: v.email || '', pw: '' };
   });
+  // 결재란에 쓰이므로 센터장은 항상 한 명 있어야 한다
+  if (!people.some(p => p.role === 'director')) {
+    people.push({ id: '__center', name: '박진우', role: 'director',
+                  email: 'bakjinwoo92@daum.net', pw: '' });
+  }
   const me = auth.currentUser;
   if (me && !people.some(p => p.id === me.uid)) {
     const mine = window.__cmsMe || null;
