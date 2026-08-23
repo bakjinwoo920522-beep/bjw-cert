@@ -56,7 +56,7 @@ async function writeKey(key, value){
 }
 
 /* ───────── 내담자·기관은 '내담자·회기' 자료를 그대로 쓴다 ───────── */
-const MASTER_KEYS = { 'htc-clients': 1, 'htc-insts': 1 };
+const MASTER_KEYS = { 'htc-clients': 1, 'htc-insts': 1, 'htc-users': 1 };
 let masterCache = null;
 async function loadMaster(){
   if (masterCache) return masterCache;
@@ -91,9 +91,24 @@ async function loadMaster(){
       sessions: Array.isArray(v.sessions) ? v.sessions : []
     });
   });
+  // 업무 관리의 '사용자'도 실제 발급된 계정을 그대로 쓴다
+  const R2C = { admin: 'director', branch: 'branch', therapist: 'staff', agency: 'staff', supervisor: 'staff' };
+  const people = accs.docs.map(d => {
+    const v = d.data();
+    return { id: d.id, name: v.name || v.email || '이름 없음',
+             role: R2C[v.role] || 'staff', email: v.email || '', pw: '' };
+  });
+  const me = auth.currentUser;
+  if (me && !people.some(p => p.id === me.uid)) {
+    const mine = window.__cmsMe || null;
+    people.unshift({ id: me.uid,
+      name: (mine && mine.name) || (me.email || '').split('@')[0],
+      role: (mine && mine.role) || 'staff', email: me.email || '', pw: '' });
+  }
   masterCache = {
     'htc-clients': JSON.stringify(clients),
-    'htc-insts': JSON.stringify(insts)
+    'htc-insts': JSON.stringify(insts),
+    'htc-users': JSON.stringify(people)
   };
   return masterCache;
 }
@@ -153,7 +168,10 @@ async function toCmsUser(u){
     try { const a = await getDoc(doc(db, 'cms_accounts', u.uid)); if (a.exists()) name = a.data().name || ''; } catch(_){}
   }
   if (!name) name = role === 'admin' ? '박진우' : (u.email || '').split('@')[0];
-  return { id: u.uid, name, email: u.email || '', role: ROLE_MAP[role] || 'staff' };
+  const cu = { id: u.uid, name, email: u.email || '', role: ROLE_MAP[role] || 'staff' };
+  window.__cmsMe = cu;
+  masterCache = null;              // 로그인이 바뀌면 목록을 다시 읽는다
+  return cu;
 }
 
 window.__cmsSignIn = async function(email, pw){
@@ -1064,11 +1082,6 @@ function App() {
     icon: "📁",
     label: "서류 관리",
     roles: ["staff", "branch", "director"]
-  }, {
-    id: "users",
-    icon: "👥",
-    label: "사용자 관리",
-    roles: ["director"]
   }].filter(function (m) {
     return m.roles.includes(role);
   });
