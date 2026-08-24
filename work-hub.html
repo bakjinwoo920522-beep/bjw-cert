@@ -290,6 +290,20 @@ a{color:var(--moss)}
 .g3{grid-template-columns:repeat(3,1fr)}
 .g2{grid-template-columns:repeat(2,1fr)}
 @media(max-width:1050px){.g4{grid-template-columns:repeat(2,1fr)}.g3,.g2{grid-template-columns:1fr}}
+.calGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.calHd{font-size:11px;color:var(--muted);text-align:center;padding:2px 0 6px;font-weight:700}
+.calCell{min-height:78px;border:1px solid var(--line);border-radius:8px;padding:4px 5px;cursor:pointer;background:#fff;transition:.12s}
+.calCell:hover{border-color:var(--sage);background:#fbfaf6}
+.calCell.off{background:transparent;border-color:transparent;cursor:default}
+.calCell.today{border-color:var(--moss);background:#f3f8f3}
+.calDay{font-size:11px;font-weight:700;color:var(--text);margin-bottom:3px}
+.calCell.today .calDay{color:var(--moss)}
+.calItems{display:flex;flex-direction:column;gap:2px}
+.calEv{background:var(--sage-lt);color:var(--dark);border-radius:5px;padding:2px 5px;font-size:10.5px;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.calEv:hover{background:var(--sage)}
+.calEv .w{color:var(--dark);opacity:.75;margin-left:3px}
+.calMore{font-size:10px;color:var(--muted);padding:1px 5px}
+@media(max-width:1050px){.calCell{min-height:60px}.calEv{font-size:9.5px}}
 .stat{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow)}
 .stat .lab{font-size:11.5px;color:var(--muted);font-weight:500}
 .stat .val{font-size:25px;font-weight:700;letter-spacing:-.5px;margin-top:4px;font-family:"Noto Serif KR",serif}
@@ -370,6 +384,8 @@ textarea.in{min-height:72px;resize:vertical}
 .msgs{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:11px;background:#f6f5f0}
 .msg{max-width:76%;background:#fff;border:1px solid var(--line);border-radius:13px;padding:9px 12px;box-shadow:0 1px 1px rgba(0,0,0,.03)}
 .msg .who{font-size:11px;color:var(--muted);font-weight:700;margin-bottom:2px}
+.msg .who b{color:var(--text)}
+.msg .who .rl{font-weight:500;margin-left:5px;color:var(--muted)}
 .msg .txt{white-space:pre-wrap;word-break:break-word;font-size:13px}
 .msg .tm{font-size:10px;color:var(--muted);margin-top:3px}
 .msg.me{align-self:flex-end;background:#e7f0e9;border-color:#cfe0d4}
@@ -446,6 +462,20 @@ a{color:var(--moss)}
 .g3{grid-template-columns:repeat(3,1fr)}
 .g2{grid-template-columns:repeat(2,1fr)}
 @media(max-width:1050px){.g4{grid-template-columns:repeat(2,1fr)}.g3,.g2{grid-template-columns:1fr}}
+.calGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.calHd{font-size:11px;color:var(--muted);text-align:center;padding:2px 0 6px;font-weight:700}
+.calCell{min-height:78px;border:1px solid var(--line);border-radius:8px;padding:4px 5px;cursor:pointer;background:#fff;transition:.12s}
+.calCell:hover{border-color:var(--sage);background:#fbfaf6}
+.calCell.off{background:transparent;border-color:transparent;cursor:default}
+.calCell.today{border-color:var(--moss);background:#f3f8f3}
+.calDay{font-size:11px;font-weight:700;color:var(--text);margin-bottom:3px}
+.calCell.today .calDay{color:var(--moss)}
+.calItems{display:flex;flex-direction:column;gap:2px}
+.calEv{background:var(--sage-lt);color:var(--dark);border-radius:5px;padding:2px 5px;font-size:10.5px;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.calEv:hover{background:var(--sage)}
+.calEv .w{color:var(--dark);opacity:.75;margin-left:3px}
+.calMore{font-size:10px;color:var(--muted);padding:1px 5px}
+@media(max-width:1050px){.calCell{min-height:60px}.calEv{font-size:9.5px}}
 .stat{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow)}
 .stat .lab{font-size:11.5px;color:var(--muted);font-weight:500}
 .stat .val{font-size:25px;font-weight:700;letter-spacing:-.5px;margin-top:4px;font-family:"Noto Serif KR",serif}
@@ -526,6 +556,8 @@ textarea.in{min-height:72px;resize:vertical}
 .msgs{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:11px;background:#f6f5f0}
 .msg{max-width:76%;background:#fff;border:1px solid var(--line);border-radius:13px;padding:9px 12px;box-shadow:0 1px 1px rgba(0,0,0,.03)}
 .msg .who{font-size:11px;color:var(--muted);font-weight:700;margin-bottom:2px}
+.msg .who b{color:var(--text)}
+.msg .who .rl{font-weight:500;margin-left:5px;color:var(--muted)}
 .msg .txt{white-space:pre-wrap;word-break:break-word;font-size:13px}
 .msg .tm{font-size:10px;color:var(--muted);margin-top:3px}
 .msg.me{align-self:flex-end;background:#e7f0e9;border-color:#cfe0d4}
@@ -1729,6 +1761,17 @@ pre.k{background:#1f2b23;color:#d8e6dc;border-radius:12px;padding:14px;overflow:
           <div class="stat"><div class="lab">이번 주 회기</div><div class="val" id="k-week">·<small>건</small></div><div class="note">프로그램·일정 기준</div></div>
           <div class="stat"><div class="lab">처리 대기</div><div class="val" id="k-todo">·<small>건</small></div><div class="note" id="k-todo-n">발급요청·문의</div></div>
           <div class="stat"><div class="lab">이번 달 정산</div><div class="val" id="k-money">·</div><div class="note" id="k-money-n">확정 수입 − 지출</div></div>
+        </div>
+        <div class="card" style="margin-bottom:13px">
+          <div class="hd"><h2>월간 일정</h2><div class="sp"></div>
+            <span style="font-size:11px;color:var(--muted);margin-right:6px">누가 어디서 강의하는지 한눈에</span>
+            <button class="btn sm" id="calPrev">‹ 이전달</button>
+            <b id="calMonthLabel" style="min-width:64px;text-align:center;display:inline-block"></b>
+            <button class="btn sm" id="calNext">다음달 ›</button>
+            <button class="btn pri sm" id="calAdd">+ 일정 등록</button></div>
+          <div class="bd" style="padding:10px 12px">
+            <div class="calGrid" id="calGrid"></div>
+          </div>
         </div>
         <div class="grid g2">
           <div class="card">
@@ -4281,17 +4324,78 @@ function renderDash(){
   const recent = TALK.slice(-4).reverse();
   $('#dashTalk').innerHTML = recent.length ? recent.map(m2 => `
     <div style="border-left:3px solid var(--sage-lt);padding-left:10px">
-      <div style="font-size:11px;color:var(--muted)"><b>${esc(m2.name||'')}</b> · #${esc(m2.channel||'')} · ${tstr(m2.ts)}</div>
+      <div style="font-size:11px;color:var(--muted)"><b>${esc(m2.name||'')}</b>${m2.role?` · ${esc(ROLE_KO[m2.role]||m2.role)}`:''} · #${esc(m2.channel||'')} · ${tstr(m2.ts)}</div>
       <div style="font-size:12.5px">${esc((m2.text||'').slice(0,80))}</div>
     </div>`).join('')
     : `<div class="empty">아직 대화가 없습니다.</div>`;
+
+  renderCal();
 }
 const progName = id => (PROG.find(p => p.id === id)?.title) || '—';
+
+/* =================== 대시보드 · 월간 캘린더 =================== */
+let calMonth = thisMonth();
+function shiftYM(ym, delta){
+  const [y,m] = ym.split('-').map(Number);
+  const d = new Date(y, m-1+delta, 1);
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}`;
+}
+function progInfo(id){
+  const p = PROG.find(x => x.id === id);
+  return p ? { title:p.title, org:p.org||'', instructor:p.instructor||'' } : { title:'삭제된 프로그램', org:'', instructor:'' };
+}
+function renderCal(){
+  const grid = $('#calGrid'); if(!grid) return;
+  const [y,m] = calMonth.split('-').map(Number);
+  const lbl = $('#calMonthLabel'); if(lbl) lbl.textContent = `${y}.${pad(m)}`;
+  const startDow = new Date(y, m-1, 1).getDay();
+  const daysInMonth = new Date(y, m, 0).getDate();
+  const todayStr = todayISO();
+  const byDate = {};
+  SESS.filter(s => (s.date||'').startsWith(calMonth)).forEach(s => (byDate[s.date] ||= []).push(s));
+  const MAX = 3;
+  let html = ['일','월','화','수','목','금','토'].map(d => `<div class="calHd">${d}</div>`).join('');
+  for(let i=0;i<startDow;i++) html += `<div class="calCell off"></div>`;
+  for(let day=1; day<=daysInMonth; day++){
+    const ds = `${y}-${pad(m)}-${pad(day)}`;
+    const items = (byDate[ds]||[]).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+    const shown = items.slice(0, MAX);
+    html += `<div class="calCell${ds===todayStr?' today':''}" data-date="${ds}">
+      <div class="calDay">${day}</div>
+      <div class="calItems">${shown.map(s => {
+        const info = progInfo(s.programId);
+        return `<div class="calEv" data-ed="${s.id}" title="${esc(info.title)}${info.instructor?' · '+esc(info.instructor):''}${info.org?' @ '+esc(info.org):''}">
+          ${esc(s.time||'')} ${esc(info.title)}${info.instructor?`<span class="w">${esc(info.instructor)}</span>`:''}</div>`;
+      }).join('')}${items.length>MAX?`<div class="calMore">+${items.length-MAX}개 더</div>`:''}</div>
+    </div>`;
+  }
+  const trail = (7 - ((startDow + daysInMonth) % 7)) % 7;
+  for(let i=0;i<trail;i++) html += `<div class="calCell off"></div>`;
+  grid.innerHTML = html;
+}
+$('#calGrid').addEventListener('click', e => {
+  const ev = e.target.closest('[data-ed]');
+  if(ev){
+    const s = SESS.find(x => x.id === ev.dataset.ed);
+    if(s) openForm('회기 일지', SESS_FIELDS(), {...s, done: s.done?'1':''},
+      d => updateDoc(doc(db,'hubSessions',s.id), {...d, done: d.done==='1'}));
+    return;
+  }
+  const cell = e.target.closest('.calCell[data-date]');
+  if(cell) openForm('회기 추가', SESS_FIELDS(), {date: cell.dataset.date},
+    d => addDoc(collection(db,'hubSessions'), {...d, done: d.done==='1', createdAt: serverTimestamp()}));
+});
+$('#calPrev').onclick = () => { calMonth = shiftYM(calMonth, -1); renderCal(); };
+$('#calNext').onclick = () => { calMonth = shiftYM(calMonth, 1); renderCal(); };
+$('#calAdd').onclick = () => openForm('회기 추가', SESS_FIELDS(), {date: todayISO()},
+  d => addDoc(collection(db,'hubSessions'), {...d, done: d.done==='1', createdAt: serverTimestamp()}));
+renderCal();
 
 /* =================== 프로그램·일정 =================== */
 const PROG_FIELDS = [
   {k:'title', l:'프로그램명', ph:'예: 어르신 원예활동교실', w:'full'},
   {k:'org',   l:'기관·장소', ph:'예: ○○노인복지관 2층'},
+  {k:'instructor', l:'담당 강사', ph:'예: 이치료 치료사'},
   {k:'target',l:'대상', ph:'예: 65세 이상 15명'},
   {k:'weekday', l:'요일', t:'select', o:['월','화','수','목','금','토','일']},
   {k:'time',  l:'시간', t:'time', d:'10:00'},
@@ -4305,7 +4409,7 @@ $('#addProg').onclick = () => openForm('프로그램 등록', PROG_FIELDS, {star
 function renderProg(){
   $('#tProg').innerHTML = PROG.length ? PROG.map(p => `
     <tr><td><b>${esc(p.title)}</b><div style="font-size:11px;color:var(--muted)">${esc(p.note||'')}</div></td>
-    <td>${esc(p.org||'')}</td><td>${esc(p.target||'')}</td>
+    <td>${esc(p.org||'')}${p.instructor?`<div style="font-size:11px;color:var(--muted)">👤 ${esc(p.instructor)}</div>`:''}</td><td>${esc(p.target||'')}</td>
     <td>${esc(p.weekday||'')} ${esc(p.time||'')}</td>
     <td class="num">${won(p.total)}</td><td class="num">${won(p.fee)}</td>
     <td class="num"><button class="btn sm" data-ed="${p.id}">수정</button>
@@ -4779,7 +4883,7 @@ function paintTalk(){
     if(d !== last){ last = d; head = `<div class="dayline">${esc(d === todayISO() ? '오늘' : d)}</div>`; }
     const mine = m.uid === ME?.uid;
     return head + `<div class="msg ${mine?'me':''} ${m.pinned?'pin':''}">
-      <div class="who">${esc(m.name||'')}${m.pinned?' 📌':''}</div>
+      <div class="who"><b>${esc(m.name||'')}</b>${m.role?`<span class="rl">${esc(ROLE_KO[m.role]||m.role)}</span>`:''}${m.pinned?' 📌':''}</div>
       <div class="txt">${esc(m.text)}</div>
       <div class="tm">${tstr(m.ts)}</div>
       <div class="act"><button data-pin="${m.id}">${m.pinned?'고정 해제':'고정'}</button>
@@ -4802,7 +4906,8 @@ async function send(){
   try{
     await addDoc(collection(db,'hubTalk'), {
       channel: curCh, text, uid: ME.uid,
-      name: ME.displayName || (ME.email||'').split('@')[0],
+      name: window.__NAME || ME.displayName || (ME.email||'').split('@')[0],
+      role: window.__ROLE || '',
       email: ME.email || '', pinned:false, ts: serverTimestamp() });
   }catch(ex){ el.value = text; toast('전송 실패: ' + ex.code); }
 }
@@ -4881,7 +4986,7 @@ async function presenceBeat(){
   try {
     await setDoc(doc(db, 'hubPresence', ME.uid), {
       uid: ME.uid,
-      name: ME.displayName || (ME.email || '').split('@')[0] || '사용자',
+      name: window.__NAME || ME.displayName || (ME.email || '').split('@')[0] || '사용자',
       email: ME.email || '',
       role: window.__ROLE || '',
       at: Date.now()
@@ -14971,20 +15076,25 @@ async function resolveRole(user){
   const { doc, getDoc } = window.__firebase;
   try {
     const r = await getDoc(doc(window.__db, 'bjw_roles', user.uid));
-    if (r.exists() && r.data().role) return r.data().role;
+    if (r.exists() && r.data().role) return { role: r.data().role, name: r.data().name || '', branch: r.data().branch || '' };
   } catch(e){}
-  if (user.email === 'bakjinwoo92@daum.net') return 'admin';
+  if (user.email === 'bakjinwoo92@daum.net') return { role: 'admin', name: '박진우', branch: '' };
   try {
     const a = await getDoc(doc(window.__db, 'cms_accounts', user.uid));
-    if (a.exists() && a.data().role) return a.data().role;
+    if (a.exists() && a.data().role) return { role: a.data().role, name: a.data().name || '', branch: a.data().branch || '' };
   } catch(e){}
-  return 'therapist';
+  return { role: 'therapist', name: '', branch: '' };
 }
 
-function applyRole(role){
+function applyRole(info){
+  const role = info.role;
   window.__ROLE = role;
+  window.__NAME = info.name || window.__NAME || '';
+  window.__BRANCH = info.branch || '';
   const badge = document.getElementById('meRole');
   if (badge) badge.textContent = LABEL[role] || role;
+  const nameEl = document.getElementById('meName');
+  if (nameEl && info.name) nameEl.textContent = info.name;
   const allow = NAV_BY_ROLE[role];
   const btns = [...document.querySelectorAll('#nav button[data-p]')];
   btns.forEach(b => { b.style.display = (!allow || allow.includes(b.dataset.p)) ? '' : 'none'; });
