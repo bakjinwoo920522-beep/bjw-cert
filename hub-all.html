@@ -1755,7 +1755,7 @@ pre.k{background:#1f2b23;color:#d8e6dc;border-radius:12px;padding:14px;overflow:
       <div class="grp">행정</div>
       <button data-p="cms"><span class="ico">🗂</span>업무 관리</button>
       <div class="grp">기타</div>
-      <button data-p="mail"><span class="ico">✉️</span>메일</button>
+      <button data-p="mail"><span class="ico">✉️</span>메일<span style="margin-left:auto;font-size:11px;opacity:.55">↗</span></button>
       <button data-p="setting"><span class="ico">⚙</span>설정·연결</button>
     </nav>
     <div class="me">
@@ -4099,7 +4099,7 @@ match /hubConfig/{d}    { allow read, write: if request.auth != null; }</pre>
           <div class="bd">
             <div class="hint" style="margin-bottom:10px">
               ✅ 이 규칙은 <b>이미 Firebase 콘솔에 등록·게시됐습니다.</b> 대화 상대(members)로 등록된 사람만 그 방을 읽고 쓸 수 있고,
-              사진·파일 첨부는 로그인한 사람만 올리고 볼 수 있습니다. 아래는 실제로 등록된 내용을 참고용으로 보여드리는 것이니 다시 붙여넣지 않으셔도 됩니다.
+              사진·파일 첨부도 <b>센터에 등록된 직원 계정(known())만</b> 올리고 볼 수 있습니다. 아래는 실제로 등록된 내용을 참고용으로 보여드리는 것이니 다시 붙여넣지 않으셔도 됩니다.
             </div>
             <p style="margin-top:0;color:var(--muted);font-size:12.5px">① Firestore Database → 규칙 (기존 known() 판정 함수를 그대로 사용합니다)</p>
 <pre class="k">match /hubRooms/{roomId} {
@@ -4113,8 +4113,17 @@ match /hubConfig/{d}    { allow read, write: if request.auth != null; }</pre>
     allow delete: if known() && resource.data.uid == uid();
   }
 }</pre>
-            <p style="color:var(--muted);font-size:12.5px">② Storage → 규칙 (사진·파일 첨부용, 로그인한 사람만 읽고 쓸 수 있도록)</p>
-<pre class="k">allow read, write: if request.auth != null;</pre>
+            <p style="color:var(--muted);font-size:12.5px">② Storage → 규칙 (사진·파일 첨부용, 센터에 등록된 직원 계정만 읽고 쓸 수 있도록)</p>
+<pre class="k">function signedIn() { return request.auth != null; }
+function uid() { return request.auth.uid; }
+function isOwnerMail() { return signedIn() && request.auth.token.email == 'bakjinwoo92@daum.net'; }
+function hasRoleDoc() { return signedIn() && firestore.exists(/databases/(default)/documents/bjw_roles/$(uid())); }
+function hasAcctDoc() { return signedIn() && firestore.exists(/databases/(default)/documents/cms_accounts/$(uid())); }
+function known() { return isOwnerMail() || hasRoleDoc() || hasAcctDoc(); }
+
+match /{allPaths=**} {
+  allow read, write: if known();
+}</pre>
           </div>
         </div>
         <div class="card">
@@ -4265,6 +4274,7 @@ const TITLES = { dash:['대시보드','오늘 해야 할 일과 전체 현황'],
   mail:['메일','센터 메일함 · info@parkjinwoohtc.com'],
   setting:['설정·연결','계정, 채널, 보안 규칙'] };
 function go(p){
+  if(p === 'mail'){ window.open('http://webmail.jinwoo92.cafe24.com/user/mail/main.php?page=list&mbox=INBOX', '_blank', 'noopener'); return; }
   $$('#nav button').forEach(b => b.classList.toggle('on', b.dataset.p === p));
   $$('.page').forEach(s => s.classList.toggle('on', s.id === 'p-'+p));
   const [t,s] = TITLES[p] || ['',''];
