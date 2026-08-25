@@ -4274,6 +4274,7 @@ const TITLES = { dash:['대시보드','오늘 해야 할 일과 전체 현황'],
   mail:['메일','센터 메일함 · info@parkjinwoohtc.com'],
   setting:['설정·연결','계정, 채널, 보안 규칙'] };
 function go(p){
+  if(window.__NAV_ALLOW && !window.__NAV_ALLOW.includes(p)) p = 'dash';   // 권한 없는 페이지는 대시보드로
   if(p === 'mail'){ window.open('http://webmail.jinwoo92.cafe24.com/user/mail/main.php?page=list&mbox=INBOX', '_blank', 'noopener'); return; }
   $$('#nav button').forEach(b => b.classList.toggle('on', b.dataset.p === p));
   $$('.page').forEach(s => s.classList.toggle('on', s.id === 'p-'+p));
@@ -4386,6 +4387,7 @@ async function loadCounts(){
   const tb = $('#dashCounts'); tb.innerHTML = '';
   let pending = 0;
   for(const [c, label, tab] of COUNT_DEFS){
+    if(window.__NAV_ALLOW && !window.__NAV_ALLOW.includes(tab)) continue;   // 권한 없는 항목은 아예 표시 안 함
     let n = '—';
     try { n = (await getCountFromServer(collection(db, c))).data().count; }
     catch(e){ n = '권한'; }
@@ -4399,6 +4401,10 @@ async function loadCounts(){
   $('#k-todo').innerHTML = won(pending) + '<small>건</small>';
   $('#k-todo-n').textContent = '발급요청 + 홈페이지 문의 누계';
 }
+// 역할 확인(ROLE_GATE)이 대시보드 렌더보다 늦게 끝나는 경우를 대비해,
+// 역할이 확정되면 업무 현황 표를 권한에 맞게 다시 그린다 (순서 상관없이 항상 반영되도록 양방향 확인)
+window.__onRoleReady = () => { try { loadCounts(); } catch(e){} };
+if (window.__roleReadyFired) window.__onRoleReady();
 function renderDash(){
   const t = todayISO(), [ws,we] = weekRange();
   const today = SESS.filter(s => s.date === t);
@@ -15354,8 +15360,8 @@ try{ if(typeof uploadGalleryPhoto==='function') window.cx_uploadGalleryPhoto=upl
 const NAV_BY_ROLE = {
   admin: null,                                              // 센터장: 전부
   supervisor: ['dash', 'cert'],                             // 감독관: 자격검정만
-  branch:    ['dash','talk','sched','client','stock','cms'],   // 지부장
-  therapist: ['dash','talk','sched','client','stock','cms'],   // 치료사
+  branch:    ['dash','talk','sched','client','stock'],   // 지부장 — 자격검정·업무 관리 제외
+  therapist: ['dash','talk','sched','client','stock'],   // 치료사 — 자격검정·업무 관리 제외
   agency:    ['dash','client'],                             // 기관담당자
 };
 const LABEL = { admin:'센터장', branch:'지부장', therapist:'치료사',
@@ -15390,6 +15396,9 @@ function applyRole(info){
   const nameEl = document.getElementById('meName');
   if (nameEl && info.name) nameEl.textContent = info.name;
   const allow = NAV_BY_ROLE[role];
+  window.__NAV_ALLOW = allow;   // go()에서도 같은 목록으로 실제 이동을 막는다 (대시보드 바로가기 등 우회 방지)
+  window.__roleReadyFired = true;
+  if (window.__onRoleReady) window.__onRoleReady();   // 대시보드가 먼저 그려졌다면 권한에 맞게 다시 그리기
   const btns = [...document.querySelectorAll('#nav button[data-p]')];
   btns.forEach(b => { b.style.display = (!allow || allow.includes(b.dataset.p)) ? '' : 'none'; });
   // 비어 버린 그룹 제목 숨기기
