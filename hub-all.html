@@ -7612,7 +7612,7 @@ function App() {
           if (d.status !== "완료") { showToast("결재가 완료돼야 정식 견적서를 받을 수 있습니다."); return; }
           var w = window.open("", "_blank", "width=900,height=760");
           if (!w) { showToast("팝업이 차단됐습니다. 팝업 허용 후 다시 시도해 주세요."); return; }
-          w.document.write(buildEstimateHTML(d.est, { approved: true, docNo: d.id, date: d.approvedAt || d.date }));
+          w.document.write(buildEstimateHTML(d.est, { approved: true, docNo: d.id, date: d.est.date ? koreanDate(d.est.date) : (d.approvedAt || d.date) }));
           w.document.close();
           return;
         }
@@ -8801,13 +8801,23 @@ function App() {
   }
 
   // ── 견적서 ────────────────────────────────────────────────
+  function todayISO() {
+    var d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  function koreanDate(iso) {
+    if (!iso) return new Date().toLocaleDateString('ko-KR');
+    var p = iso.split('-');
+    return new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2])).toLocaleDateString('ko-KR');
+  }
   function Est() {
     var _useState71 = useState({
         inst: "",
         name: "",
         spec: "60분/회기",
         qty: "12",
-        unit: "60000"
+        unit: "60000",
+        date: todayISO()
       }),
       _useState72 = _slicedToArray(_useState71, 2),
       ef = _useState72[0],
@@ -8816,7 +8826,7 @@ function App() {
     function generatePDF(approved) {
       var html = buildEstimateHTML({
         inst: ef.inst, name: ef.name, spec: ef.spec, qty: ef.qty, unit: ef.unit, supply: supply
-      }, { approved: !!approved });
+      }, { approved: !!approved, date: koreanDate(ef.date) });
       var w = window.open('', '_blank', 'width=900,height=760');
       if (!w) { showToast("팝업이 차단됐습니다. 팝업 허용 후 다시 시도해 주세요."); return; }
       w.document.write(html);
@@ -8852,6 +8862,23 @@ function App() {
         key: x
       }, x);
     }))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginBottom: 10
+      }
+    }, /*#__PURE__*/React.createElement("label", {
+      style: labelStyle
+    }, "\uACAC\uC801\uC77C\uC790"), /*#__PURE__*/React.createElement("input", {
+      type: "date",
+      value: ef.date,
+      onChange: function onChange(e) {
+        return setEf(function (p) {
+          return _objectSpread(_objectSpread({}, p), {}, {
+            date: e.target.value
+          });
+        });
+      },
+      style: inputStyle
+    })), /*#__PURE__*/React.createElement("div", {
       style: {
         marginBottom: 10
       }
@@ -8950,6 +8977,7 @@ function App() {
     }, "\uD83D\uDD0D \uCD08\uC548 \uBBF8\uB9AC\uBCF4\uAE30"), /*#__PURE__*/React.createElement("button", {
       onClick: function onClick() {
         if (!ef.inst) { showToast("수신 기관을 선택해 주세요."); return; }
+        if (!ef.date) { showToast("견적일자를 입력해 주세요."); return; }
         if (!supply)  { showToast("수량과 단가를 확인해 주세요."); return; }
         var estNo = "EST-" + new Date().getFullYear() + "-" + String(Date.now()).slice(-4);
         var nd = [{
@@ -8961,7 +8989,7 @@ function App() {
           date: new Date().toLocaleDateString("ko-KR"),
           status: "센터장대기",
           comment: "",
-          est: { inst: ef.inst, name: ef.name, spec: ef.spec, qty: ef.qty, unit: ef.unit, supply: supply }
+          est: { inst: ef.inst, name: ef.name, spec: ef.spec, qty: ef.qty, unit: ef.unit, supply: supply, date: ef.date }
         }].concat(_toConsumableArray(docs));
         saveDocs(nd);
         showToast("결재 요청됐습니다. 센터장 승인 후 직인이 찍힌 견적서를 받을 수 있습니다.");
