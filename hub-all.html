@@ -5651,6 +5651,71 @@ function buildEstimateHTML(d, opts){
   + '</div></body></html>';
 }
 
+/* ───────── 거래명세서 서식 (초안 / 승인본 공용) ─────────
+   견적서 서식과 동일한 구조 · 거래 완료 내역 확인용 */
+function buildTmsHTML(d, opts){
+  opts = opts || {};
+  var approved = !!opts.approved;
+  var today    = opts.date || new Date().toLocaleDateString('ko-KR');
+  var no       = opts.docNo || ('TMS-' + new Date().getFullYear() + '-' + String(Math.floor(Math.random()*900)+100));
+  var supply   = parseInt(d.supply, 10) || ((parseInt(d.qty,10)||0) * (parseInt(d.unit,10)||0));
+  var sealTag  = approved
+    ? '<img class="seal" src="' + SEAL_CENTER + '" alt="직인">'
+    : '<span class="nosign">(결재 승인 후 직인이 찍힙니다)</span>';
+  var mark = approved ? '' : '<div class="draft">초 안</div>';
+  return '<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8">'
+  + '<title>거래명세서_' + estEsc(d.inst || '박진우원예치료센터') + '_' + estEsc(today) + '</title><style>'
+  + '@media print{@page{size:A4;margin:15mm}body{margin:0}.print-btn{display:none}}'
+  + 'body{font-family:"Malgun Gothic","Apple SD Gothic Neo",sans-serif;padding:30px;max-width:750px;margin:0 auto;position:relative}'
+  + 'h1{text-align:center;font-size:24px;letter-spacing:8px;margin-bottom:6px}'
+  + '.sub{text-align:center;font-size:12px;color:#666;margin-bottom:20px}'
+  + 'table{width:100%;border-collapse:collapse;margin-bottom:14px;font-size:13px}'
+  + 'td,th{border:1px solid #333;padding:8px 12px}th{background:#f5f5f5;font-weight:bold}'
+  + '.meta td{border:0;padding:2px 0;font-size:12px;color:#444}'
+  + '.total-box{background:#F1F8E9;border:2px solid #2E7D32;border-radius:6px;padding:14px 20px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}'
+  + '.total-label{font-size:14px;font-weight:bold;color:#1B5E20}.total-val{font-size:22px;font-weight:bold;color:#2E7D32}'
+  + '.exempt{font-size:11px;color:#888;text-align:center;margin-bottom:16px}'
+  + '.thead-green th{background:#2E7D32;color:#fff;border-color:#2E7D32}'
+  + '.sum-row td{background:#F1F8E9;font-weight:bold}'
+  + '.note{font-size:11px;color:#666;margin-bottom:60px}'
+  + '.sig{text-align:center;margin-bottom:70px}'
+  + '.sig .nm{font-size:20px;font-weight:bold;letter-spacing:2px;vertical-align:middle}'
+  + '.sig .seal{width:62px;height:62px;vertical-align:middle;margin-left:-14px;margin-bottom:6px;opacity:.9}'
+  + '.sig .nosign{font-size:12px;color:#9CA3AF;margin-left:8px;vertical-align:middle}'
+  + 'hr{border:1px solid #333;margin-bottom:12px}.footer{font-size:11px;color:#555;line-height:2}'
+  + '.print-btn{display:block;margin:0 auto 20px;padding:10px 30px;background:#2E7D32;color:#fff;border:none;border-radius:6px;font-size:14px;cursor:pointer}'
+  + '.draft{position:fixed;top:42%;left:50%;transform:translate(-50%,-50%) rotate(-28deg);font-size:110px;font-weight:900;color:rgba(200,60,60,.13);letter-spacing:24px;pointer-events:none;z-index:0}'
+  + '</style></head><body>'
+  + mark
+  + '<button class="print-btn" onclick="window.print()">🖨 PDF로 저장 / 인쇄</button>'
+  + '<h1>거 래 명 세 서</h1><p class="sub">(부가가치세 면세)</p>'
+  + '<table class="meta"><tr><td>수신 : ' + estEsc(d.inst || '') + ' 귀중</td>'
+  + '<td style="text-align:right">명세서번호 : ' + estEsc(no) + '</td></tr>'
+  + '<tr><td>건명 : ' + estEsc(d.name || '원예치료 프로그램') + '</td>'
+  + '<td style="text-align:right">거래일자 : ' + estEsc(today) + '</td></tr></table>'
+  + '<div class="total-box"><span class="total-label">거래 금액 (공급가액)</span>'
+  + '<span class="total-val">' + estMoney(supply) + ' 원</span></div>'
+  + '<p class="exempt">※ 면세사업자 — 부가세 해당 없음</p>'
+  + '<table><thead class="thead-green"><tr><th style="text-align:left">품목명</th>'
+  + '<th style="width:100px">규격</th><th style="width:60px">수량</th>'
+  + '<th style="width:110px;text-align:right">단가(원)</th>'
+  + '<th style="width:120px;text-align:right">공급가액(원)</th></tr></thead><tbody>'
+  + '<tr><td>' + estEsc(d.name || '원예치료 프로그램') + '</td>'
+  + '<td style="text-align:center">' + estEsc(d.spec || '') + '</td>'
+  + '<td style="text-align:center">' + estEsc(d.qty || '') + '</td>'
+  + '<td style="text-align:right">' + estMoney(d.unit) + '</td>'
+  + '<td style="text-align:right">' + estMoney(supply) + '</td></tr>'
+  + '<tr class="sum-row"><td colspan="4" style="text-align:center">합  계</td>'
+  + '<td style="text-align:right">' + estMoney(supply) + ' 원</td></tr></tbody></table>'
+  + '<p class="note">※ 재료비 포함 · 면세사업자로 부가세 없음</p>'
+  + '<div class="sig"><span class="nm">박진우원예치료센터　대표　박 진 우</span>' + sealTag + '</div>'
+  + '<hr><div class="footer">'
+  + '<div>상호: 박진우원예치료센터 &nbsp;|&nbsp; 대표: 박진우 &nbsp;|&nbsp; 사업자등록번호: 612-96-07060</div>'
+  + '<div>주소: 울산광역시 울주군 삼남읍 신복1길 26</div>'
+  + '<div>전화: 010-3491-0013 &nbsp;|&nbsp; 이메일: info@parkjinwoohtc.com &nbsp;|&nbsp; 홈페이지: parkjinwoohtc.com</div>'
+  + '</div></body></html>';
+}
+
 function Login(_ref3) {
   var onLogin = _ref3.onLogin,
     users = _ref3.users;
@@ -7616,6 +7681,14 @@ function App() {
           w.document.close();
           return;
         }
+        if (d.type === "tms" && d.tms) {
+          if (d.status !== "완료") { showToast("결재가 완료돼야 정식 거래명세서를 받을 수 있습니다."); return; }
+          var w2 = window.open("", "_blank", "width=900,height=760");
+          if (!w2) { showToast("팝업이 차단됐습니다. 팝업 허용 후 다시 시도해 주세요."); return; }
+          w2.document.write(buildTmsHTML(d.tms, { approved: true, docNo: d.id, date: d.tms.date ? koreanDate(d.tms.date) : (d.approvedAt || d.date) }));
+          w2.document.close();
+          return;
+        }
         if (d.type === "est") { showToast("예전 방식으로 올라온 견적서라 내용이 저장돼 있지 않습니다. 다시 작성해 주세요."); return; }
         showToast("이 문서 종류는 아직 PDF 서식이 없습니다.");
       },
@@ -8811,6 +8884,13 @@ function App() {
     return new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2])).toLocaleDateString('ko-KR');
   }
   function Est() {
+    var _useState70 = useState("est"),
+      _useState70b = _slicedToArray(_useState70, 2),
+      docKind = _useState70b[0],
+      setDocKind = _useState70b[1];
+    var isEst = docKind === "est";
+    var kindLabel = isEst ? "견적서" : "거래명세서";
+    var dateLabel = isEst ? "견적일자" : "거래일자";
     var _useState71 = useState({
         inst: "",
         name: "",
@@ -8824,7 +8904,8 @@ function App() {
       setEf = _useState72[1];
     var supply = parseInt(ef.qty || 0) * parseInt(ef.unit || 0);
     function generatePDF(approved) {
-      var html = buildEstimateHTML({
+      var builder = isEst ? buildEstimateHTML : buildTmsHTML;
+      var html = builder({
         inst: ef.inst, name: ef.name, spec: ef.spec, qty: ef.qty, unit: ef.unit, supply: supply
       }, { approved: !!approved, date: koreanDate(ef.date) });
       var w = window.open('', '_blank', 'width=900,height=760');
@@ -8836,10 +8917,18 @@ function App() {
         : "초안 미리보기입니다. 결재 승인 후에 직인이 찍힌 정식본이 나옵니다.");
     }
     return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+      style: { display: "flex", gap: 8, marginBottom: 10 }
+    }, /*#__PURE__*/React.createElement("button", {
+      onClick: function onClick() { setDocKind("est"); },
+      style: isEst ? btnG : btnO
+    }, "\uACAC\uC801\uC11C"), /*#__PURE__*/React.createElement("button", {
+      onClick: function onClick() { setDocKind("tms"); },
+      style: !isEst ? btnG : btnO
+    }, "\uAC70\uB798\uBA85\uC138\uC11C")), /*#__PURE__*/React.createElement("div", {
       style: cardStyle
     }, /*#__PURE__*/React.createElement("div", {
       style: cardTitleStyle
-    }, "\uACAC\uC801\uC11C \uC791\uC131"), /*#__PURE__*/React.createElement("div", {
+    }, kindLabel + " \uC791\uC131"), /*#__PURE__*/React.createElement("div", {
       style: {
         marginBottom: 10
       }
@@ -8867,7 +8956,7 @@ function App() {
       }
     }, /*#__PURE__*/React.createElement("label", {
       style: labelStyle
-    }, "\uACAC\uC801\uC77C\uC790"), /*#__PURE__*/React.createElement("input", {
+    }, dateLabel), /*#__PURE__*/React.createElement("input", {
       type: "date",
       value: ef.date,
       onChange: function onChange(e) {
@@ -8977,22 +9066,24 @@ function App() {
     }, "\uD83D\uDD0D \uCD08\uC548 \uBBF8\uB9AC\uBCF4\uAE30"), /*#__PURE__*/React.createElement("button", {
       onClick: function onClick() {
         if (!ef.inst) { showToast("수신 기관을 선택해 주세요."); return; }
-        if (!ef.date) { showToast("견적일자를 입력해 주세요."); return; }
+        if (!ef.date) { showToast(dateLabel + "를 입력해 주세요."); return; }
         if (!supply)  { showToast("수량과 단가를 확인해 주세요."); return; }
-        var estNo = "EST-" + new Date().getFullYear() + "-" + String(Date.now()).slice(-4);
-        var nd = [{
+        var estNo = (isEst ? "EST-" : "TMS-") + new Date().getFullYear() + "-" + String(Date.now()).slice(-4);
+        var docData = { inst: ef.inst, name: ef.name, spec: ef.spec, qty: ef.qty, unit: ef.unit, supply: supply, date: ef.date };
+        var newDoc = {
           id: estNo,
-          type: "est",
-          title: "\uACAC\uC801\uC11C \xB7 ".concat(ef.inst),
+          type: docKind,
+          title: (kindLabel + " \xB7 ").concat(ef.inst),
           inst: ef.inst,
           writer: user.name,
           date: new Date().toLocaleDateString("ko-KR"),
           status: "센터장대기",
-          comment: "",
-          est: { inst: ef.inst, name: ef.name, spec: ef.spec, qty: ef.qty, unit: ef.unit, supply: supply, date: ef.date }
-        }].concat(_toConsumableArray(docs));
+          comment: ""
+        };
+        newDoc[docKind] = docData;
+        var nd = [newDoc].concat(_toConsumableArray(docs));
         saveDocs(nd);
-        showToast("결재 요청됐습니다. 센터장 승인 후 직인이 찍힌 견적서를 받을 수 있습니다.");
+        showToast("결재 요청됐습니다. 센터장 승인 후 직인이 찍힌 " + kindLabel + "를 받을 수 있습니다.");
       },
       style: btnG
     }, "\uACB0\uC7AC \uC694\uCCAD"))));
