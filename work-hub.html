@@ -1754,8 +1754,8 @@ pre.k{background:#1f2b23;color:#d8e6dc;border-radius:12px;padding:14px;overflow:
       <button data-p="certpub"><span class="ico">🏷</span>발급 창구(공개)</button>
       <div class="grp">행정</div>
       <button data-p="cms"><span class="ico">🗂</span>업무 관리</button>
-      <button onclick="location.href='regulations.html'"><span class="ico">📖</span>규정집</button>
-      <button onclick="location.href='lesson-approval.html'"><span class="ico">✅</span>수업 결재</button>
+      <button data-p="regs"><span class="ico">📖</span>규정집</button>
+      <button data-p="approve"><span class="ico">✅</span>수업 결재</button>
       <div class="grp">기타</div>
       <button data-p="mail"><span class="ico">✉️</span>메일<span style="margin-left:auto;font-size:11px;opacity:.55">↗</span></button>
       <button data-p="setting"><span class="ico">⚙</span>설정·연결</button>
@@ -4014,6 +4014,12 @@ pre.k{background:#1f2b23;color:#d8e6dc;border-radius:12px;padding:14px;overflow:
       </section>
 
       <!-- ========== 홈페이지 관리 ========== -->
+      <section class="page" id="p-regs">
+        <iframe data-src="regulations.html" style="width:100%;min-height:calc(100vh - 150px);border:0;border-radius:12px;background:#fff" title="규정집"></iframe>
+      </section>
+      <section class="page" id="p-approve">
+        <iframe data-src="lesson-approval.html" style="width:100%;min-height:calc(100vh - 150px);border:0;border-radius:12px;background:#fff" title="수업 결재"></iframe>
+      </section>
       <section class="page" id="p-cms">
 <div id="app-cw">
 <div id="cms-root"></div>
@@ -4273,6 +4279,7 @@ const TITLES = { dash:['대시보드','오늘 해야 할 일과 전체 현황'],
   certstatus:['자격증 상태 관리','발급·정지·만료 상태와 공개 조회 안내문'],
   cert:['자격검정 관리','응시자·성적·자격증 발급'],
   certpub:['발급 창구','응시자에게 보이는 공개 페이지'], cms:['업무 관리','공문·결재·견적서·서류'],
+  regs:['규정집','센터 규정 7편 전문 검색·열람'], approve:['수업 결재','수업 등록 → 센터장 결재 → 정산'],
   mail:['메일','센터 메일함 · info@parkjinwoohtc.com'],
   setting:['설정·연결','계정, 채널, 보안 규칙'] };
 function go(p){
