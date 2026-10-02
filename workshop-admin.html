@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>워크숍 관리 | 박진우원예치료센터</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{
+  --bg:#EDF1E9; --paper:#F8FAF5; --ink:#1D2A21; --muted:#56685A; --moss:#355E45;
+  --moss-ink:#F4F8F1; --soil:#8A6440; --line:#CBD5C5; --warn:#9A3B2E; --ok:#2F6B45;
+  --serif:"Gowun Batang","Nanum Myeongjo",serif;
+  --sans:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15.5px;line-height:1.6}
+:focus-visible{outline:2px solid var(--moss);outline-offset:3px;border-radius:4px}
+.wrap{max-width:1100px;margin:0 auto;padding:0 20px}
+header{border-bottom:1px solid var(--line);background:var(--paper)}
+header .wrap{display:flex;align-items:center;gap:10px;min-height:58px;flex-wrap:wrap}
+.brand{font-family:var(--serif);font-weight:700;font-size:17px;margin-right:auto}
+.tab{font:500 14.5px var(--sans);padding:6px 14px;border-radius:999px;border:1px solid transparent;background:transparent;color:var(--muted);cursor:pointer}
+.tab[aria-selected="true"]{border-color:var(--line);background:var(--bg);color:var(--ink)}
+main{padding:28px 0 64px}
+h1{font-family:var(--serif);font-size:28px;margin:0 0 6px}
+h2{font-family:var(--serif);font-size:20px;margin:0 0 12px}
+.lead{color:var(--muted);margin:0 0 20px}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-bottom:18px}
+label{display:block;font-size:14px;font-weight:500;margin:12px 0 4px}
+label small{font-weight:400;color:var(--muted)}
+input[type=text],input[type=email],input[type=password],input[type=url],input[type=date],select,textarea{width:100%;font:15px var(--sans);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 11px}
+textarea{min-height:90px;resize:vertical}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:0 16px}
+@media (max-width:700px){.grid2,.grid3{grid-template-columns:1fr}}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 18px;border-radius:999px;border:1px solid var(--moss);background:var(--moss);color:var(--moss-ink);font:600 14.5px var(--sans);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--moss)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.small-btn{font:500 13px var(--sans);padding:4px 11px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer;white-space:nowrap}
+.small-btn.primary{border-color:var(--moss);color:var(--moss)}
+.small-btn.danger{color:var(--warn);border-color:currentColor}
+.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:16px}
+.msg{font-size:14.5px;margin:10px 0 0;min-height:1.2em}
+.msg.err{color:var(--warn)} .msg.ok{color:var(--ok)}
+.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--paper)}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:860px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-weight:600;color:var(--muted);background:var(--bg);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td select{padding:5px 8px;font-size:13.5px;width:auto}
+.muted{color:var(--muted)}
+.badge{font-size:12px;font-weight:600;padding:1px 8px;border-radius:999px;border:1px solid currentColor;white-space:nowrap}
+.badge.ok{color:var(--ok)} .badge.no{color:var(--warn)}
+.summary{display:flex;flex-wrap:wrap;gap:8px 22px;margin:4px 0 14px;font-size:14.5px}
+.summary b{font-family:var(--serif);font-size:20px;margin-left:4px}
+.check{display:flex;gap:8px;align-items:center;font-weight:500;margin-top:12px}
+.ws-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 0;border-top:1px solid var(--line)}
+.ws-row:first-child{border-top:0}
+.stamp-prev img{width:72px;height:72px;object-fit:contain;border:1px dashed var(--line);border-radius:8px;background:#fff}
+.preview canvas{width:min(100%,340px);height:auto;border:1px solid var(--line)}
+.login{max-width:420px;margin:60px auto}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header><div class="wrap"><span class="brand">워크숍 관리</span><nav id="tabs" hidden role="tablist">
+<button class="tab" data-tab="apps" role="tab">신청자</button><button class="tab" data-tab="ws" role="tab">워크숍</button><button class="tab" data-tab="certs" role="tab">수료증 대장</button><button class="tab" data-tab="settings" role="tab">설정</button><button class="small-btn" id="logout">로그아웃</button></nav></div></header>
+<main><div class="wrap" id="view"><p class="muted">불러오는 중입니다…</p></div></main>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc, addDoc, deleteDoc, runTransaction, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA40OooHSHAyCc-kwps50pDJ504f92hxfo",
+  authDomain: "pjw-cert.firebaseapp.com",
+  projectId: "pjw-cert",
+  storageBucket: "pjw-cert.firebasestorage.app",
+  messagingSenderId: "819294382402",
+  appId: "1:819294382402:web:1dd27376446616af09c0db"
+};
+const DIRECTOR = 'bakjinwoo92@daum.net';
+
+const app=initializeApp(firebaseConfig), auth=getAuth(app), db=getFirestore(app);
+const view=document.getElementById('view'), tabsEl=document.getElementById('tabs');
+const DAYS=['일','월','화','수','목','금','토'], STATUSES=['신청','입금확인','참석','수료','취소'];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const korDate=ds=>{const d=new Date(ds+'T00:00:00');return isNaN(d)?(ds||''):`${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일`;};
+const korDateW=ds=>{const d=new Date(ds+'T00:00:00');return isNaN(d)?(ds||''):`${korDate(ds)}(${DAYS[d.getDay()]})`;};
+const lines=v=>String(v||'').split('\n').map(x=>x.trim()).filter(Boolean);
+const normName=n=>String(n||'').replace(/\s+/g,'');
+const serialLabel=id=>`제 ${id.replace('-','-수료-')} 호`;
+async function sha(t){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');}
+const say=(el,t,cls='')=>{if(el){el.className='msg '+cls;el.textContent=t;}};
+
+const S={tab:'apps',workshops:[],apps:[],certs:[],site:{},cert:{orgName:'한국원예치유연구소',issuer:'한국원예치유연구소장 박진우',verifyUrl:'https://parkjinwoohtc.com/workshop.html#verify',stamp:''},selWs:''};
+
+/* ---------- 로그인 ---------- */
+onAuthStateChanged(auth, async user=>{
+  if(!user){tabsEl.hidden=true;return loginView();}
+  if((user.email||'').toLowerCase()!==DIRECTOR){tabsEl.hidden=true;view.innerHTML='<div class="login panel"><h2>권한이 없습니다</h2><p>센터장 계정으로만 이용할 수 있습니다.</p><button class="btn" id="lo">로그아웃</button></div>';document.getElementById('lo').onclick=()=>signOut(auth);return;}
+  tabsEl.hidden=false;await loadAll();render();
+});
+document.getElementById('logout').onclick=()=>signOut(auth);
+tabsEl.addEventListener('click',e=>{const t=e.target.closest('[data-tab]');if(t){S.tab=t.dataset.tab;render();}});
+function loginView(){
+  view.innerHTML=`<div class="login panel"><h2>센터장 로그인</h2><p class="muted" style="margin:0">업무허브와 같은 계정으로 로그인하세요.</p>
+  <label for="le">이메일</label><input id="le" type="email" value="${DIRECTOR}" autocomplete="username">
+  <label for="lp">비밀번호</label><input id="lp" type="password" autocomplete="current-password">
+  <div class="actions"><button class="btn" id="lgo">로그인</button></div><p class="msg" id="lmsg" role="status"></p></div>`;
+  const go=async()=>{try{await signInWithEmailAndPassword(auth,document.getElementById('le').value.trim(),document.getElementById('lp').value);}catch(e){say(document.getElementById('lmsg'),'이메일 또는 비밀번호가 맞지 않습니다.','err');}};
+  document.getElementById('lgo').onclick=go;document.getElementById('lp').onkeydown=e=>{if(e.key==='Enter')go();};
+}
+
+async function loadAll(){
+  const [w,a,c,s,cc]=await Promise.all([getDocs(collection(db,'workshops')),getDocs(collection(db,'workshopApplications')),getDocs(collection(db,'certificates')),getDoc(doc(db,'siteConfig','public')),getDoc(doc(db,'certConfig','main'))]);
+  S.workshops=w.docs.map(d=>({id:d.id,...d.data()})).sort((x,y)=>(y.date||'').localeCompare(x.date||''));
+  S.apps=a.docs.map(d=>({id:d.id,...d.data()}));
+  S.certs=c.docs.map(d=>({id:d.id,...d.data()}));
+  S.site=s.exists()?s.data():{};
+  if(cc.exists())S.cert={...S.cert,...cc.data()};
+  if(!S.selWs&&S.workshops[0])S.selWs=S.workshops[0].id;
+}
+function render(){
+  tabsEl.querySelectorAll('[data-tab]').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===S.tab));
+  ({apps:viewApps,ws:viewWorkshops,certs:viewCerts,settings:viewSettings})[S.tab]();
+}
+
+/* ---------- 신청자 ---------- */
+function viewApps(){
+  if(!S.workshops.length){view.innerHTML='<h1>신청자</h1><p class="lead">먼저 워크숍 탭에서 워크숍을 등록하세요.</p>';return;}
+  const w=S.workshops.find(x=>x.id===S.selWs)||S.workshops[0];S.selWs=w.id;
+  const apps=S.apps.filter(a=>a.workshopId===w.id).sort((a,b)=>(a.createdAt?.seconds||0)-(b.createdAt?.seconds||0));
+  const cnt=s=>apps.filter(a=>a.status===s).length;
+  view.innerHTML=`<h1>신청자</h1><p class="lead">입금이 확인되면 "입금확인", 당일 참석하면 "참석"으로 바꾸고, 수료증을 발급하세요.</p>
+  <div class="panel"><label for="sw">워크숍</label><select id="sw">${S.workshops.map(x=>`<option value="${esc(x.id)}" ${x.id===w.id?'selected':''}>${esc(x.date)} ${esc(x.title)}</option>`).join('')}</select>
+  <div class="summary" style="margin-top:14px"><span>전체<b>${apps.filter(a=>a.status!=='취소').length}</b></span><span>입금확인<b>${cnt('입금확인')}</b></span><span>참석<b>${cnt('참석')}</b></span><span>수료<b>${cnt('수료')}</b></span><span>취소<b>${cnt('취소')}</b></span></div>
+  <div class="actions" style="margin-top:0"><button class="btn" id="bulk">참석자 전원 수료증 발급</button><button class="btn ghost" id="csv">명단 엑셀(CSV) 저장</button><button class="btn ghost" id="pdfall">이 워크숍 수료증 PDF 한 파일로</button></div><p class="msg" id="amsg" role="status"></p></div>
+  <div class="table-wrap"><table><thead><tr><th>신청일</th><th>성명</th><th>연락처</th><th>이메일</th><th>소속</th><th>입금자</th><th>현금영수증</th><th>메모</th><th>상태</th><th>수료증</th></tr></thead><tbody>
+  ${apps.length?apps.map(a=>{const c=a.certId&&S.certs.find(x=>x.id===a.certId);return `<tr>
+    <td class="muted">${a.createdAt?new Date(a.createdAt.seconds*1000).toLocaleDateString('ko-KR'):''}</td>
+    <td><b>${esc(a.name)}</b>${a.birth?`<br><span class="muted">${esc(a.birth)}</span>`:''}</td><td>${esc(a.phone)}</td><td>${esc(a.email)}</td><td>${esc(a.org)}</td>
+    <td>${esc(a.payer||a.name)}</td><td>${esc(a.receipt)}${a.receiptNo?`<br><span class="muted">${esc(a.receiptNo)}</span>`:''}</td><td style="max-width:200px">${esc(a.memo)}</td>
+    <td>${a.status==='수료'?'<span class="badge ok">수료</span>':`<select data-st="${esc(a.id)}">${STATUSES.filter(s=>s!=='수료').map(s=>`<option ${s===a.status?'selected':''}>${s}</option>`).join('')}</select>`}</td>
+    <td>${c?`<span style="white-space:nowrap">${esc(c.id.replace('-','-수료-'))}</span> <button class="small-btn" data-pdf="${esc(c.id)}">PDF</button>`:(['입금확인','참석'].includes(a.status)?`<button class="small-btn primary" data-issue="${esc(a.id)}">발급</button>`:'<span class="muted">-</span>')}</td></tr>`;}).join(''):'<tr><td colspan="10" class="muted">아직 신청자가 없습니다.</td></tr>'}
+  </tbody></table></div>`;
+  const m=document.getElementById('amsg');
+  document.getElementById('sw').onchange=e=>{S.selWs=e.target.value;render();};
+  view.querySelectorAll('[data-st]').forEach(sel=>sel.onchange=async()=>{const a=S.apps.find(x=>x.id===sel.dataset.st);try{await updateDoc(doc(db,'workshopApplications',a.id),{status:sel.value});a.status=sel.value;render();}catch(e){say(m,'상태를 바꾸지 못했습니다.','err');}});
+  view.querySelectorAll('[data-issue]').forEach(b=>b.onclick=async()=>{const a=S.apps.find(x=>x.id===b.dataset.issue);if(!confirm(`${a.name}님의 수료증을 발급할까요? 발급 번호는 삭제할 수 없습니다.`))return;b.disabled=true;try{const c=await issue(a,w);say(m,`${serialLabel(c.id)} 발급했습니다.`,'ok');render();}catch(e){say(m,'발급하지 못했습니다. '+(e.message||''),'err');b.disabled=false;}});
+  view.querySelectorAll('[data-pdf]').forEach(b=>b.onclick=()=>savePdf([S.certs.find(c=>c.id===b.dataset.pdf)],m));
+  document.getElementById('bulk').onclick=async()=>{const t=apps.filter(a=>a.status==='참석'&&!a.certId);if(!t.length){say(m,'"참석" 상태이면서 아직 발급하지 않은 분이 없습니다.','err');return;}
+    if(!confirm(`${t.length}명의 수료증을 발급할까요? 발급 번호는 삭제할 수 없습니다.`))return;let n=0;
+    for(const a of t){try{await issue(a,w);n++;say(m,`발급 중… ${n}/${t.length}`);}catch(e){say(m,`${n}명 발급 후 멈췄습니다: ${a.name}`,'err');render();return;}}
+    render();say(document.getElementById('amsg'),`${n}명 발급을 마쳤습니다. "이 워크숍 수료증 PDF 한 파일로"로 저장하세요.`,'ok');};
+  document.getElementById('csv').onclick=()=>{const head=['신청일','성명','생년월일','연락처','이메일','소속','입금자','현금영수증','발급번호','메모','상태','수료증번호'];
+    const rows=apps.map(a=>[a.createdAt?new Date(a.createdAt.seconds*1000).toLocaleDateString('ko-KR'):'',a.name,a.birth,a.phone,a.email,a.org,a.payer,a.receipt,a.receiptNo,a.memo,a.status,a.certId?a.certId.replace('-','-수료-'):'']);
+    const csv='\ufeff'+[head,...rows].map(r=>r.map(x=>`"${String(x??'').replace(/"/g,'""')}"`).join(',')).join('\r\n');
+    const u=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));const l=document.createElement('a');l.href=u;l.download=`신청자_${w.date}_${w.title}.csv`;l.click();URL.revokeObjectURL(u);};
+  document.getElementById('pdfall').onclick=()=>savePdf(S.certs.filter(c=>c.workshopId===w.id&&!c.revoked).sort((a,b)=>a.id.localeCompare(b.id)),m,`수료증_${w.date}_${w.title}.pdf`);
+}
+
+/* ---------- 수료증 발급 (일련번호: 연도별 001부터, 결번·재사용 없음) ---------- */
+async function issue(a,w){
+  const year=String((w.date||'').slice(0,4)||new Date().getFullYear());
+  const rec=await runTransaction(db,async t=>{
+    const appRef=doc(db,'workshopApplications',a.id), cRef=doc(db,'certCounters',year);
+    const [as,cs]=await Promise.all([t.get(appRef),t.get(cRef)]);
+    if(as.data()?.certId) throw new Error('이미 발급된 신청자입니다.');
+    const num=(cs.exists()?cs.data().last:0)+1, id=`${year}-${String(num).padStart(3,'0')}`;
+    const hash=await sha(id+'|'+normName(a.name));
+    const r={id,year:+year,num,name:a.name,birth:a.birth||'',course:w.title,date:w.date,when:`${korDateW(w.date)} ${w.time||''}`.trim(),hours:w.hours||'',workshopId:w.id,appId:a.id,hash,revoked:false,issuedAt:new Date().toISOString()};
+    t.set(cRef,{last:num});
+    t.set(doc(db,'certificates',id),r);
+    t.set(doc(db,'certVerify',hash),{course:w.title,date:w.date,revoked:false});
+    t.update(appRef,{certId:id,status:'수료'});
+    return r;
+  });
+  S.certs.push(rec);a.certId=rec.id;a.status='수료';return rec;
+}
+
+/* ---------- 워크숍 ---------- */
+const BLANK={title:'',subtitle:'',date:'',time:'',hours:'',place:'박진우원예치료센터',target:'',capacity:'',fee:'',contents:[],provides:[],notes:[],published:true,closed:false};
+const SAMPLE={title:'원예치료 사례개념화 실습 워크숍',subtitle:'내 사례를 가져와, 원예치료 개입을 함께 설계합니다',date:'2026-10-31',time:'오전 10시 ~ 오후 1시',hours:'3시간',place:'박진우원예치료센터',
+  target:'원예치료사, 상담사, 놀이치료사, 특수교사, 사회복지사 등 원예 활동을 현장에 활용하고 싶은 전문가',capacity:'8명 (선착순 마감)',fee:'100,000원',
+  contents:['원예치료 사례개념화의 구조와 핵심 질문','실제 사례로 보는 사례개념화 시연','개인 사례 개념화 실습 및 개별 피드백','사례개념화에서 원예치료 개입 계획으로 연결하기'],
+  provides:['현장에서 바로 쓰는 원예치료 사례개념화 양식 세트 (파일 제공)','수료증 발급 (한국원예치유연구소)','워크숍 후 2주간 질의응답 지원','차와 다과'],
+  notes:['개인 사례가 없어도 준비된 실습 사례로 참여하실 수 있습니다.','사례를 가져오실 경우 이름, 기관명 등 개인정보를 지우고 가져와 주세요.','현금영수증 발급 가능합니다.'],published:true,closed:false};
+let editing=null;
+function viewWorkshops(){
+  if(editing) return wsForm();
+  view.innerHTML=`<h1>워크숍</h1><p class="lead">"홈페이지에 공개"를 켜 둔 워크숍만 신청 페이지에 보입니다. 날짜가 지나면 자동으로 지난 워크숍이 됩니다.</p>
+  <div class="panel">${S.workshops.length?S.workshops.map(w=>`<div class="ws-row"><div><b>${esc(w.title)}</b><br><span class="muted">${esc(w.date)} · ${w.published?'공개':'비공개'}${w.closed?' · 마감':''} · 신청 ${S.apps.filter(a=>a.workshopId===w.id&&a.status!=='취소').length}명</span></div><button class="small-btn" data-edit="${esc(w.id)}">수정</button></div>`).join(''):'<p class="muted" style="margin:0">등록된 워크숍이 없습니다.</p>'}
+  <div class="actions"><button class="btn" id="add">새 워크숍 등록</button>${S.workshops.length?'':'<button class="btn ghost" id="sample">10월 31일 사례개념화 워크숍 불러오기</button>'}</div></div>`;
+  view.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{editing={...S.workshops.find(w=>w.id===b.dataset.edit)};render();});
+  document.getElementById('add').onclick=()=>{editing={...BLANK};render();};
+  const s=document.getElementById('sample');if(s)s.onclick=()=>{editing={...SAMPLE};render();};
+}
+function wsForm(){
+  const w=editing,f=(l,k,t='text',h='')=>`<label for="f-${k}">${l}${h?` <small>${h}</small>`:''}</label>${t==='area'?`<textarea id="f-${k}">${esc((w[k]||[]).join('\n'))}</textarea>`:`<input id="f-${k}" type="${t}" value="${esc(w[k])}">`}`;
+  const hasApps=w.id&&S.apps.some(a=>a.workshopId===w.id);
+  view.innerHTML=`<h1>${w.id?'워크숍 수정':'새 워크숍'}</h1><div class="panel">
+  ${f('제목','title')}${f('부제','subtitle')}
+  <div class="grid3"><div>${f('날짜','date','date')}</div><div>${f('시간','time','text','예: 오전 10시 ~ 오후 1시')}</div><div>${f('교육 시간','hours','text','수료증 표기, 예: 3시간')}</div></div>
+  <div class="grid3"><div>${f('장소','place')}</div><div>${f('정원','capacity')}</div><div>${f('참가비','fee')}</div></div>
+  ${f('대상','target')}${f('진행 내용','contents','area','한 줄에 하나씩')}${f('제공 사항','provides','area','한 줄에 하나씩')}${f('안내 사항','notes','area','한 줄에 하나씩')}
+  <label class="check"><input type="checkbox" id="f-published" ${w.published?'checked':''}> 홈페이지에 공개</label>
+  <label class="check"><input type="checkbox" id="f-closed" ${w.closed?'checked':''}> 모집 마감 (신청 버튼 숨김)</label>
+  <div class="actions"><button class="btn" id="fs">저장</button><button class="btn ghost" id="fc">취소</button>${w.id&&!hasApps?'<button class="small-btn danger" id="fd">삭제</button>':''}</div><p class="msg" id="fm" role="status"></p></div>`;
+  const m=document.getElementById('fm');
+  document.getElementById('fc').onclick=()=>{editing=null;render();};
+  document.getElementById('fs').onclick=async()=>{
+    const v=k=>document.getElementById('f-'+k).value.trim();
+    const d={title:v('title'),subtitle:v('subtitle'),date:v('date'),time:v('time'),hours:v('hours'),place:v('place'),capacity:v('capacity'),fee:v('fee'),target:v('target'),
+      contents:lines(v('contents')),provides:lines(v('provides')),notes:lines(v('notes')),published:document.getElementById('f-published').checked,closed:document.getElementById('f-closed').checked};
+    if(!d.title||!d.date){say(m,'제목과 날짜는 꼭 입력해야 합니다.','err');return;}
+    try{ if(w.id) await setDoc(doc(db,'workshops',w.id),d); else { const r=await addDoc(collection(db,'workshops'),d); S.selWs=r.id; }
+      editing=null;await loadAll();render();}catch(e){say(m,'저장하지 못했습니다.','err');}
+  };
+  const del=document.getElementById('fd');if(del)del.onclick=async()=>{if(!confirm('이 워크숍을 삭제할까요?'))return;try{await deleteDoc(doc(db,'workshops',w.id));editing=null;S.selWs='';await loadAll();render();}catch(e){say(m,'삭제하지 못했습니다.','err');}};
+}
+
+/* ---------- 수료증 대장 ---------- */
+function viewCerts(){
+  const cs=[...S.certs].sort((a,b)=>b.id.localeCompare(a.id));
+  view.innerHTML=`<h1>수료증 대장</h1><p class="lead">번호는 연도별로 001부터 자동 부여되며 삭제할 수 없습니다. 잘못 발급한 경우 "취소"하면 진위 확인에서 취소로 표시됩니다.</p>
+  <div class="table-wrap"><table><thead><tr><th>번호</th><th>성명</th><th>과정명</th><th>수료일</th><th>발급일</th><th>상태</th><th>관리</th></tr></thead><tbody>
+  ${cs.length?cs.map(c=>`<tr><td style="white-space:nowrap">${esc(c.id.replace('-','-수료-'))}</td><td>${esc(c.name)}</td><td>${esc(c.course)}</td><td>${esc(korDate(c.date))}</td><td class="muted">${esc((c.issuedAt||'').slice(0,10))}</td>
+  <td>${c.revoked?'<span class="badge no">취소</span>':'<span class="badge ok">유효</span>'}</td><td>${c.revoked?'':`<button class="small-btn" data-pdf="${esc(c.id)}">PDF</button> <button class="small-btn danger" data-rev="${esc(c.id)}">취소</button>`}</td></tr>`).join(''):'<tr><td colspan="7" class="muted">아직 발급한 수료증이 없습니다.</td></tr>'}
+  </tbody></table></div><p class="msg" id="cm" role="status"></p>`;
+  const m=document.getElementById('cm');
+  view.querySelectorAll('[data-pdf]').forEach(b=>b.onclick=()=>savePdf([S.certs.find(c=>c.id===b.dataset.pdf)],m));
+  view.querySelectorAll('[data-rev]').forEach(b=>b.onclick=async()=>{const c=S.certs.find(x=>x.id===b.dataset.rev);if(!confirm(`${serialLabel(c.id)} ${c.name}님의 수료증을 취소할까요?`))return;
+    try{await updateDoc(doc(db,'certificates',c.id),{revoked:true});await updateDoc(doc(db,'certVerify',c.hash),{revoked:true});c.revoked=true;render();}catch(e){say(m,'취소하지 못했습니다.','err');}});
+}
+
+/* ---------- 설정 ---------- */
+function viewSettings(){
+  const s={centerName:'박진우원예치료센터',address:'울산광역시 울주군 삼남읍 신복1길 26',phone:'010-3491-0013',...S.site},c=S.cert;
+  const ar=k=>esc((s[k]||[]).join('\n'));
+  view.innerHTML=`<h1>설정</h1>
+  <div class="panel"><h2>신청 페이지 정보</h2><p class="muted" style="margin:0">비워 두면 기본 문구가 나옵니다.</p>
+  <label for="s-centerName">센터 이름</label><input id="s-centerName" type="text" value="${esc(s.centerName)}">
+  <label for="s-headline">첫 화면 제목</label><input id="s-headline" type="text" value="${esc(s.headline)}">
+  <label for="s-intro">첫 화면 소개</label><textarea id="s-intro">${esc(s.intro)}</textarea>
+  <div class="grid2"><div><label for="s-address">주소</label><input id="s-address" type="text" value="${esc(s.address)}"></div><div><label for="s-phone">전화번호</label><input id="s-phone" type="text" value="${esc(s.phone)}"></div>
+  <div><label for="s-email">이메일</label><input id="s-email" type="text" value="${esc(s.email)}"></div><div><label for="s-kakao">카카오톡 채널 링크</label><input id="s-kakao" type="url" value="${esc(s.kakao)}"></div></div>
+  <label for="s-bank">입금 계좌 <small>신청 완료 화면에도 표시됩니다</small></label><input id="s-bank" type="text" value="${esc(s.bank)}" placeholder="예: 농협 000-0000-0000-00 (예금주 박진우)">
+  <label for="s-instructorName">강사 이름</label><input id="s-instructorName" type="text" value="${esc(s.instructorName)}">
+  <label for="s-instructorBio">강사 약력 <small>한 줄에 하나씩</small></label><textarea id="s-instructorBio">${ar('instructorBio')}</textarea>
+  <label for="s-applySteps">신청 방법 <small>한 줄에 한 단계씩</small></label><textarea id="s-applySteps">${ar('applySteps')}</textarea>
+  <label for="s-refund">환불 규정 <small>한 줄에 하나씩</small></label><textarea id="s-refund">${ar('refund')}</textarea>
+  <div class="actions"><button class="btn" id="ss">저장</button></div><p class="msg" id="sm" role="status"></p></div>
+  <div class="panel"><h2>수료증</h2>
+  <label for="c-orgName">발급 기관</label><input id="c-orgName" type="text" value="${esc(c.orgName)}">
+  <label for="c-issuer">발급자 표기</label><input id="c-issuer" type="text" value="${esc(c.issuer)}">
+  <label for="c-verifyUrl">진위 확인 주소 <small>신청 페이지 주소 뒤에 #verify를 붙여 넣으세요</small></label><input id="c-verifyUrl" type="url" value="${esc(c.verifyUrl)}" placeholder="https://parkjinwoohtc.com/workshop.html#verify">
+  <label for="c-stamp">직인 이미지 <small>배경이 투명한 PNG 권장</small></label><input id="c-stamp" type="file" accept="image/png,image/jpeg">
+  <div class="stamp-prev" id="c-prev" style="margin-top:8px">${c.stamp?`<img alt="등록된 직인" src="${esc(c.stamp)}">`:'<span class="muted">등록된 직인이 없습니다.</span>'}</div>
+  <div class="actions"><button class="btn ghost" id="cp">수료증 미리 보기</button><button class="btn" id="cs">저장</button></div><p class="msg" id="cm2" role="status"></p><div class="preview" id="cbox"></div></div>`;
+  let stamp=c.stamp;
+  document.getElementById('c-stamp').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const i=new Image();i.onload=()=>{const k=Math.min(1,500/Math.max(i.width,i.height)),cv=document.createElement('canvas');cv.width=Math.round(i.width*k);cv.height=Math.round(i.height*k);cv.getContext('2d').drawImage(i,0,0,cv.width,cv.height);stamp=cv.toDataURL('image/png');document.getElementById('c-prev').innerHTML=`<img alt="새 직인" src="${stamp}"> <span class="muted">저장을 누르면 적용됩니다.</span>`;};i.src=r.result;};r.readAsDataURL(f);};
+  const certVals=()=>({orgName:document.getElementById('c-orgName').value.trim()||'한국원예치유연구소',issuer:document.getElementById('c-issuer').value.trim(),verifyUrl:document.getElementById('c-verifyUrl').value.trim(),stamp});
+  document.getElementById('ss').onclick=async()=>{const g=k=>document.getElementById('s-'+k).value.trim();
+    const d={centerName:g('centerName'),headline:g('headline'),intro:g('intro'),address:g('address'),phone:g('phone'),email:g('email'),kakao:g('kakao'),bank:g('bank'),instructorName:g('instructorName'),instructorBio:lines(g('instructorBio')),applySteps:lines(g('applySteps')),refund:lines(g('refund'))};
+    Object.keys(d).forEach(k=>{if(d[k]===''||(Array.isArray(d[k])&&!d[k].length))delete d[k];});
+    try{await setDoc(doc(db,'siteConfig','public'),d);S.site=d;say(document.getElementById('sm'),'저장했습니다.','ok');}catch(e){say(document.getElementById('sm'),'저장하지 못했습니다.','err');}};
+  document.getElementById('cs').onclick=async()=>{const d=certVals();try{await setDoc(doc(db,'certConfig','main'),d);S.cert=d;say(document.getElementById('cm2'),'저장했습니다.','ok');}catch(e){say(document.getElementById('cm2'),'저장하지 못했습니다. 직인 이미지가 너무 크면 더 작은 파일로 바꿔 주세요.','err');}};
+  document.getElementById('cp').onclick=async()=>{const cv=await drawCert({id:'2026-001',name:'홍길동',birth:'',course:'원예치료 사례개념화 실습 워크숍',date:'2026-10-31',when:'2026년 10월 31일(토) 오전 10시 ~ 오후 1시',hours:'3시간'},certVals());const b=document.getElementById('cbox');b.innerHTML='';b.appendChild(cv);};
+}
+
+/* ---------- 수료증 그리기 / PDF ---------- */
+const W=2480,H=3508;
+const loadImg=src=>new Promise(r=>{if(!src)return r(null);const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src=src;});
+function wrapText(x,text,maxW){const out=[];let cur='';for(const w of String(text).split(' ')){const t=cur?cur+' '+w:w;if(x.measureText(t).width>maxW&&cur){out.push(cur);cur=w;}else cur=t;}if(cur)out.push(cur);
+  return out.flatMap(l=>{if(x.measureText(l).width<=maxW)return [l];const r=[];let c='';for(const ch of l){if(x.measureText(c+ch).width>maxW&&c){r.push(c);c=ch;}else c+=ch;}if(c)r.push(c);return r;});}
+async function drawCert(r,cfg=S.cert){
+  try{await Promise.all([document.fonts.load('700 120px "Gowun Batang"'),document.fonts.load('400 60px "Gowun Batang"'),document.fonts.load('400 40px "IBM Plex Sans KR"')]);}catch(e){}
+  const stamp=await loadImg(cfg.stamp),cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');
+  const SERIF='"Gowun Batang","Nanum Myeongjo",serif',SANS='"IBM Plex Sans KR","Malgun Gothic",sans-serif',MOSS='#355E45',INK='#1D2A21',MUTED='#5E6E62',SOIL='#8A6440';
+  x.fillStyle='#FBFCF8';x.fillRect(0,0,W,H);x.strokeStyle=MOSS;x.lineWidth=12;x.strokeRect(120,120,W-240,H-240);x.lineWidth=3;x.strokeRect(160,160,W-320,H-320);
+  x.save();x.translate(W/2,520);x.lineWidth=6;x.lineCap='round';x.lineJoin='round';
+  x.strokeStyle=SOIL;x.beginPath();x.moveTo(-170,70);x.bezierCurveTo(-60,55,60,55,170,70);x.stroke();
+  x.strokeStyle=MOSS;x.beginPath();x.moveTo(0,64);x.bezierCurveTo(-3,20,4,-20,0,-70);x.stroke();x.fillStyle='rgba(141,177,122,.45)';
+  x.beginPath();x.moveTo(1,-12);x.bezierCurveTo(26,-36,66,-42,96,-30);x.bezierCurveTo(70,-2,30,2,1,-12);x.closePath();x.fill();x.stroke();
+  x.beginPath();x.moveTo(0,-56);x.bezierCurveTo(-24,-82,-62,-90,-92,-78);x.bezierCurveTo(-66,-48,-28,-44,0,-56);x.closePath();x.fill();x.stroke();x.restore();
+  x.fillStyle=MUTED;x.font='400 46px '+SANS;x.textAlign='left';x.fillText(serialLabel(r.id),240,320);
+  x.fillStyle=INK;x.textAlign='center';x.font='700 220px '+SERIF;x.fillText('수  료  증',W/2,900);
+  const fx=470,vx=900,maxV=W-vx-420;let fy=1260;
+  const rows=[['성      명',r.name]];if(r.birth)rows.push(['생년월일',r.birth]);rows.push(['과  정  명',r.course],['교육일시',r.when||korDateW(r.date)],['교육시간',r.hours]);
+  rows.forEach(([k,v],i)=>{if(!v)return;x.textAlign='left';x.fillStyle=MUTED;x.font='700 64px '+SERIF;x.fillText(k,fx,fy);x.fillStyle=INK;x.font=(i===0?'700 76px ':'400 66px ')+SERIF;
+    const ls=wrapText(x,v,maxV);ls.forEach((l,j)=>x.fillText(l,vx,fy+j*100));fy+=140+(ls.length-1)*100;});
+  x.textAlign='center';x.fillStyle=INK;x.font='400 74px '+SERIF;
+  const bl=wrapText(x,`위 사람은 ${cfg.orgName}에서 주관한 「${r.course}」 과정을 성실히 이수하였으므로 이 증서를 수여합니다.`,W-880),by=Math.max(fy+170,2080);
+  bl.forEach((l,i)=>x.fillText(l,W/2,by+i*128));const dy=by+bl.length*128+230;x.font='400 70px '+SERIF;x.fillText(korDate(r.date),W/2,dy);
+  const iy=dy+330;x.font='700 96px '+SERIF;x.fillText(cfg.issuer,W/2,iy);
+  if(stamp){const tw=x.measureText(cfg.issuer).width,s=260,k=s/Math.max(stamp.width,stamp.height);x.globalAlpha=.92;x.drawImage(stamp,W/2+tw/2-s*.35,iy-s*.72,stamp.width*k,stamp.height*k);x.globalAlpha=1;}
+  if(cfg.verifyUrl){x.font='400 38px '+SANS;x.fillStyle=MUTED;x.fillText('진위 확인: 수료증 번호와 성명으로 확인할 수 있습니다  '+cfg.verifyUrl,W/2,H-230);}
+  return cv;
+}
+async function savePdf(list,msgEl,filename){
+  list=list.filter(Boolean);if(!list.length){say(msgEl,'저장할 수료증이 없습니다.','err');return;}
+  if(!window.jspdf){say(msgEl,'PDF 도구를 불러오지 못했습니다. 새로 고침 해 주세요.','err');return;}
+  say(msgEl,`수료증을 만드는 중입니다… (${list.length}장)`);
+  const pdf=new window.jspdf.jsPDF({unit:'mm',format:'a4',orientation:'portrait',compress:true});
+  for(let i=0;i<list.length;i++){const cv=await drawCert(list[i]);if(i)pdf.addPage();pdf.addImage(cv.toDataURL('image/jpeg',.9),'JPEG',0,0,210,297);}
+  pdf.save((filename||`수료증_${list[0].id}_${list[0].name}.pdf`).replace(/[\\/:*?"<>|]/g,'_'));say(msgEl,'저장했습니다.','ok');
+}
+</script>
+</body>
+</html>
